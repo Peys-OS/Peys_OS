@@ -17,6 +17,10 @@ out/
 cache/
 lib/
 
+# environment variables
+.env
+.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

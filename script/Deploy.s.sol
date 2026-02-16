@@ -7,24 +7,13 @@ import "../contracts/PeyDotEscrow.sol";
 contract DeployPeyDotEscrow is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        string memory network = vm.envString("NETWORK");
+        
         vm.startBroadcast(deployerPrivateKey);
 
         PeyDotEscrow escrow = new PeyDotEscrow();
-
-        console.log("PeyDotEscrow deployed at:", address(escrow));
 
         vm.stopBroadcast();
-    }
-}
-
-contract DeployScript is Script {
-    function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        string memory network = vm.envString("NETWORK");
-
-        vm.startBroadcast(deployerPrivateKey);
-
-        PeyDotEscrow escrow = new PeyDotEscrow();
 
         console.log("========================================");
         console.log("PeyDotEscrow Deployment");
@@ -33,7 +22,10 @@ contract DeployScript is Script {
         console.log("Contract Address:", address(escrow));
         console.log("Deployer:", vm.addr(deployerPrivateKey));
         console.log("========================================");
-
-        vm.stopBroadcast();
+        
+        // Output for automation
+        console.log("");
+        console.log("CONTRACT_ADDRESS=", vm.toString(address(escrow)));
+        console.log("");
     }
 }
