@@ -1,9 +1,10 @@
+import { PrivyProvider } from '@privy-io/react-auth';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppProvider } from "@/contexts/AppContext";
+import { AppPrivyProvider } from "@/contexts/PrivyContext";
 import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
@@ -12,24 +13,43 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'your_privy_app_id';
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AppProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/send" element={<SendPage />} />
-            <Route path="/claim/:id" element={<ClaimPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AppProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <PrivyProvider 
+    appId={PRIVY_APP_ID}
+    config={{
+      loginMethods: ['email', 'google', 'apple', 'wallet'],
+      embeddedWallets: {
+        ethereum: {
+          createOnLogin: 'all-users',
+        },
+        showWalletUIs: true,
+      },
+      appearance: {
+        theme: 'dark',
+        accentColor: '#6366f1',
+      },
+    }}
+  >
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AppPrivyProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/send" element={<SendPage />} />
+              <Route path="/claim/:id" element={<ClaimPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AppPrivyProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </PrivyProvider>
 );
 
 export default App;
