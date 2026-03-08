@@ -59,7 +59,7 @@ function generateResponse(text: string): string {
 export default function AIChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm Pey AI 👋 I can help you send payments, check balances, and answer questions. Try saying \"Send $50 USDC to alice@email.com\"" },
+    { role: "assistant", content: "Hi! I'm Peys AI 👋 I can help you send payments, check balances, and answer questions. Try saying \"Send $50 USDC to alice@email.com\"" },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
