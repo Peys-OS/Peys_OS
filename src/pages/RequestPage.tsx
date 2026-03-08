@@ -97,7 +97,7 @@ export default function RequestPage() {
   const shareRequest = async (req: PaymentRequest) => {
     const shareData = {
       title: `Payment request for $${req.amount} ${req.token}`,
-      text: `${req.memo || "Payment requested"} — $${req.amount} ${req.token} on Pey`,
+      text: `${req.memo || "Payment requested"} — $${req.amount} ${req.token} on Peys`,
       url: `https://${req.link}`,
     };
     if (navigator.share) {
