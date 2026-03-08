@@ -22,6 +22,7 @@ export default function SendPaymentForm() {
   const [step, setStep] = useState<"form" | "confirm" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showCard, setShowCard] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
   const recipientRef = useRef<HTMLDivElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
