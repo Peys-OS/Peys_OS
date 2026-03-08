@@ -27,19 +27,19 @@ const testimonials = [
 
 export default function SocialProofSection() {
   return (
-    <section className="bg-gradient-section py-24">
-      <div className="container mx-auto">
+    <section className="bg-gradient-section py-16 sm:py-24">
+      <div className="container mx-auto px-4">
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-20 grid grid-cols-2 gap-8 md:grid-cols-4"
+          className="mb-14 grid grid-cols-2 gap-6 sm:mb-20 sm:gap-8 md:grid-cols-4"
         >
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="font-display text-3xl text-foreground sm:text-4xl">{s.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+              <p className="font-display text-2xl text-foreground sm:text-3xl md:text-4xl">{s.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{s.label}</p>
             </div>
           ))}
         </motion.div>
@@ -51,12 +51,12 @@ export default function SocialProofSection() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <h2 className="font-display text-4xl text-foreground">
+          <h2 className="font-display text-2xl text-foreground sm:text-4xl">
             Trusted by users worldwide
           </h2>
         </motion.div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-12 sm:gap-6 md:grid-cols-3">
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
@@ -64,11 +64,11 @@ export default function SocialProofSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="rounded-2xl border border-border bg-card p-6 shadow-soft"
+              className="rounded-xl border border-border bg-card p-5 shadow-soft sm:rounded-2xl sm:p-6"
             >
               <p className="text-sm leading-relaxed text-foreground">"{t.quote}"</p>
               <div className="mt-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground sm:h-10 sm:w-10 sm:text-sm">
                   {t.name[0]}
                 </div>
                 <div>

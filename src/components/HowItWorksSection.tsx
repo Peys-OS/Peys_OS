@@ -10,43 +10,43 @@ const steps = [
 
 export default function HowItWorksSection() {
   return (
-    <section className="py-24">
-      <div className="container mx-auto">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          {/* Left: Phone Mockup */}
+    <section className="py-16 sm:py-24">
+      <div className="container mx-auto px-4">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          {/* Phone Mockup - hidden on small mobile, shown on sm+ */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="flex justify-center"
+            className="hidden justify-center sm:flex"
           >
             <div className="relative">
               <div className="absolute -inset-8 rounded-full bg-primary/5 blur-3xl" />
               <img
                 src={claimMockup}
                 alt="Pey claim flow on mobile phone"
-                className="relative z-10 h-[450px] object-contain animate-float"
+                className="relative z-10 h-[320px] object-contain animate-float sm:h-[400px] lg:h-[450px]"
                 loading="lazy"
               />
             </div>
           </motion.div>
 
-          {/* Right: Steps */}
+          {/* Steps */}
           <div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-4xl text-foreground sm:text-5xl">
+              <h2 className="font-display text-2xl text-foreground sm:text-4xl md:text-5xl">
                 How it works
               </h2>
-              <p className="mt-4 text-muted-foreground">
+              <p className="mt-3 text-sm text-muted-foreground sm:mt-4 sm:text-base">
                 From send to claim — in under 60 seconds.
               </p>
             </motion.div>
 
-            <div className="mt-10 space-y-6">
+            <div className="mt-8 space-y-4 sm:mt-10 sm:space-y-6">
               {steps.map((step, i) => (
                 <motion.div
                   key={step.num}
@@ -54,14 +54,14 @@ export default function HowItWorksSection() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex gap-4"
+                  className="flex gap-3 sm:gap-4"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
                     {step.num}
                   </span>
                   <div>
-                    <h4 className="font-semibold text-foreground">{step.title}</h4>
-                    <p className="mt-1 text-sm text-muted-foreground">{step.desc}</p>
+                    <h4 className="text-sm font-semibold text-foreground sm:text-base">{step.title}</h4>
+                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{step.desc}</p>
                   </div>
                 </motion.div>
               ))}

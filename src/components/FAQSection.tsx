@@ -33,20 +33,20 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-24">
-      <div className="container mx-auto max-w-2xl">
+    <section className="py-16 sm:py-24">
+      <div className="container mx-auto max-w-2xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center"
         >
-          <h2 className="font-display text-4xl text-foreground">
+          <h2 className="font-display text-2xl text-foreground sm:text-4xl">
             Your questions, answered
           </h2>
         </motion.div>
 
-        <div className="mt-12 space-y-3">
+        <div className="mt-8 space-y-2 sm:mt-12 sm:space-y-3">
           {faqs.map((faq, i) => (
             <motion.div
               key={i}
@@ -54,11 +54,11 @@ export default function FAQSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
-              className="overflow-hidden rounded-xl border border-border bg-card"
+              className="overflow-hidden rounded-lg border border-border bg-card sm:rounded-xl"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="flex w-full items-center justify-between px-6 py-4 text-left"
+                className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-6 sm:py-4"
               >
                 <span className="text-sm font-semibold text-foreground">{faq.q}</span>
                 <ChevronDown
@@ -75,7 +75,7 @@ export default function FAQSection() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <p className="px-6 pb-4 text-sm leading-relaxed text-muted-foreground">
+                    <p className="px-4 pb-3 text-sm leading-relaxed text-muted-foreground sm:px-6 sm:pb-4">
                       {faq.a}
                     </p>
                   </motion.div>

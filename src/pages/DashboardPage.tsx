@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
@@ -20,8 +21,14 @@ function TxIcon({ type }: { type: Transaction["type"] }) {
   return <Clock className="h-4 w-4" />;
 }
 
+type StatusFilter = "all" | "sent" | "claimed" | "pending";
+type TokenFilter = "all" | "USDC" | "USDT";
+
 export default function DashboardPage() {
   const { isLoggedIn, login, wallet, transactions } = useApp();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!isLoggedIn) {
     return (
@@ -29,8 +36,8 @@ export default function DashboardPage() {
         <AppHeader />
         <div className="flex min-h-[80vh] flex-col items-center justify-center px-4">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-            <h2 className="mb-3 font-display text-3xl text-foreground">Sign in to view your dashboard</h2>
-            <p className="mb-6 text-muted-foreground">Track payments, view balances, and manage your wallet.</p>
+            <h2 className="mb-3 font-display text-2xl text-foreground sm:text-3xl">Sign in to view your dashboard</h2>
+            <p className="mb-6 text-sm text-muted-foreground sm:text-base">Track payments, view balances, and manage your wallet.</p>
             <button onClick={login} className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
               Sign In
             </button>
@@ -40,6 +47,19 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const filtered = transactions.filter((tx) => {
+    if (statusFilter !== "all" && tx.type !== statusFilter) return false;
+    if (tokenFilter !== "all" && tx.token !== tokenFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return (
+        tx.counterparty.toLowerCase().includes(q) ||
+        (tx.memo && tx.memo.toLowerCase().includes(q))
+      );
+    }
+    return true;
+  });
 
   const badgeStyles = {
     sent: "bg-destructive/10 text-destructive",
@@ -53,43 +73,50 @@ export default function DashboardPage() {
     pending: "bg-warning/10 text-warning",
   };
 
+  const statusFilters: { label: string; value: StatusFilter }[] = [
+    { label: "All", value: "all" },
+    { label: "Sent", value: "sent" },
+    { label: "Claimed", value: "claimed" },
+    { label: "Pending", value: "pending" },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-2xl px-4 pt-24 pb-16">
+      <div className="container mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
         {/* Wallet Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="mb-6 overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card"
+          className="mb-4 overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card sm:mb-6 sm:rounded-2xl sm:p-6"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">Overall Balance</p>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {wallet.address}
               <Copy className="h-3 w-3 cursor-pointer hover:text-foreground transition-colors" />
             </span>
           </div>
-          <h2 className="mt-1 font-display text-4xl text-foreground">
+          <h2 className="mt-1 font-display text-3xl text-foreground sm:text-4xl">
             ${(wallet.balanceUSDC + wallet.balanceUSDT).toLocaleString("en", { minimumFractionDigits: 2 })}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">All balances in USDC · 1 USDC = 1 USD</p>
 
-          <div className="mt-5 flex gap-3">
-            <div className="flex-1 rounded-xl border border-border bg-secondary/50 p-4">
+          <div className="mt-4 flex gap-2 sm:mt-5 sm:gap-3">
+            <div className="flex-1 rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
               <p className="text-xs text-muted-foreground">USDC</p>
-              <p className="mt-1 text-lg font-semibold text-foreground">${wallet.balanceUSDC.toFixed(2)}</p>
+              <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">${wallet.balanceUSDC.toFixed(2)}</p>
               <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">4.2% APY</span>
             </div>
-            <div className="flex-1 rounded-xl border border-border bg-secondary/50 p-4">
+            <div className="flex-1 rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
               <p className="text-xs text-muted-foreground">USDT</p>
-              <p className="mt-1 text-lg font-semibold text-foreground">${wallet.balanceUSDT.toFixed(2)}</p>
+              <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">${wallet.balanceUSDT.toFixed(2)}</p>
             </div>
           </div>
 
-          <div className="mt-5 flex gap-2">
-            <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
+          <div className="mt-4 flex gap-2 sm:mt-5">
+            <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:rounded-xl sm:py-3">
               <Send className="h-4 w-4" /> Send
             </Link>
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+            <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
               <ExternalLink className="h-4 w-4" /> Withdraw
             </button>
           </div>
@@ -97,34 +124,96 @@ export default function DashboardPage() {
 
         {/* Yield teaser */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="mb-6 rounded-xl border border-primary/20 bg-gradient-card-hover p-4"
+          className="mb-4 rounded-lg border border-primary/20 bg-gradient-card-hover p-3 sm:mb-6 sm:rounded-xl sm:p-4"
         >
           <p className="text-sm font-medium text-foreground">💡 Earn yield on idle funds</p>
           <p className="mt-1 text-xs text-muted-foreground">Coming soon: Escrowed stables earn yield via Bifrost LSTs on Polkadot.</p>
         </motion.div>
 
+        {/* Filters & Search */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mb-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg text-foreground sm:text-xl">Recent Activity</h3>
+            <div className="flex items-center gap-1">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              <select
+                value={tokenFilter}
+                onChange={(e) => setTokenFilter(e.target.value as TokenFilter)}
+                className="bg-transparent text-xs text-muted-foreground focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Tokens</option>
+                <option value="USDC">USDC</option>
+                <option value="USDT">USDT</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or memo..."
+              className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:rounded-xl sm:py-2.5"
+            />
+          </div>
+
+          {/* Status pills */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {statusFilters.map((sf) => (
+              <button
+                key={sf.value}
+                onClick={() => setStatusFilter(sf.value)}
+                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  statusFilter === sf.value
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
+              >
+                {sf.label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
         {/* Transactions */}
-        <h3 className="mb-3 font-display text-xl text-foreground">Recent Activity</h3>
         <div className="space-y-2">
-          {transactions.map((tx, i) => (
-            <motion.div key={tx.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary/30"
+          {filtered.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="rounded-xl border border-border bg-card p-8 text-center"
             >
-              <div className={`flex h-9 w-9 items-center justify-center rounded-full ${iconBg[tx.type]}`}>
-                <TxIcon type={tx.type} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{tx.counterparty}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${badgeStyles[tx.type]}`}>{tx.type}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">{tx.memo || formatTime(tx.timestamp)}</p>
-              </div>
-              <p className={`text-sm font-semibold ${tx.type === "claimed" ? "text-primary" : "text-foreground"}`}>
-                {tx.type === "claimed" ? "+" : "-"}{tx.amount} {tx.token}
-              </p>
+              <p className="text-sm text-muted-foreground">No transactions found.</p>
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="mt-2 text-xs text-primary hover:underline">
+                  Clear search
+                </button>
+              )}
             </motion.div>
-          ))}
+          ) : (
+            filtered.map((tx, i) => (
+              <motion.div key={tx.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
+                className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
+              >
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBg[tx.type]}`}>
+                  <TxIcon type={tx.type} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium text-foreground">{tx.counterparty}</p>
+                    <span className={`hidden rounded-full px-2 py-0.5 text-xs font-medium capitalize sm:inline-block ${badgeStyles[tx.type]}`}>{tx.type}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{tx.memo || formatTime(tx.timestamp)}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-sm font-semibold ${tx.type === "claimed" ? "text-primary" : "text-foreground"}`}>
+                    {tx.type === "claimed" ? "+" : "-"}{tx.amount} {tx.token}
+                  </p>
+                  <span className={`text-xs capitalize sm:hidden ${badgeStyles[tx.type]}`}>{tx.type}</span>
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
       <Footer />
