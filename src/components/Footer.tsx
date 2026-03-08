@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-[11px] text-muted-foreground/50">
-          © 2025 Pey · Built for the Polkadot Solidity Hackathon · Made with care on Polkadot Hub
+          © 2025 Peys · Built for the Polkadot Solidity Hackathon · Made with care on Polkadot Hub
         </div>
       </div>
     </footer>

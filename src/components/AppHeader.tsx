@@ -41,8 +41,8 @@ export default function AppHeader() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:px-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src="/peys_logo_alone.png" alt="Pey" className="h-7 w-7 rounded-lg sm:h-8 sm:w-8" />
-            <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Pey</span>
+            <img src="/peys_logo_alone.png" alt="Peys" className="h-9 w-9 rounded-lg sm:h-10 sm:w-10" />
+            <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Peys</span>
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full border border-border bg-secondary/50 px-1.5 py-1 xl:flex">
