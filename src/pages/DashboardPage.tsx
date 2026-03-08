@@ -86,7 +86,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      <div className="relative container mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+        {/* Subtle grid background */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }} />
         {/* Wallet Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="mb-4 overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card sm:mb-6 sm:rounded-2xl sm:p-6"
