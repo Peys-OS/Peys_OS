@@ -210,7 +210,20 @@ export default function DashboardPage() {
 
         {/* Transactions */}
         <div className="space-y-2">
-          {filtered.length === 0 ? (
+          {transactionsLoading && filtered.length === 0 ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 sm:rounded-xl sm:p-4 animate-pulse">
+                  <div className="h-8 w-8 rounded-full bg-muted sm:h-9 sm:w-9" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 rounded bg-muted" />
+                    <div className="h-3 w-20 rounded bg-muted" />
+                  </div>
+                  <div className="h-4 w-16 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="rounded-xl border border-border bg-card p-8 text-center"
             >
