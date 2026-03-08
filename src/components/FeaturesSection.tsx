@@ -82,19 +82,19 @@ const features = [
 const iconAnimations = {
   bounce: {
     y: [0, -4, 0],
-    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const },
   },
   pulse: {
     scale: [1, 1.1, 1],
-    transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
   },
   spin: {
     rotate: [0, 360],
-    transition: { duration: 8, repeat: Infinity, ease: "linear" },
+    transition: { duration: 8, repeat: Infinity, ease: "linear" as const },
   },
   shake: {
     x: [0, -2, 2, -2, 0],
-    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" as const },
   },
 };
 
