@@ -40,6 +40,7 @@ export default function SendPaymentForm() {
   const copyLink = () => {
     navigator.clipboard.writeText(fullLink);
     setLinkCopied(true);
+    toast.success("Link copied!");
     setTimeout(() => setLinkCopied(false), 2000);
   };
 

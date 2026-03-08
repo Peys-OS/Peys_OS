@@ -29,6 +29,7 @@ export default function ClaimPage() {
       setClaiming(false);
       setClaimed(true);
       fireConfetti();
+      toast.success(`${claimData.amount} ${claimData.token} claimed! 🎉`);
     }, 2000);
   };
 
