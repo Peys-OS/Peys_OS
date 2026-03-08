@@ -6,6 +6,7 @@ import { useApp } from "@/contexts/AppContext";
 import { fireConfetti } from "@/lib/confetti";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
+import { toast } from "sonner";
 
 export default function ClaimPage() {
   const { id } = useParams();
@@ -28,6 +29,7 @@ export default function ClaimPage() {
       setClaiming(false);
       setClaimed(true);
       fireConfetti();
+      toast.success(`${claimData.amount} ${claimData.token} claimed! 🎉`);
     }, 2000);
   };
 

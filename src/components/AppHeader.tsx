@@ -4,6 +4,7 @@ import { Menu, X, Sun, Moon } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function AppHeader() {
   const { isLoggedIn, login, logout } = useApp();
@@ -14,15 +15,27 @@ export default function AppHeader() {
   const navItems = [
     { to: "/", label: "Home" },
     { to: "/send", label: "Send" },
-    { to: "/claim/demo", label: "Claim" },
+    { to: "/request", label: "Request" },
+    { to: "/streaming", label: "Streams" },
+    { to: "/batch", label: "Batch" },
     { to: "/dashboard", label: "Dashboard" },
     { to: "/analytics", label: "Analytics" },
   ];
 
+  const handleLogin = () => {
+    login();
+    toast.success("Welcome back! 👋");
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast("Signed out successfully");
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto flex h-14 items-center justify-between sm:h-16">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
               <span className="text-xs font-bold text-primary-foreground sm:text-sm">P</span>
@@ -30,7 +43,7 @@ export default function AppHeader() {
             <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Pey</span>
           </Link>
 
-          <nav className="hidden items-center gap-5 lg:flex">
+          <nav className="hidden items-center gap-4 xl:flex">
             {navItems.map((item) => {
               const isActive = location.pathname === item.to;
               return (
@@ -49,22 +62,22 @@ export default function AppHeader() {
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
 
-            <div className="hidden items-center gap-3 lg:flex">
+            <div className="hidden items-center gap-3 xl:flex">
               {isLoggedIn ? (
                 <>
                   <span className="text-sm text-muted-foreground">0x1a2B...9f4E</span>
-                  <button onClick={logout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
+                  <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
                 </>
               ) : (
                 <>
-                  <button onClick={login} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Login</button>
-                  <button onClick={login} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">Open Account</button>
+                  <button onClick={handleLogin} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Login</button>
+                  <button onClick={handleLogin} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">Open Account</button>
                 </>
               )}
             </div>
 
             <button onClick={() => setMobileOpen(!mobileOpen)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground xl:hidden"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -77,13 +90,13 @@ export default function AppHeader() {
         {mobileOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm xl:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed top-0 right-0 z-50 h-full w-72 border-l border-border bg-card shadow-elevated lg:hidden"
+              className="fixed top-0 right-0 z-50 h-full w-72 border-l border-border bg-card shadow-elevated xl:hidden"
             >
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
                 <span className="text-sm font-semibold text-foreground">Menu</span>
@@ -103,14 +116,14 @@ export default function AppHeader() {
                 {isLoggedIn ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground">0x1a2B...9f4E</p>
-                    <button onClick={() => { logout(); setMobileOpen(false); }}
+                    <button onClick={() => { handleLogout(); setMobileOpen(false); }}
                       className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Sign Out</button>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <button onClick={() => { login(); setMobileOpen(false); }}
+                    <button onClick={() => { handleLogin(); setMobileOpen(false); }}
                       className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">Open Account</button>
-                    <button onClick={() => { login(); setMobileOpen(false); }}
+                    <button onClick={() => { handleLogin(); setMobileOpen(false); }}
                       className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Login</button>
                   </div>
                 )}

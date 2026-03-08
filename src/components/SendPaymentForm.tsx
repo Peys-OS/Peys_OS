@@ -1,3 +1,4 @@
+// Send Payment Form
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Copy, Check, ArrowLeft, Download, X, Share2 } from "lucide-react";
@@ -6,6 +7,7 @@ import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/lib/confetti";
 import { Link } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
+import { toast } from "sonner";
 
 type Token = "USDC" | "USDT";
 
@@ -31,12 +33,14 @@ export default function SendPaymentForm() {
     else if (step === "confirm") {
       setStep("done");
       fireBurst();
+      toast.success("Payment created! Share the link to get paid 🎉");
     }
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(fullLink);
     setLinkCopied(true);
+    toast.success("Link copied!");
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
