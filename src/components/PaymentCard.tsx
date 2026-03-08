@@ -47,7 +47,7 @@ export default function PaymentCard({ sender, amount, token, memo, claimId }: Pa
         {/* Claim CTA */}
         <div className="rounded-xl bg-primary p-4 text-center">
           <p className="text-sm font-semibold text-primary-foreground">Tap to claim your funds</p>
-          <p className="mt-1 text-xs text-primary-foreground/70">pey.app/claim/{claimId}</p>
+          <p className="mt-1 text-xs text-primary-foreground/70">peys.app/claim/{claimId}</p>
         </div>
 
         {/* Footer */}

@@ -18,9 +18,9 @@ interface PaymentRequest {
 }
 
 const MOCK_REQUESTS: PaymentRequest[] = [
-  { id: "r1", from: "bob@email.com", amount: 500, token: "USDC", memo: "Website redesign", status: "open", createdAt: new Date(Date.now() - 86400000), link: "pey.app/request/r1" },
-  { id: "r2", from: "alice@email.com", amount: 150, token: "USDT", memo: "Logo design", status: "paid", createdAt: new Date(Date.now() - 172800000), link: "pey.app/request/r2" },
-  { id: "r3", from: "moses@email.com", amount: 1000, token: "USDC", memo: "Q4 Invoice", status: "expired", createdAt: new Date(Date.now() - 604800000), link: "pey.app/request/r3" },
+  { id: "r1", from: "bob@email.com", amount: 500, token: "USDC", memo: "Website redesign", status: "open", createdAt: new Date(Date.now() - 86400000), link: "peys.app/request/r1" },
+  { id: "r2", from: "alice@email.com", amount: 150, token: "USDT", memo: "Logo design", status: "paid", createdAt: new Date(Date.now() - 172800000), link: "peys.app/request/r2" },
+  { id: "r3", from: "moses@email.com", amount: 1000, token: "USDC", memo: "Q4 Invoice", status: "expired", createdAt: new Date(Date.now() - 604800000), link: "peys.app/request/r3" },
 ];
 
 const statusStyles = {

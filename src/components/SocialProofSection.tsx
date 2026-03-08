@@ -14,7 +14,7 @@ const testimonials = [
     role: "Freelancer, Lagos",
   },
   {
-    quote: "We pay our remote contractors globally with Pey. The magic link flow means zero wallet onboarding.",
+    quote: "We pay our remote contractors globally with Peys. The magic link flow means zero wallet onboarding.",
     name: "Kenji M.",
     role: "Founder, Tokyo",
   },
