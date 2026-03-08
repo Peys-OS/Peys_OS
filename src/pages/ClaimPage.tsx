@@ -42,7 +42,7 @@ export default function ClaimPage() {
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
-                  className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow"
+                  className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-glow"
                 >
                   <Gift className="h-8 w-8 text-primary-foreground" />
                 </motion.div>
@@ -64,7 +64,7 @@ export default function ClaimPage() {
                 <button
                   onClick={handleClaim}
                   disabled={claiming}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-70"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-70"
                 >
                   {claiming ? (
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -92,7 +92,7 @@ export default function ClaimPage() {
               <h2 className="mb-2 font-display text-2xl text-foreground">Claimed!</h2>
               <p className="mb-6 text-sm text-muted-foreground">{claimData.amount} {claimData.token} is now in your wallet.</p>
               <div className="space-y-2">
-                <Link to="/dashboard" className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+                <Link to="/dashboard" className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90">
                   View Dashboard
                 </Link>
                 <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm text-foreground transition-colors hover:bg-secondary">

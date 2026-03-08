@@ -41,9 +41,8 @@ export function useEscrow() {
   }, [writeContract]);
 
   const claimPayment = useCallback(async (
-    paymentId: `0x${string}`,
-    secret: string,
-    recipient: Address
+    paymentId: bigint,
+    secret: string
   ) => {
     const secretHash = keccak256(toBytes(secret));
 
@@ -51,13 +50,13 @@ export function useEscrow() {
       address: ESCROW_CONTRACT_ADDRESS,
       abi: ESCROW_ABI,
       functionName: 'claim',
-      args: [paymentId, secretHash, recipient],
+      args: [paymentId, secretHash],
     } as any);
 
     return tx;
   }, [writeContract]);
 
-  const refundPayment = useCallback(async (paymentId: `0x${string}`) => {
+  const refundPayment = useCallback(async (paymentId: bigint) => {
     const tx = await writeContract({
       address: ESCROW_CONTRACT_ADDRESS,
       abi: ESCROW_ABI,
@@ -79,14 +78,14 @@ export function useEscrow() {
   };
 }
 
-export function usePayment(paymentId: `0x${string}` | undefined) {
-  const { data, isError, isLoading, refetch } = useReadContract({
+export function usePayment(paymentId: bigint | undefined) {
+  const { data } = useReadContract({
     address: ESCROW_CONTRACT_ADDRESS,
     abi: ESCROW_ABI,
     functionName: 'getPayment',
-    args: paymentId ? [paymentId] : undefined,
+    args: paymentId !== undefined ? [paymentId] : undefined,
     query: {
-      enabled: !!paymentId,
+      enabled: paymentId !== undefined,
     },
   });
 
@@ -100,7 +99,7 @@ export function usePayment(paymentId: `0x${string}` | undefined) {
     claimed: data[4],
     refunded: data[5],
     memo: data[6],
-  } as Payment;
+  } as unknown as Payment;
 }
 
 export function useTokenBalance(tokenAddress: Address, walletAddress: Address | undefined) {

@@ -24,7 +24,7 @@ export default function HowItWorksSection() {
               <div className="absolute -inset-8 rounded-full bg-primary/5 blur-3xl" />
               <img
                 src={claimMockup}
-                alt="PeyDot claim flow on mobile phone"
+                alt="Pey claim flow on mobile phone"
                 className="relative z-10 h-[450px] object-contain animate-float"
                 loading="lazy"
               />
@@ -56,7 +56,7 @@ export default function HowItWorksSection() {
                   transition={{ delay: i * 0.1 }}
                   className="flex gap-4"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-primary text-sm font-bold text-primary-foreground">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
                     {step.num}
                   </span>
                   <div>

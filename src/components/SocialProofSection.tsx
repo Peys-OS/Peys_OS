@@ -9,12 +9,12 @@ const stats = [
 
 const testimonials = [
   {
-    quote: "PeyDot made it effortless to send stablecoins to my family in Lagos. They just clicked a link and claimed — no crypto headaches.",
+    quote: "Pey made it effortless to send stablecoins to my family in Lagos. They just clicked a link and claimed — no crypto headaches.",
     name: "Adaeze O.",
     role: "Freelancer, Nigeria",
   },
   {
-    quote: "We use PeyDot to pay our remote contractors globally. The magic link flow means we don't have to teach them about wallets.",
+    quote: "We use Pey to pay our remote contractors globally. The magic link flow means we don't have to teach them about wallets.",
     name: "Kenji M.",
     role: "Startup Founder, Tokyo",
   },
@@ -68,7 +68,7 @@ export default function SocialProofSection() {
             >
               <p className="text-sm leading-relaxed text-foreground">"{t.quote}"</p>
               <div className="mt-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-primary text-sm font-bold text-primary-foreground">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                   {t.name[0]}
                 </div>
                 <div>
