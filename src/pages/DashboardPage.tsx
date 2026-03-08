@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   if (!isLoggedIn) {
     return (
