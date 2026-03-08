@@ -91,10 +91,13 @@ export default function DashboardPage() {
         >
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">Overall Balance</p>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <button
+              onClick={() => { navigator.clipboard.writeText("0x1a2B3c4D5e6F7a8B9c0D1e2F3a4B5c6D7e8F9a4E"); toast.success("Wallet address copied!"); }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
               {wallet.address}
-              <Copy className="h-3 w-3 cursor-pointer hover:text-foreground transition-colors" />
-            </span>
+              <Copy className="h-3 w-3" />
+            </button>
           </div>
           <h2 className="mt-1 font-display text-3xl text-foreground sm:text-4xl">
             ${(wallet.balanceUSDC + wallet.balanceUSDT).toLocaleString("en", { minimumFractionDigits: 2 })}
@@ -117,7 +120,10 @@ export default function DashboardPage() {
             <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:rounded-xl sm:py-3">
               <Send className="h-4 w-4" /> Send
             </Link>
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
+            <button
+              onClick={() => toast("Withdraw coming soon! 🏦 Bridge to your bank or external wallet.", { description: "This feature will be available in the next release." })}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
+            >
               <ExternalLink className="h-4 w-4" /> Withdraw
             </button>
           </div>
