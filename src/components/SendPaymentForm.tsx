@@ -32,6 +32,8 @@ export default function SendPaymentForm() {
     else if (step === "confirm") {
       setStep("done");
       fireBurst();
+      toast.success("Payment created! Share the link to get paid 🎉");
+    }
     }
   };
 
