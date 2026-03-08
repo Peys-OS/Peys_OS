@@ -52,7 +52,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'claim',
       args: [paymentId, secretHash, recipient],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
