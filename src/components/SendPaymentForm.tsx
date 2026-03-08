@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Copy, Check, ArrowLeft, Download, X, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
-import { fireBurst } from "@/lib/confetti";
+import { fireBurst } from "@/utils/confetti";
 import { Link } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";

@@ -5,7 +5,7 @@ import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
-import { fireBurst } from "@/lib/confetti";
+import { fireBurst } from "@/utils/confetti";
 
 interface BatchRecipient {
   email: string;
