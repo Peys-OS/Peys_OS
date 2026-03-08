@@ -8,9 +8,7 @@ export default function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground">
-                <span className="text-xs font-bold text-background">P</span>
-              </div>
+              <img src="/peys_logo_alone.png" alt="Pey" className="h-7 w-7 rounded-lg" />
               <span className="text-base font-semibold text-foreground">Pey</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
