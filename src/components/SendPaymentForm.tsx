@@ -1,7 +1,7 @@
-// Send Payment Form
+// Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -9,25 +9,29 @@ import { Link, useSearchParams } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";
 import { MOCK_CONTACTS } from "@/data/contacts";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 type Token = "USDC" | "USDT";
 
 export default function SendPaymentForm() {
-  const { isLoggedIn, login, wallet } = useApp();
+  const { isLoggedIn, login, wallet, walletAddress } = useApp();
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
   const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
   const [memo, setMemo] = useState("");
-  const [step, setStep] = useState<"form" | "confirm" | "done">("form");
+  const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
+  const [claimId, setClaimId] = useState("");
+  const [generatedLink, setGeneratedLink] = useState("");
+  const [fullLink, setFullLink] = useState("");
   const recipientRef = useRef<HTMLDivElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
-  // Close contacts dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (recipientRef.current && !recipientRef.current.contains(e.target as Node)) {
@@ -38,17 +42,104 @@ export default function SendPaymentForm() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const claimId = Math.random().toString(36).slice(2, 10);
-  const generatedLink = `pey.app/claim/${claimId}`;
-  const fullLink = `https://${generatedLink}`;
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!isLoggedIn) { login(); return; }
-    if (step === "form") setStep("confirm");
-    else if (step === "confirm") {
-      setStep("done");
-      fireBurst();
-      toast.success("Payment created! Share the link to get paid 🎉");
+    if (step === "form") {
+      if (!recipient) {
+        toast.error("Please enter a recipient email");
+        return;
+      }
+      if (!amount || Number(amount) <= 0) {
+        toast.error("Please enter a valid amount");
+        return;
+      }
+      setStep("confirm");
+      return;
+    }
+
+    if (step === "confirm") {
+      setStep("sending");
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Please sign in first");
+          setStep("form");
+          return;
+        }
+
+        const newClaimId = uuidv4();
+        const claimSecret = uuidv4();
+        const paymentId = `pey_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
+        const link = `${window.location.origin}/claim/${newClaimId}`;
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+        // Save payment to database
+        const { data: payment, error } = await supabase
+          .from("payments")
+          .insert({
+            payment_id: paymentId,
+            sender_user_id: user.id,
+            sender_email: user.email || "",
+            sender_wallet: walletAddress || null,
+            recipient_email: recipient,
+            amount: Number(amount),
+            token,
+            memo: memo || null,
+            claim_secret: claimSecret,
+            claim_link: newClaimId,
+            status: "pending",
+            expires_at: expiresAt,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Create notification for recipient if they exist
+        const { data: recipientProfile } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .eq("email", recipient)
+          .single();
+
+        if (recipientProfile) {
+          await supabase.from("notifications").insert({
+            user_id: recipientProfile.user_id,
+            type: "payment_received",
+            title: `💰 You received ${Number(amount).toFixed(2)} ${token}!`,
+            message: `${user.email || "Someone"} sent you ${Number(amount).toFixed(2)} ${token}${memo ? ` — "${memo}"` : ""}. Claim it now!`,
+            payment_id: payment.id,
+          });
+        }
+
+        // Try to send email notification via edge function
+        try {
+          await supabase.functions.invoke("send-payment-notification", {
+            body: {
+              recipientEmail: recipient,
+              senderEmail: user.email,
+              amount: Number(amount),
+              token,
+              memo,
+              claimLink: link,
+            },
+          });
+        } catch (emailErr) {
+          console.warn("Email notification failed (non-blocking):", emailErr);
+        }
+
+        setClaimId(newClaimId);
+        setGeneratedLink(`${window.location.host}/claim/${newClaimId}`);
+        setFullLink(link);
+        setStep("done");
+        fireBurst();
+        toast.success("Payment created! Share the link to get paid 🎉");
+      } catch (err: any) {
+        console.error("Payment creation failed:", err);
+        toast.error(err.message || "Failed to create payment");
+        setStep("confirm");
+      }
     }
   };
 
@@ -103,7 +194,7 @@ export default function SendPaymentForm() {
       >
         <div className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
-            {step !== "form" && (
+            {step !== "form" && step !== "sending" && (
               <button onClick={() => setStep("form")} className="text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="h-4 w-4" />
               </button>
@@ -150,7 +241,8 @@ export default function SendPaymentForm() {
                       value={recipient}
                       onChange={(e) => { setRecipient(e.target.value); setShowContacts(true); }}
                       onFocus={() => setShowContacts(true)}
-                      placeholder="Email or phone (optional)"
+                      placeholder="Recipient email address"
+                      type="email"
                       className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                     />
                     <button
@@ -206,7 +298,7 @@ export default function SendPaymentForm() {
                 />
                 <button
                   onClick={handleSend}
-                  disabled={!amount || Number(amount) <= 0}
+                  disabled={!amount || Number(amount) <= 0 || !recipient}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50 sm:py-3.5"
                 >
                   <Send className="h-4 w-4" />
@@ -219,7 +311,7 @@ export default function SendPaymentForm() {
               <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2.5 rounded-xl border border-border bg-secondary/50 p-3 sm:space-y-3 sm:p-4">
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-semibold text-foreground">{Number(amount).toFixed(2)} {token}</span></div>
-                  {recipient && <div className="flex justify-between text-sm"><span className="text-muted-foreground">To</span><span className="text-foreground">{recipient}</span></div>}
+                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">To</span><span className="text-foreground">{recipient}</span></div>
                   {memo && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Note</span><span className="text-foreground">{memo}</span></div>}
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expires</span><span className="text-foreground">7 days</span></div>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Network fee</span><span className="font-medium text-primary">~$0.01</span></div>
@@ -230,13 +322,25 @@ export default function SendPaymentForm() {
               </motion.div>
             )}
 
+            {step === "sending" && (
+              <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Creating payment...</p>
+              </motion.div>
+            )}
+
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4 text-center sm:space-y-5">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14">
                   <Check className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
                 </div>
                 <h3 className="font-display text-lg text-foreground sm:text-xl">Payment Created! 🎉</h3>
-                <p className="text-sm text-muted-foreground">{Number(amount).toFixed(2)} {token} deposited into escrow.</p>
+                <p className="text-sm text-muted-foreground">
+                  {Number(amount).toFixed(2)} {token} sent to <span className="font-medium text-foreground">{recipient}</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {recipient} will receive a notification. If they're not on Pey yet, they can sign up and claim instantly.
+                </p>
 
                 <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/50 p-2.5 sm:p-3">
                   <span className="flex-1 truncate text-xs text-foreground sm:text-sm">{generatedLink}</span>
@@ -245,7 +349,6 @@ export default function SendPaymentForm() {
                   </button>
                 </div>
 
-                {/* Action buttons */}
                 <div className="grid grid-cols-3 gap-2">
                   <button onClick={() => setShowQR(true)} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="3" height="3" /><rect x="18" y="18" width="3" height="3" /></svg>
