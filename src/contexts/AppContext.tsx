@@ -1,8 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { usePrivyAuth } from "@/contexts/PrivyContext";
 import { createPublicClient, http, formatUnits, type Address } from "viem";
-import { ERC20_ABI } from "@/lib/abis.ts";
-import { USDC_ADDRESS, USDT_ADDRESS, RPC_URL } from "@/lib/contracts";
+import { ERC20_ABI, USDC_ADDRESS, USDT_ADDRESS, RPC_URL } from "@/constants/blockchain";
 import { supabase } from "@/integrations/supabase/client";
 import type { Transaction } from "@/hooks/useMockData";
 
