@@ -1,59 +1,112 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
-import dashboardPreview from "@/assets/dashboard-preview.png";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-hero pt-24 pb-12 sm:pt-32 sm:pb-16">
-      <div className="container mx-auto px-4 text-center">
+    <section className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24">
+      {/* Subtle grid background */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+        backgroundSize: "60px 60px",
+      }} />
+
+      <div className="container relative mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
+          className="text-center"
         >
-          <h1 className="mx-auto max-w-3xl font-display text-3xl leading-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-            Better payments with{" "}
-            <span className="text-gradient">stablecoin</span>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-xs font-medium text-muted-foreground">Polkadot Solidity Hackathon — EVM Track</span>
+          </motion.div>
+
+          <h1 className="mx-auto max-w-4xl font-display text-4xl leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
+            Pay anyone,{" "}
+            <span className="text-muted-foreground/40">anywhere</span>
           </h1>
 
-          <p className="mx-auto mt-4 max-w-lg text-sm text-muted-foreground sm:mt-6 sm:text-lg">
-            Send stablecoins to anyone with a magic link. No wallet needed — just email. Built on Polkadot.
+          <p className="mx-auto mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground sm:mt-7 sm:text-base">
+            Send stablecoins with a link. No wallet needed. Recipients claim with email — funds are held in smart contract escrow until claimed.
           </p>
 
-          <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:mt-10 sm:flex-row sm:justify-center">
             <Link
               to="/send"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:w-auto"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background transition-all hover:opacity-90 sm:w-auto"
             >
-              Send Payment <ArrowRight className="h-4 w-4" />
+              Start Sending
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               to="/claim/demo"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:w-auto"
             >
-              Try Claiming
+              <Play className="h-3.5 w-3.5" /> See How It Works
             </Link>
           </div>
-
-          <p className="mt-4 text-xs text-muted-foreground sm:mt-6">
-            Built for the Polkadot Solidity Hackathon — EVM Track
-          </p>
         </motion.div>
 
+        {/* Abstract shapes */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mx-auto mt-10 max-w-4xl sm:mt-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="mx-auto mt-16 max-w-3xl sm:mt-20"
         >
-          <div className="overflow-hidden rounded-xl border border-border shadow-elevated sm:rounded-2xl">
-            <img
-              src={dashboardPreview}
-              alt="Pey Dashboard showing stablecoin balances and transactions"
-              className="w-full"
-              loading="lazy"
+          <div className="relative flex items-center justify-center py-8">
+            {/* Floating geometric shapes in gray */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              className="absolute h-64 w-64 rounded-full border border-border/50 sm:h-80 sm:w-80"
             />
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              className="absolute h-48 w-48 rounded-full border border-border/30 sm:h-60 sm:w-60"
+            />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute h-32 w-32 rounded-full border border-border/20 sm:h-40 sm:w-40"
+            />
+
+            {/* Orbiting dots */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              className="absolute h-64 w-64 sm:h-80 sm:w-80"
+            >
+              <div className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-foreground/20" />
+            </motion.div>
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              className="absolute h-48 w-48 sm:h-60 sm:w-60"
+            >
+              <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary/40" />
+            </motion.div>
+
+            {/* Center content */}
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-card sm:h-24 sm:w-24">
+                <span className="font-display text-3xl text-foreground sm:text-4xl">P</span>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> USDC</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" /> USDT</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-border" /> XCM</span>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>

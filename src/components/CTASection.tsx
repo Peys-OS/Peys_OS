@@ -1,30 +1,37 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function CTASection() {
   return (
-    <section className="bg-gradient-section py-16 sm:py-24">
+    <section className="border-t border-border py-20 sm:py-28">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="font-display text-2xl text-foreground sm:text-4xl md:text-5xl">
-          Start in minutes, not weeks
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground sm:mt-4 sm:text-base">
-          Send your first stablecoin payment today. No wallet setup, no seed phrases, no friction.
-        </p>
-        <div className="mt-6 flex flex-col items-center gap-3 sm:mt-8 sm:flex-row sm:justify-center">
-          <Link
-            to="/send"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:w-auto"
-          >
-            Send Payment <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link
-            to="/claim/demo"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary sm:w-auto"
-          >
-            Try a Claim Demo
-          </Link>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="font-display text-3xl text-foreground sm:text-5xl md:text-6xl">
+            Ready to send?
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
+            No setup. No seed phrases. Just send a link.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              to="/send"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-8 py-3.5 text-sm font-semibold text-background transition-all hover:opacity-90 sm:w-auto"
+            >
+              Send Payment <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              to="/dashboard"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-8 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:w-auto"
+            >
+              View Dashboard
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

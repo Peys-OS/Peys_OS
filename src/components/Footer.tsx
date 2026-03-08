@@ -1,52 +1,67 @@
 import { Link } from "react-router-dom";
+import { Github, Twitter, MessageCircle } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card py-8 sm:py-12">
+    <footer className="border-t border-border py-12 sm:py-16">
       <div className="container mx-auto px-4">
-        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
-          <div>
+        <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
+          <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
-                <span className="text-xs font-bold text-primary-foreground sm:text-sm">P</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground">
+                <span className="text-xs font-bold text-background">P</span>
               </div>
-              <span className="text-base font-semibold text-foreground sm:text-lg">Pey</span>
+              <span className="text-base font-semibold text-foreground">Pey</span>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground sm:text-sm">
-              Stablecoin payments for everyone. Built on Polkadot.
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              Stablecoin payments for everyone.<br />
+              Built on Polkadot Asset Hub.
             </p>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Product</h4>
-            <div className="space-y-2">
-              <Link to="/send" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Send</Link>
-              <Link to="/claim/demo" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Claim</Link>
-              <Link to="/dashboard" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Dashboard</Link>
+            <div className="mt-4 flex gap-3">
+              <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
+                <Twitter className="h-3.5 w-3.5" />
+              </a>
+              <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
+                <Github className="h-3.5 w-3.5" />
+              </a>
+              <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
+                <MessageCircle className="h-3.5 w-3.5" />
+              </a>
             </div>
           </div>
 
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Resources</h4>
-            <div className="space-y-2">
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Documentation</a>
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Smart Contract</a>
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">GitHub</a>
+          <div className="grid grid-cols-3 gap-8 text-xs">
+            <div>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Product</p>
+              <div className="space-y-2.5">
+                <Link to="/send" className="block text-muted-foreground transition-colors hover:text-foreground">Send</Link>
+                <Link to="/claim/demo" className="block text-muted-foreground transition-colors hover:text-foreground">Claim</Link>
+                <Link to="/streaming" className="block text-muted-foreground transition-colors hover:text-foreground">Streams</Link>
+                <Link to="/batch" className="block text-muted-foreground transition-colors hover:text-foreground">Batch</Link>
+                <Link to="/request" className="block text-muted-foreground transition-colors hover:text-foreground">Request</Link>
+              </div>
             </div>
-          </div>
-
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-foreground">Community</h4>
-            <div className="space-y-2">
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Twitter</a>
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Telegram</a>
-              <a href="#" className="block text-xs text-muted-foreground hover:text-foreground transition-colors sm:text-sm">Discord</a>
+            <div>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Account</p>
+              <div className="space-y-2.5">
+                <Link to="/dashboard" className="block text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
+                <Link to="/analytics" className="block text-muted-foreground transition-colors hover:text-foreground">Analytics</Link>
+                <Link to="/contacts" className="block text-muted-foreground transition-colors hover:text-foreground">Contacts</Link>
+              </div>
+            </div>
+            <div>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Resources</p>
+              <div className="space-y-2.5">
+                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">Docs</a>
+                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">GitHub</a>
+                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">Contract</a>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground sm:mt-10">
-          © 2025 Pey. Built for the Polkadot Solidity Hackathon. Made with ❤️ on Polkadot Hub.
+        <div className="mt-10 border-t border-border pt-6 text-center text-[11px] text-muted-foreground/50">
+          © 2025 Pey · Built for the Polkadot Solidity Hackathon · Made with care on Polkadot Hub
         </div>
       </div>
     </footer>

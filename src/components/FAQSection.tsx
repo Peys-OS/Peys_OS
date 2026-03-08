@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
@@ -9,23 +9,23 @@ const faqs = [
   },
   {
     q: "How do Magic Claim Links work?",
-    a: "When you send a payment, funds are deposited into a secure escrow smart contract and a unique link is generated. The recipient clicks the link, signs in with their email, and claims the funds to an automatically-created wallet.",
+    a: "When you send a payment, funds deposit into a secure escrow smart contract and a unique link is generated. The recipient clicks the link, signs in with their email, and claims the funds to an auto-created wallet.",
   },
   {
-    q: "Does the recipient need a crypto wallet?",
-    a: "No! When the recipient clicks the claim link and signs in (via email or Google), an embedded wallet is automatically created for them. Zero crypto experience needed.",
+    q: "Does the recipient need a wallet?",
+    a: "No. When the recipient clicks the claim link and signs in via email or Google, an embedded wallet is automatically created for them.",
   },
   {
-    q: "What happens if the recipient doesn't claim?",
+    q: "What if the recipient doesn't claim?",
     a: "Unclaimed payments are automatically refunded to the sender after 7 days. Your funds are never at risk.",
   },
   {
     q: "Which stablecoins are supported?",
-    a: "Pey supports USDC (asset ID 1337) and USDT (asset ID 1984) on Polkadot Asset Hub, transferred via XCM precompiles.",
+    a: "Pey supports USDC and USDT on Polkadot Asset Hub, transferred via XCM precompiles.",
   },
   {
     q: "What are the fees?",
-    a: "Transaction fees on Polkadot Hub are minimal — typically less than $0.01. Pey itself does not charge additional fees during the hackathon period.",
+    a: "Transaction fees on Polkadot are minimal — typically less than $0.01. Pey charges no additional fees during the hackathon.",
   },
 ];
 
@@ -33,7 +33,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-16 sm:py-24">
+    <section className="border-t border-border py-20 sm:py-28">
       <div className="container mx-auto max-w-2xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -41,48 +41,50 @@ export default function FAQSection() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <h2 className="font-display text-2xl text-foreground sm:text-4xl">
-            Your questions, answered
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">FAQ</p>
+          <h2 className="mt-3 font-display text-2xl text-foreground sm:text-4xl">
+            Common questions
           </h2>
         </motion.div>
 
-        <div className="mt-8 space-y-2 sm:mt-12 sm:space-y-3">
-          {faqs.map((faq, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="overflow-hidden rounded-lg border border-border bg-card sm:rounded-xl"
-            >
-              <button
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-6 sm:py-4"
+        <div className="mt-10 sm:mt-14">
+          {faqs.map((faq, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.03 }}
+                className="border-b border-border"
               >
-                <span className="text-sm font-semibold text-foreground">{faq.q}</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-                    openIndex === i ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              <AnimatePresence>
-                {openIndex === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <p className="px-4 pb-3 text-sm leading-relaxed text-muted-foreground sm:px-6 sm:pb-4">
-                      {faq.a}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className="flex w-full items-center justify-between py-5 text-left"
+                >
+                  <span className="pr-4 text-sm font-medium text-foreground">{faq.q}</span>
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground">
+                    {isOpen ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                  </div>
+                </button>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <p className="pb-5 pr-12 text-sm leading-relaxed text-muted-foreground">
+                        {faq.a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
