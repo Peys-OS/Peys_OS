@@ -155,7 +155,16 @@ export default function DashboardPage() {
         {/* Filters & Search */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mb-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg text-foreground sm:text-xl">Recent Activity</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-lg text-foreground sm:text-xl">Recent Activity</h3>
+              <button
+                onClick={() => refreshTransactions()}
+                className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                title="Refresh"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${transactionsLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
             <div className="flex items-center gap-1">
               <Filter className="h-3.5 w-3.5 text-muted-foreground" />
               <select
