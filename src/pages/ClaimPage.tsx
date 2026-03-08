@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Gift, ArrowDown, Check, ExternalLink, Share2 } from "lucide-react";
 import { useParams, Link } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti } from "@/utils/confetti";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
