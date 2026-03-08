@@ -8,8 +8,8 @@ export default function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <img src="/peys_logo_alone.png" alt="Pey" className="h-7 w-7 rounded-lg" />
-              <span className="text-base font-semibold text-foreground">Pey</span>
+              <img src="/peys_logo_alone.png" alt="Peys" className="h-9 w-9 rounded-lg" />
+              <span className="text-base font-semibold text-foreground">Peys</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
               The stablecoin payment OS.<br />
@@ -59,7 +59,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-[11px] text-muted-foreground/50">
-          © 2025 Pey · Built for the Polkadot Solidity Hackathon · Made with care on Polkadot Hub
+          © 2025 Peys · Built for the Polkadot Solidity Hackathon · Made with care on Polkadot Hub
         </div>
       </div>
     </footer>
