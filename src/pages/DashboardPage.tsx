@@ -120,7 +120,10 @@ export default function DashboardPage() {
             <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:rounded-xl sm:py-3">
               <Send className="h-4 w-4" /> Send
             </Link>
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
+            <button
+              onClick={() => toast("Withdraw coming soon! 🏦 Bridge to your bank or external wallet.", { description: "This feature will be available in the next release." })}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
+            >
               <ExternalLink className="h-4 w-4" /> Withdraw
             </button>
           </div>

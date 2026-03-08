@@ -119,7 +119,10 @@ export default function ClaimPage() {
                   View Dashboard
                 </Link>
                 <div className="flex gap-2">
-                  <button className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
+                  <button
+                    onClick={() => toast("Withdraw coming soon! 🏦", { description: "Bridge to your bank or external wallet in the next release." })}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
+                  >
                     <ExternalLink className="h-3.5 w-3.5" /> Withdraw
                   </button>
                   <button onClick={sharePayment} className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
