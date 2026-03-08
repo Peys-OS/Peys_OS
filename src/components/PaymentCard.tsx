@@ -21,7 +21,7 @@ export default function PaymentCard({ sender, amount, token, memo, claimId }: Pa
       <div className="p-6 sm:p-8">
         {/* Logo */}
         <div className="flex items-center gap-2 mb-6">
-          <img src="/peys_logo_alone.png" alt="Peys" className="h-9 w-9 rounded-lg" />
+          <img src="/peys_logo_alone.png" alt="Peys" className="h-10 w-10 rounded-lg" />
           <span className="text-sm font-semibold text-foreground">Peys</span>
           <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
             Payment Link
