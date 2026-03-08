@@ -113,7 +113,7 @@ export default function AIChatBubble() {
                 <Bot className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Pey AI</p>
+                <p className="text-sm font-semibold text-foreground">Peys AI</p>
                 <p className="text-xs text-muted-foreground">Payment assistant</p>
               </div>
               <div className="ml-auto flex h-2 w-2 rounded-full bg-primary animate-pulse" />
