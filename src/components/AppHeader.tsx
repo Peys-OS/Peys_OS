@@ -41,9 +41,7 @@ export default function AppHeader() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:px-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
-              <span className="text-xs font-bold text-primary-foreground sm:text-sm">P</span>
-            </div>
+            <img src="/peys_logo_alone.png" alt="Pey" className="h-7 w-7 rounded-lg sm:h-8 sm:w-8" />
             <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Pey</span>
           </Link>
 
