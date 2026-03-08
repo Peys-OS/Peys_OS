@@ -69,7 +69,7 @@ export default function AppHeader() {
             <div className="hidden items-center gap-3 xl:flex">
               {isLoggedIn ? (
                 <>
-                  <span className="text-sm text-muted-foreground">0x1a2B...9f4E</span>
+                  <span className="text-sm text-muted-foreground">{wallet.address}</span>
                   <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
                 </>
               ) : (
