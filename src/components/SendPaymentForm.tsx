@@ -210,7 +210,7 @@ export default function SendPaymentForm() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`overflow-hidden rounded-xl border border-border bg-card shadow-card sm:rounded-2xl ${!isLoggedIn ? "pointer-events-none select-none opacity-40" : ""}`
+        className={`overflow-hidden rounded-xl border border-border bg-card shadow-card sm:rounded-2xl ${!isLoggedIn ? "pointer-events-none select-none opacity-40" : ""}`}
       >
         <div className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
