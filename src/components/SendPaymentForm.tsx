@@ -1,11 +1,11 @@
 // Send Payment Form
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Copy, Check, ArrowLeft, Download, X, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";
 
@@ -13,9 +13,10 @@ type Token = "USDC" | "USDT";
 
 export default function SendPaymentForm() {
   const { isLoggedIn, login, wallet } = useApp();
+  const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);

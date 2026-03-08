@@ -212,7 +212,7 @@ function ContactRow({
         <button onClick={() => onToggleFav(contact.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
           {contact.favorite ? <Star className="h-4 w-4 fill-primary text-primary" /> : <StarOff className="h-4 w-4" />}
         </button>
-        <Link to="/send" className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
+        <Link to={`/send?recipient=${encodeURIComponent(contact.email)}`} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
           <Send className="h-4 w-4" />
         </Link>
         <button onClick={() => onDelete(contact.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-destructive">
