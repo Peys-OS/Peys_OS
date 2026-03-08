@@ -119,7 +119,7 @@ export default function AppHeader() {
               <div className="border-t border-border p-4">
                 {isLoggedIn ? (
                   <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground">0x1a2B...9f4E</p>
+                    <p className="text-xs text-muted-foreground">{wallet.address}</p>
                     <button onClick={() => { handleLogout(); setMobileOpen(false); }}
                       className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Sign Out</button>
                   </div>
