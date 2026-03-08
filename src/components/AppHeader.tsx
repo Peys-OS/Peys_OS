@@ -18,8 +18,8 @@ export default function AppHeader() {
     { to: "/request", label: "Request" },
     { to: "/streaming", label: "Streams" },
     { to: "/batch", label: "Batch" },
+    { to: "/contacts", label: "Contacts" },
     { to: "/dashboard", label: "Dashboard" },
-    { to: "/analytics", label: "Analytics" },
   ];
 
   const handleLogin = () => {
