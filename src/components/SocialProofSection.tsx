@@ -9,7 +9,7 @@ const stats = [
 
 const testimonials = [
   {
-    quote: "Pey made it effortless to send stablecoins to my family. They just clicked a link — no crypto headaches.",
+    quote: "Peys made it effortless to send stablecoins to my family. They just clicked a link — no crypto headaches.",
     name: "Adaeze O.",
     role: "Freelancer, Lagos",
   },
