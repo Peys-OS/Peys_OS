@@ -1,138 +1,234 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Gift, ArrowDown, Check, ExternalLink, Share2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useApp } from "@/contexts/AppContext";
-import { fireConfetti } from "@/utils/confetti";
+import { motion } from "framer-motion";
+import { Check, Clock, AlertCircle, Loader2, ArrowRight, Gift } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
+import { useApp } from "@/contexts/AppContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { fireBurst } from "@/utils/confetti";
+
+interface PaymentData {
+  id: string;
+  payment_id: string;
+  sender_email: string;
+  recipient_email: string;
+  amount: number;
+  token: string;
+  memo: string | null;
+  status: string;
+  expires_at: string;
+  created_at: string;
+}
 
 export default function ClaimPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { isLoggedIn, login } = useApp();
-  const [claimed, setClaimed] = useState(false);
+  const [payment, setPayment] = useState<PaymentData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [claimed, setClaimed] = useState(false);
+  const [error, setError] = useState("");
 
-  const claimData = {
-    sender: "Moses A.",
-    amount: 50,
-    token: "USDC" as const,
-    memo: "Thanks for the help! 🙏",
-    expiresIn: "6 days",
-  };
+  useEffect(() => {
+    const fetchPayment = async () => {
+      if (!id) {
+        setError("Invalid claim link");
+        setLoading(false);
+        return;
+      }
 
-  const handleClaim = () => {
-    if (!isLoggedIn) { login(); return; }
-    setClaiming(true);
-    setTimeout(() => {
-      setClaiming(false);
-      setClaimed(true);
-      fireConfetti();
-      toast.success(`${claimData.amount} ${claimData.token} claimed! 🎉`);
-    }, 2000);
-  };
+      const { data, error: fetchErr } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("claim_link", id)
+        .single();
 
-  const sharePayment = async () => {
-    const shareData = {
-      title: `${claimData.sender} sent you ${claimData.amount} ${claimData.token} on Pey`,
-      text: `Claim your ${claimData.amount} ${claimData.token} payment from ${claimData.sender}! ${claimData.memo || ""}`,
-      url: `https://pey.app/claim/${id}`,
+      if (fetchErr || !data) {
+        setError("Payment not found. The link may be invalid or expired.");
+        setLoading(false);
+        return;
+      }
+
+      setPayment(data as PaymentData);
+      setLoading(false);
     };
-    if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
-    } else {
-      navigator.clipboard.writeText(shareData.url);
+
+    fetchPayment();
+  }, [id]);
+
+  const handleClaim = async () => {
+    if (!isLoggedIn) {
+      login();
+      return;
+    }
+
+    if (!payment) return;
+
+    setClaiming(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to claim");
+        setClaiming(false);
+        return;
+      }
+
+      const { error: updateErr } = await supabase
+        .from("payments")
+        .update({
+          status: "claimed",
+          claimed_by_user_id: user.id,
+          claimed_at: new Date().toISOString(),
+        })
+        .eq("id", payment.id)
+        .eq("status", "pending");
+
+      if (updateErr) throw updateErr;
+
+      // Notify sender
+      const { data: senderProfile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("email", payment.sender_email)
+        .single();
+
+      if (senderProfile) {
+        await supabase.from("notifications").insert({
+          user_id: senderProfile.user_id,
+          type: "payment_claimed",
+          title: `✅ Payment of ${payment.amount} ${payment.token} claimed!`,
+          message: `${user.email || "Someone"} claimed your payment of ${payment.amount} ${payment.token}.`,
+          payment_id: payment.id,
+        });
+      }
+
+      setClaimed(true);
+      fireBurst();
+      toast.success("Payment claimed successfully! 🎉");
+    } catch (err: any) {
+      console.error("Claim failed:", err);
+      toast.error(err.message || "Failed to claim payment");
+    } finally {
+      setClaiming(false);
     }
   };
+
+  const isExpired = payment ? new Date(payment.expires_at) < new Date() : false;
+  const isAlreadyClaimed = payment?.status === "claimed";
 
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="flex min-h-[80vh] items-center justify-center px-4 pt-16 sm:pt-20">
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm"
-        >
-          {!claimed ? (
-            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-elevated sm:rounded-2xl">
-              {/* Top brand bar */}
-              <div className="h-1.5 w-full bg-primary" />
-              
-              <div className="relative flex flex-col items-center bg-gradient-hero px-4 py-8 sm:px-6 sm:py-10">
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                  className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-glow sm:mb-4 sm:h-16 sm:w-16"
-                >
-                  <Gift className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
-                </motion.div>
-                <p className="text-sm text-muted-foreground">{claimData.sender} sent you</p>
-                <h2 className="mt-1 font-display text-3xl text-foreground sm:text-4xl">
-                  ${claimData.amount.toFixed(2)} <span className="text-gradient">{claimData.token}</span>
-                </h2>
+      <div className="mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+        {loading ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading payment...</p>
+          </motion.div>
+        ) : error ? (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-border bg-card p-8 text-center shadow-card"
+          >
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
+            <h2 className="mb-2 font-display text-xl text-foreground">Payment Not Found</h2>
+            <p className="mb-6 text-sm text-muted-foreground">{error}</p>
+            <Link to="/" className="inline-flex rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              Go Home
+            </Link>
+          </motion.div>
+        ) : claimed ? (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+            className="rounded-xl border border-border bg-card p-8 text-center shadow-card"
+          >
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+              <Check className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="mb-2 font-display text-xl text-foreground">Payment Claimed! 🎉</h2>
+            <p className="mb-1 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{payment?.amount} {payment?.token}</span> has been added to your wallet.
+            </p>
+            <p className="mb-6 text-xs text-muted-foreground">From {payment?.sender_email}</p>
+            <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              View Dashboard <ArrowRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-xl border border-border bg-card shadow-card"
+          >
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center sm:p-8">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                <Gift className="h-7 w-7 text-primary" />
               </div>
-              <div className="space-y-3 p-4 sm:space-y-4 sm:p-6">
-                {claimData.memo && (
-                  <div className="rounded-lg border border-border bg-secondary/50 p-3 text-center text-sm text-foreground sm:rounded-xl">
-                    "{claimData.memo}"
-                  </div>
-                )}
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Expires in {claimData.expiresIn}</span>
-                  <span>ID: {id}</span>
+              <h2 className="font-display text-2xl text-foreground sm:text-3xl">
+                You received money!
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {payment?.sender_email} sent you a payment
+              </p>
+            </div>
+
+            <div className="p-6 sm:p-8">
+              <div className="mb-6 text-center">
+                <p className="font-display text-4xl text-foreground">
+                  ${payment?.amount.toLocaleString("en", { minimumFractionDigits: 2 })}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{payment?.token}</p>
+              </div>
+
+              {payment?.memo && (
+                <div className="mb-6 rounded-lg border border-border bg-secondary/50 p-3 text-center">
+                  <p className="text-sm text-muted-foreground">"{payment.memo}"</p>
                 </div>
+              )}
+
+              <div className="mb-6 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">From</span>
+                  <span className="text-foreground">{payment?.sender_email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <span className={`font-medium ${isExpired ? "text-destructive" : isAlreadyClaimed ? "text-primary" : "text-warning"}`}>
+                    {isExpired ? "Expired" : isAlreadyClaimed ? "Claimed" : "Pending"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Expires</span>
+                  <span className="text-foreground">{new Date(payment?.expires_at || "").toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              {isExpired ? (
+                <div className="rounded-lg bg-destructive/10 p-4 text-center">
+                  <Clock className="mx-auto mb-2 h-6 w-6 text-destructive" />
+                  <p className="text-sm font-medium text-destructive">This payment has expired</p>
+                  <p className="mt-1 text-xs text-muted-foreground">The sender can reclaim these funds.</p>
+                </div>
+              ) : isAlreadyClaimed ? (
+                <div className="rounded-lg bg-primary/10 p-4 text-center">
+                  <Check className="mx-auto mb-2 h-6 w-6 text-primary" />
+                  <p className="text-sm font-medium text-primary">Already claimed</p>
+                </div>
+              ) : (
                 <button
                   onClick={handleClaim}
                   disabled={claiming}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-70 sm:rounded-xl sm:py-3.5"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   {claiming ? (
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="h-5 w-5 rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <><ArrowDown className="h-4 w-4" />{isLoggedIn ? "Claim Funds" : "Sign In & Claim"}</>
+                    <ArrowRight className="h-4 w-4" />
                   )}
+                  {isLoggedIn ? "Claim Payment" : "Sign In & Claim"}
                 </button>
-                {!isLoggedIn && (
-                  <p className="text-center text-xs text-muted-foreground">
-                    Sign in with email or Google — a wallet is created automatically.
-                  </p>
-                )}
-              </div>
+              )}
             </div>
-          ) : (
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-              className="overflow-hidden rounded-xl border border-border bg-card p-6 text-center shadow-elevated sm:rounded-2xl sm:p-8"
-            >
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-                className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 sm:h-16 sm:w-16"
-              >
-                <Check className="h-7 w-7 text-primary sm:h-8 sm:w-8" />
-              </motion.div>
-              <h2 className="mb-2 font-display text-xl text-foreground sm:text-2xl">Claimed! 🎉</h2>
-              <p className="mb-5 text-sm text-muted-foreground sm:mb-6">{claimData.amount} {claimData.token} is now in your wallet.</p>
-              <div className="space-y-2">
-                <Link to="/dashboard" className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-2.5 font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:rounded-xl sm:py-3">
-                  View Dashboard
-                </Link>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toast("Withdraw coming soon! 🏦", { description: "Bridge to your bank or external wallet in the next release." })}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" /> Withdraw
-                  </button>
-                  <button onClick={sharePayment} className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3">
-                    <Share2 className="h-3.5 w-3.5" /> Share
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
       </div>
       <Footer />
     </div>
