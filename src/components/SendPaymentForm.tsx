@@ -6,6 +6,7 @@ import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/lib/confetti";
 import { Link } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
+import { toast } from "sonner";
 
 type Token = "USDC" | "USDT";
 
