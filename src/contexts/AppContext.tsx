@@ -65,41 +65,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const addr = walletAddress as Address;
 
-    try {
-      // Fetch USDC balance (skip if address not configured)
-      if (USDC_ADDRESS !== ZERO_ADDRESS) {
-        const [rawUSDC, decimalsUSDC] = await Promise.all([
-          publicClient.readContract({
-            address: USDC_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: "balanceOf",
-            args: [addr],
-          } as any),
-          publicClient.readContract({
-            address: USDC_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: "decimals",
-          } as any).catch(() => 6), // default to 6 decimals for USDC
-        ]);
-        setBalanceUSDC(Number(formatUnits(rawUSDC, Number(decimalsUSDC))));
-      }
+    const readBalance = async (tokenAddr: Address) => {
+      const [raw, dec] = await Promise.all([
+        (publicClient as any).readContract({
+          address: tokenAddr,
+          abi: ERC20_ABI,
+          functionName: "balanceOf",
+          args: [addr],
+        }) as Promise<bigint>,
+        ((publicClient as any).readContract({
+          address: tokenAddr,
+          abi: ERC20_ABI,
+          functionName: "decimals",
+        }) as Promise<number>).catch(() => 6),
+      ]);
+      return Number(formatUnits(raw, Number(dec)));
+    };
 
-      // Fetch USDT balance (skip if address not configured)
+    try {
+      if (USDC_ADDRESS !== ZERO_ADDRESS) {
+        setBalanceUSDC(await readBalance(USDC_ADDRESS));
+      }
       if (USDT_ADDRESS !== ZERO_ADDRESS) {
-        const [rawUSDT, decimalsUSDT] = await Promise.all([
-          publicClient.readContract({
-            address: USDT_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: "balanceOf",
-            args: [addr],
-          }),
-          publicClient.readContract({
-            address: USDT_ADDRESS,
-            abi: ERC20_ABI,
-            functionName: "decimals",
-          }).catch(() => 6), // default to 6 decimals for USDT
-        ]);
-        setBalanceUSDT(Number(formatUnits(rawUSDT, Number(decimalsUSDT))));
+        setBalanceUSDT(await readBalance(USDT_ADDRESS));
       }
     } catch (err) {
       console.warn("Balance fetch failed (tokens may not be deployed yet):", err);
