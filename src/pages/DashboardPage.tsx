@@ -234,6 +234,7 @@ export default function DashboardPage() {
         </div>
       </div>
       <Footer />
+      <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} balanceUSDC={wallet.balanceUSDC} balanceUSDT={wallet.balanceUSDT} />
     </div>
   );
 }
