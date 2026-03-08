@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: "Which stablecoins are supported?",
-    a: "Pey supports USDC and USDT on Polkadot Asset Hub, transferred via XCM precompiles.",
+    a: "Peys supports USDC and USDT on Polkadot Asset Hub, transferred via XCM precompiles.",
   },
   {
     q: "What are the fees?",
