@@ -118,7 +118,9 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
         },
         loginMethods: ['email', 'google', 'apple', 'twitter', 'wallet'],
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
+          ethereum: {
+            createOnLogin: 'users-without-wallets',
+          },
         },
         defaultChain: westendAssetHub,
         supportedChains: [westendAssetHub],
