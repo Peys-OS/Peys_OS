@@ -74,12 +74,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             abi: ERC20_ABI,
             functionName: "balanceOf",
             args: [addr],
-          }),
+          } as any),
           publicClient.readContract({
             address: USDC_ADDRESS,
             abi: ERC20_ABI,
             functionName: "decimals",
-          }).catch(() => 6), // default to 6 decimals for USDC
+          } as any).catch(() => 6), // default to 6 decimals for USDC
         ]);
         setBalanceUSDC(Number(formatUnits(rawUSDC, Number(decimalsUSDC))));
       }
