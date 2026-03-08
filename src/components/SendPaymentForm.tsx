@@ -27,6 +27,17 @@ export default function SendPaymentForm() {
   const recipientRef = useRef<HTMLDivElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
+  // Close contacts dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (recipientRef.current && !recipientRef.current.contains(e.target as Node)) {
+        setShowContacts(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
   const claimId = Math.random().toString(36).slice(2, 10);
   const generatedLink = `pey.app/claim/${claimId}`;
   const fullLink = `https://${generatedLink}`;
