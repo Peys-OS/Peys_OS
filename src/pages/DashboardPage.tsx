@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import WithdrawModal from "@/components/WithdrawModal";
+import TransactionDetailModal from "@/components/TransactionDetailModal";
 
 function formatTime(date: Date) {
   const diff = Date.now() - date.getTime();
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   if (!isLoggedIn) {
     return (
@@ -237,7 +239,8 @@ export default function DashboardPage() {
           ) : (
             filtered.map((tx, i) => (
               <motion.div key={tx.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
+                onClick={() => setSelectedTx(tx)}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
               >
                 <div className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBg[tx.type]}`}>
                   <TxIcon type={tx.type} />
@@ -262,6 +265,7 @@ export default function DashboardPage() {
       </div>
       <Footer />
       <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} balanceUSDC={wallet.balanceUSDC} balanceUSDT={wallet.balanceUSDT} />
+      <TransactionDetailModal transaction={selectedTx} open={!!selectedTx} onClose={() => setSelectedTx(null)} />
     </div>
   );
 }
