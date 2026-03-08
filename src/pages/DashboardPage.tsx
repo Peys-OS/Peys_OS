@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import WithdrawModal from "@/components/WithdrawModal";
+import TransactionDetailModal from "@/components/TransactionDetailModal";
 
 function formatTime(date: Date) {
   const diff = Date.now() - date.getTime();
