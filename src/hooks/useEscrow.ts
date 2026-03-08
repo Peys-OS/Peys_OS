@@ -35,7 +35,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'createPaymentExternal',
       args: [tokenAddress, amount, claimHash, expiry, memo],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
