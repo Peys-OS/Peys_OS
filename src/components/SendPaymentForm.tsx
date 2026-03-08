@@ -187,10 +187,30 @@ export default function SendPaymentForm() {
 
   return (
     <div className="relative mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      {/* Login overlay when not signed in */}
+      {!isLoggedIn && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-background/60 backdrop-blur-sm"
+        >
+          <div className="text-center">
+            <h3 className="mb-2 font-display text-lg text-foreground">Sign in to send payments</h3>
+            <p className="mb-4 text-sm text-muted-foreground">Connect your wallet to start sending money.</p>
+            <button
+              onClick={login}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
+            >
+              Sign In
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-xl border border-border bg-card shadow-card sm:rounded-2xl"
+        className={`overflow-hidden rounded-xl border border-border bg-card shadow-card sm:rounded-2xl ${!isLoggedIn ? "pointer-events-none select-none opacity-40" : ""}`
       >
         <div className="border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3">
