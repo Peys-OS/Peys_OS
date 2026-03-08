@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.15;
 
 import { Script, console } from "forge-std/Script.sol";
 import { PeyDotEscrow } from "../contracts/PeyDotEscrow.sol";
