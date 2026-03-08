@@ -18,8 +18,8 @@ export default function AppHeader() {
     { to: "/request", label: "Request" },
     { to: "/streaming", label: "Streams" },
     { to: "/batch", label: "Batch" },
+    { to: "/contacts", label: "Contacts" },
     { to: "/dashboard", label: "Dashboard" },
-    { to: "/analytics", label: "Analytics" },
   ];
 
   const handleLogin = () => {
@@ -35,20 +35,24 @@ export default function AppHeader() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16">
-          <Link to="/" className="flex items-center gap-2">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:px-8">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
               <span className="text-xs font-bold text-primary-foreground sm:text-sm">P</span>
             </div>
             <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Pey</span>
           </Link>
 
-          <nav className="hidden items-center gap-4 xl:flex">
+          <nav className="hidden items-center gap-1 rounded-full border border-border bg-secondary/50 px-1.5 py-1 xl:flex">
             {navItems.map((item) => {
               const isActive = location.pathname === item.to;
               return (
                 <Link key={item.to} to={item.to}
-                  className={`text-sm font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
                 >{item.label}</Link>
               );
             })}

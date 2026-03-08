@@ -14,6 +14,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import StreamingPage from "./pages/StreamingPage";
 import BatchPage from "./pages/BatchPage";
 import RequestPage from "./pages/RequestPage";
+import ContactsPage from "./pages/ContactsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/streaming" element={<StreamingPage />} />
               <Route path="/batch" element={<BatchPage />} />
               <Route path="/request" element={<RequestPage />} />
+              <Route path="/contacts" element={<ContactsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIChatBubble />

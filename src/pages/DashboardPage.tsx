@@ -7,6 +7,7 @@ import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import WithdrawModal from "@/components/WithdrawModal";
 
 function formatTime(date: Date) {
   const diff = Date.now() - date.getTime();
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   if (!isLoggedIn) {
     return (
@@ -121,7 +123,7 @@ export default function DashboardPage() {
               <Send className="h-4 w-4" /> Send
             </Link>
             <button
-              onClick={() => toast("Withdraw coming soon! 🏦 Bridge to your bank or external wallet.", { description: "This feature will be available in the next release." })}
+              onClick={() => setWithdrawOpen(true)}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
             >
               <ExternalLink className="h-4 w-4" /> Withdraw
@@ -232,6 +234,7 @@ export default function DashboardPage() {
         </div>
       </div>
       <Footer />
+      <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} balanceUSDC={wallet.balanceUSDC} balanceUSDT={wallet.balanceUSDT} />
     </div>
   );
 }
