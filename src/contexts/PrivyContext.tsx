@@ -16,7 +16,7 @@ const westendAssetHub = defineChain({
 });
 
 // Privy App ID — publishable client key, safe in code
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'your-privy-app-id';
+const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'cmlpmbwgn00cb0dicbfwdkz40';
 
 interface PeyDotUser {
   id: string;
