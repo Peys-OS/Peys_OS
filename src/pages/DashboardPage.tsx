@@ -31,7 +31,7 @@ export default function DashboardPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
             <h2 className="mb-3 font-display text-3xl text-foreground">Sign in to view your dashboard</h2>
             <p className="mb-6 text-muted-foreground">Track payments, view balances, and manage your wallet.</p>
-            <button onClick={login} className="inline-flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
+            <button onClick={login} className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
               Sign In
             </button>
           </motion.div>
@@ -86,7 +86,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-5 flex gap-2">
-            <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
+            <Link to="/send" className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
               <Send className="h-4 w-4" /> Send
             </Link>
             <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">

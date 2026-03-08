@@ -4,8 +4,8 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    q: "What is PeyDot?",
-    a: "PeyDot is a peer-to-peer stablecoin payments app built on Polkadot. Send USDC or USDT to anyone via a shareable link — no wallet or crypto knowledge required.",
+    q: "What is Pey?",
+    a: "Pey is a peer-to-peer stablecoin payments app built on Polkadot. Send USDC or USDT to anyone via a shareable link — no wallet or crypto knowledge required.",
   },
   {
     q: "How do Magic Claim Links work?",
@@ -21,11 +21,11 @@ const faqs = [
   },
   {
     q: "Which stablecoins are supported?",
-    a: "PeyDot supports USDC (asset ID 1337) and USDT (asset ID 1984) on Polkadot Asset Hub, transferred via XCM precompiles.",
+    a: "Pey supports USDC (asset ID 1337) and USDT (asset ID 1984) on Polkadot Asset Hub, transferred via XCM precompiles.",
   },
   {
     q: "What are the fees?",
-    a: "Transaction fees on Polkadot Hub are minimal — typically less than $0.01. PeyDot itself does not charge additional fees during the hackathon period.",
+    a: "Transaction fees on Polkadot Hub are minimal — typically less than $0.01. Pey itself does not charge additional fees during the hackathon period.",
   },
 ];
 

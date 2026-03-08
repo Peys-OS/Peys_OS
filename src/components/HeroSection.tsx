@@ -24,7 +24,7 @@ export default function HeroSection() {
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/send"
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
             >
               Send Payment <ArrowRight className="h-4 w-4" />
             </Link>
@@ -51,7 +51,7 @@ export default function HeroSection() {
           <div className="overflow-hidden rounded-2xl border border-border shadow-elevated">
             <img
               src={dashboardPreview}
-              alt="PeyDot Dashboard showing stablecoin balances and transactions"
+              alt="Pey Dashboard showing stablecoin balances and transactions"
               className="w-full"
               loading="lazy"
             />

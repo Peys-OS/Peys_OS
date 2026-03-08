@@ -7,10 +7,10 @@ export default function Footer() {
         <div className="grid gap-8 sm:grid-cols-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <span className="text-sm font-bold text-primary-foreground">P</span>
               </div>
-              <span className="text-lg font-semibold text-foreground">PeyDot</span>
+              <span className="text-lg font-semibold text-foreground">Pey</span>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
               Stablecoin payments for everyone. Built on Polkadot.
@@ -46,7 +46,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground">
-          © 2025 PeyDot. Built for the Polkadot Solidity Hackathon. Made with ❤️ on Polkadot Hub.
+          © 2025 Pey. Built for the Polkadot Solidity Hackathon. Made with ❤️ on Polkadot Hub.
         </div>
       </div>
     </footer>

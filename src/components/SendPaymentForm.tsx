@@ -15,7 +15,7 @@ export default function SendPaymentForm() {
   const [step, setStep] = useState<"form" | "confirm" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);
 
-  const generatedLink = `peydot.app/claim/${Math.random().toString(36).slice(2, 10)}`;
+  const generatedLink = `pey.app/claim/${Math.random().toString(36).slice(2, 10)}`;
 
   const handleSend = () => {
     if (!isLoggedIn) { login(); return; }
@@ -60,7 +60,7 @@ export default function SendPaymentForm() {
                       onClick={() => setToken(t)}
                       className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
                         token === t
-                          ? "bg-gradient-primary text-primary-foreground shadow-glow"
+                          ? "bg-primary text-primary-foreground shadow-glow"
                           : "border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       }`}
                     >
@@ -96,7 +96,7 @@ export default function SendPaymentForm() {
                 <button
                   onClick={handleSend}
                   disabled={!amount || Number(amount) <= 0}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
                   <Send className="h-4 w-4" />
                   {isLoggedIn ? "Review Payment" : "Sign In to Send"}
@@ -113,7 +113,7 @@ export default function SendPaymentForm() {
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expires</span><span className="text-foreground">7 days</span></div>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Network fee</span><span className="font-medium text-primary">~$0.01</span></div>
                 </div>
-                <button onClick={handleSend} className="w-full rounded-xl bg-gradient-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
+                <button onClick={handleSend} className="w-full rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
                   Confirm & Send
                 </button>
               </motion.div>
@@ -139,7 +139,7 @@ export default function SendPaymentForm() {
                   <button onClick={() => { setStep("form"); setAmount(""); setRecipient(""); setMemo(""); }}
                     className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
                   >Send Another</button>
-                  <Link to="/dashboard" className="flex-1 rounded-xl bg-gradient-primary py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 flex items-center justify-center">
+                  <Link to="/dashboard" className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 flex items-center justify-center">
                     Dashboard
                   </Link>
                 </div>
