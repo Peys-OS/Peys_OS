@@ -26,7 +26,7 @@ export default function HeroSection() {
             className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-medium text-muted-foreground">Polkadot Solidity Hackathon — EVM Track</span>
+            <span className="text-sm font-semibold tracking-wide text-foreground">🚀 Polkadot Solidity Hackathon — EVM Track</span>
           </motion.div>
 
           <h1 className="mx-auto max-w-4xl font-display text-4xl leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
