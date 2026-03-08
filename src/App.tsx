@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import AIChatBubble from "@/components/AIChatBubble";
 import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
 import DashboardPage from "./pages/DashboardPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +28,10 @@ const App = () => (
               <Route path="/send" element={<SendPage />} />
               <Route path="/claim/:id" element={<ClaimPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AIChatBubble />
           </BrowserRouter>
         </AppProvider>
       </ThemeProvider>

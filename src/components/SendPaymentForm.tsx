@@ -1,9 +1,11 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
+import { fireBurst } from "@/lib/confetti";
 import { Link } from "react-router-dom";
+import PaymentCard from "@/components/PaymentCard";
 
 type Token = "USDC" | "USDT";
 
@@ -16,6 +18,7 @@ export default function SendPaymentForm() {
   const [step, setStep] = useState<"form" | "confirm" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showCard, setShowCard] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
 
   const claimId = Math.random().toString(36).slice(2, 10);
@@ -25,7 +28,10 @@ export default function SendPaymentForm() {
   const handleSend = () => {
     if (!isLoggedIn) { login(); return; }
     if (step === "form") setStep("confirm");
-    else if (step === "confirm") setStep("done");
+    else if (step === "confirm") {
+      setStep("done");
+      fireBurst();
+    }
   };
 
   const copyLink = () => {
@@ -52,6 +58,19 @@ export default function SendPaymentForm() {
       link.click();
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
+  const shareLink = async () => {
+    const shareData = {
+      title: `Payment of ${amount} ${token} on Pey`,
+      text: `Claim your ${amount} ${token}! ${memo || ""}`,
+      url: fullLink,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch {}
+    } else {
+      copyLink();
+    }
   };
 
   const balance = token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT;
@@ -149,18 +168,29 @@ export default function SendPaymentForm() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14">
                   <Check className="h-6 w-6 text-primary sm:h-7 sm:w-7" />
                 </div>
-                <h3 className="font-display text-lg text-foreground sm:text-xl">Payment Created!</h3>
+                <h3 className="font-display text-lg text-foreground sm:text-xl">Payment Created! 🎉</h3>
                 <p className="text-sm text-muted-foreground">{Number(amount).toFixed(2)} {token} deposited into escrow.</p>
-                
+
                 <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/50 p-2.5 sm:p-3">
                   <span className="flex-1 truncate text-xs text-foreground sm:text-sm">{generatedLink}</span>
                   <button onClick={copyLink} className="rounded-lg border border-border bg-card p-1.5 transition-colors hover:bg-secondary sm:p-2">
                     {linkCopied ? <Check className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />}
                   </button>
-                  <button onClick={() => setShowQR(true)} className="rounded-lg border border-border bg-card p-1.5 transition-colors hover:bg-secondary sm:p-2">
-                    <svg className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="3" height="3" /><rect x="18" y="18" width="3" height="3" />
-                    </svg>
+                </div>
+
+                {/* Action buttons */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => setShowQR(true)} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="3" height="3" /><rect x="18" y="18" width="3" height="3" /></svg>
+                    QR Code
+                  </button>
+                  <button onClick={shareLink} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <Share2 className="h-5 w-5" />
+                    Share
+                  </button>
+                  <button onClick={() => setShowCard(true)} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 10h20" /></svg>
+                    Card
                   </button>
                 </div>
 
@@ -181,43 +211,53 @@ export default function SendPaymentForm() {
       {/* QR Code Modal */}
       <AnimatePresence>
         {showQR && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
             onClick={() => setShowQR(false)}
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-xs rounded-2xl border border-border bg-card p-6 shadow-elevated text-center"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg text-foreground">Share QR Code</h3>
-                <button onClick={() => setShowQR(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="h-5 w-5" />
-                </button>
+                <h3 className="font-display text-lg text-foreground">QR Code</h3>
+                <button onClick={() => setShowQR(false)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
               </div>
               <div ref={qrRef} className="mx-auto mb-4 flex items-center justify-center rounded-xl bg-background p-4">
-                <QRCodeSVG
-                  value={fullLink}
-                  size={200}
-                  bgColor="transparent"
-                  fgColor="currentColor"
-                  className="text-foreground"
-                  level="M"
-                />
+                <QRCodeSVG value={fullLink} size={200} bgColor="transparent" fgColor="currentColor" className="text-foreground" level="M" />
               </div>
               <p className="mb-4 text-xs text-muted-foreground break-all">{fullLink}</p>
-              <button
-                onClick={downloadQR}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
+              <button onClick={downloadQR} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
                 <Download className="h-4 w-4" /> Download QR
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Card Modal */}
+      <AnimatePresence>
+        {showCard && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+            onClick={() => setShowCard(false)}
+          >
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm"
+            >
+              <div className="mb-3 flex justify-end">
+                <button onClick={() => setShowCard(false)} className="rounded-full bg-card p-2 text-muted-foreground hover:text-foreground border border-border">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <PaymentCard
+                sender="You"
+                amount={Number(amount)}
+                token={token}
+                memo={memo}
+                claimId={claimId}
+              />
             </motion.div>
           </motion.div>
         )}
