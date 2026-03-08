@@ -83,7 +83,7 @@ export default function HeroSection() {
             {/* Orbiting dots */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
               className="absolute h-64 w-64 sm:h-80 sm:w-80"
             >
               <div className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-foreground/20" />
