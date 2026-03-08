@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   if (!isLoggedIn) {
     return (
