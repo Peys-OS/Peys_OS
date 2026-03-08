@@ -35,7 +35,6 @@ export default function SendPaymentForm() {
       fireBurst();
       toast.success("Payment created! Share the link to get paid 🎉");
     }
-    }
   };
 
   const copyLink = () => {
