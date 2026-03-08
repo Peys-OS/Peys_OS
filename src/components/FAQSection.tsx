@@ -4,8 +4,8 @@ import { Plus, Minus } from "lucide-react";
 
 const faqs = [
   {
-    q: "What is Pey?",
-    a: "Pey is a peer-to-peer stablecoin payments app built on Polkadot. Send USDC or USDT to anyone via a shareable link — no wallet or crypto knowledge required.",
+    q: "What is Peys?",
+    a: "Peys is a peer-to-peer stablecoin payments app built on Polkadot. Send USDC or USDT to anyone via a shareable link — no wallet or crypto knowledge required.",
   },
   {
     q: "How do Magic Claim Links work?",
