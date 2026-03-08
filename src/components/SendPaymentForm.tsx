@@ -163,7 +163,7 @@ export default function SendPaymentForm() {
     img.onload = () => {
       ctx?.drawImage(img, 0, 0, 512, 512);
       const link = document.createElement("a");
-      link.download = `pey-payment-${claimId}.png`;
+      link.download = `peys-payment-${claimId}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     };
