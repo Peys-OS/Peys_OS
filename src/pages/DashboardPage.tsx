@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
@@ -27,7 +27,7 @@ type StatusFilter = "all" | "sent" | "claimed" | "pending";
 type TokenFilter = "all" | "USDC" | "USDT";
 
 export default function DashboardPage() {
-  const { isLoggedIn, login, wallet, transactions } = useApp();
+  const { isLoggedIn, login, wallet, transactions, transactionsLoading, refreshTransactions } = useApp();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,7 +155,16 @@ export default function DashboardPage() {
         {/* Filters & Search */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mb-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg text-foreground sm:text-xl">Recent Activity</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display text-lg text-foreground sm:text-xl">Recent Activity</h3>
+              <button
+                onClick={() => refreshTransactions()}
+                className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                title="Refresh"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${transactionsLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
             <div className="flex items-center gap-1">
               <Filter className="h-3.5 w-3.5 text-muted-foreground" />
               <select
@@ -201,7 +210,20 @@ export default function DashboardPage() {
 
         {/* Transactions */}
         <div className="space-y-2">
-          {filtered.length === 0 ? (
+          {transactionsLoading && filtered.length === 0 ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 sm:rounded-xl sm:p-4 animate-pulse">
+                  <div className="h-8 w-8 rounded-full bg-muted sm:h-9 sm:w-9" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 rounded bg-muted" />
+                    <div className="h-3 w-20 rounded bg-muted" />
+                  </div>
+                  <div className="h-4 w-16 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               className="rounded-xl border border-border bg-card p-8 text-center"
             >

@@ -3,6 +3,7 @@ import { usePrivyAuth } from "@/contexts/PrivyContext";
 import { createPublicClient, http, formatUnits, type Address } from "viem";
 import { ERC20_ABI } from "@/lib/abis";
 import { USDC_ADDRESS, USDT_ADDRESS, RPC_URL } from "@/lib/contracts";
+import { supabase } from "@/integrations/supabase/client";
 import type { Transaction } from "@/hooks/useMockData";
 
 interface UserWallet {
@@ -22,18 +23,12 @@ interface AppContextType {
   transactions: Transaction[];
   walletAddress: string;
   refreshBalances: () => void;
+  refreshTransactions: () => void;
+  transactionsLoading: boolean;
 }
-
-const defaultTransactions: Transaction[] = [
-  { id: "1", type: "sent", amount: 50, token: "USDC", counterparty: "moses@email.com", memo: "Lunch money 🍕", timestamp: new Date(Date.now() - 3600000), claimLink: "abc123" },
-  { id: "2", type: "claimed", amount: 200, token: "USDT", counterparty: "alice@email.com", memo: "Freelance payment", timestamp: new Date(Date.now() - 86400000) },
-  { id: "3", type: "pending", amount: 100, token: "USDC", counterparty: "bob@email.com", timestamp: new Date(Date.now() - 7200000), claimLink: "def456", expiresAt: new Date(Date.now() + 86400000 * 6) },
-  { id: "4", type: "claimed", amount: 75, token: "USDC", counterparty: "grace@email.com", memo: "Birthday gift 🎂", timestamp: new Date(Date.now() - 172800000) },
-];
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-// Viem public client for Westend Asset Hub
 const publicClient = createPublicClient({
   chain: {
     id: 420420421,
@@ -48,7 +43,8 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn, isLoading, login, logout, walletAddress } = usePrivyAuth();
-  const [transactions] = useState<Transaction[]>(defaultTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [balanceUSDC, setBalanceUSDC] = useState(0);
   const [balanceUSDT, setBalanceUSDT] = useState(0);
 
@@ -94,15 +90,87 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [walletAddress, isLoggedIn]);
 
-  // Auto-fetch on login / wallet change
+  // Fetch real transactions from Supabase
+  const fetchTransactions = useCallback(async () => {
+    if (!isLoggedIn) {
+      setTransactions([]);
+      return;
+    }
+
+    setTransactionsLoading(true);
+    try {
+      // Get current user's profile to find their email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setTransactions([]);
+        setTransactionsLoading(false);
+        return;
+      }
+
+      const userEmail = user.email || "";
+
+      // Fetch payments where user is sender OR recipient
+      const { data: payments, error } = await supabase
+        .from("payments")
+        .select("*")
+        .or(`sender_user_id.eq.${user.id},recipient_email.eq.${userEmail}`)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error("Error fetching payments:", error);
+        setTransactions([]);
+        setTransactionsLoading(false);
+        return;
+      }
+
+      const mapped: Transaction[] = (payments || []).map((p) => {
+        let type: Transaction["type"];
+        if (p.status === "claimed") {
+          type = p.sender_user_id === user.id ? "sent" : "claimed";
+        } else if (p.status === "pending") {
+          type = p.sender_user_id === user.id ? "pending" : "pending";
+        } else {
+          type = "sent";
+        }
+
+        // Show the other party
+        const counterparty =
+          p.sender_user_id === user.id ? p.recipient_email : p.sender_email;
+
+        return {
+          id: p.id,
+          type,
+          amount: Number(p.amount),
+          token: (p.token === "USDT" ? "USDT" : "USDC") as "USDC" | "USDT",
+          counterparty,
+          memo: p.memo || undefined,
+          timestamp: new Date(p.created_at),
+          claimLink: p.claim_link || undefined,
+          expiresAt: p.expires_at ? new Date(p.expires_at) : undefined,
+        };
+      });
+
+      setTransactions(mapped);
+    } catch (err) {
+      console.error("Transaction fetch error:", err);
+    } finally {
+      setTransactionsLoading(false);
+    }
+  }, [isLoggedIn]);
+
   useEffect(() => {
     fetchBalances();
-    // Poll every 30s while logged in
     if (isLoggedIn && walletAddress) {
       const interval = setInterval(fetchBalances, 30_000);
       return () => clearInterval(interval);
     }
   }, [fetchBalances, isLoggedIn, walletAddress]);
+
+  // Fetch transactions on login
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const wallet: UserWallet = {
     address: shortAddr,
@@ -121,6 +189,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         transactions,
         walletAddress,
         refreshBalances: fetchBalances,
+        refreshTransactions: fetchTransactions,
+        transactionsLoading,
       }}
     >
       {children}
