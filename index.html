@@ -6,6 +6,10 @@
     <title>Pey — Stablecoin Payments on Polkadot</title>
     <meta name="description" content="Send stablecoins to anyone with a magic link. No wallet needed. Built on Polkadot." />
     <meta name="author" content="Pey" />
+    <meta name="theme-color" content="#6C3FE4" />
+
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/favicon.ico" />
 
     <meta property="og:title" content="Pey — Stablecoin Payments on Polkadot" />
     <meta property="og:description" content="Send stablecoins to anyone with a magic link. No wallet needed. Built on Polkadot." />
@@ -20,5 +24,12 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>

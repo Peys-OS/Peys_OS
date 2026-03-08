@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
@@ -122,13 +122,18 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Yield teaser */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="mb-4 rounded-lg border border-primary/20 bg-gradient-card-hover p-3 sm:mb-6 sm:rounded-xl sm:p-4"
-        >
-          <p className="text-sm font-medium text-foreground">💡 Earn yield on idle funds</p>
-          <p className="mt-1 text-xs text-muted-foreground">Coming soon: Escrowed stables earn yield via Bifrost LSTs on Polkadot.</p>
-        </motion.div>
+        {/* Quick links */}
+        <div className="mb-4 flex gap-3 sm:mb-6">
+          <Link to="/analytics" className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
+            <BarChart3 className="h-4 w-4 text-primary" /> Analytics
+          </Link>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+            className="flex-1 rounded-lg border border-primary/20 bg-gradient-card-hover p-3 sm:rounded-xl"
+          >
+            <p className="text-xs font-medium text-foreground">💡 Yield coming soon</p>
+            <p className="text-xs text-muted-foreground">Bifrost LSTs on Polkadot</p>
+          </motion.div>
+        </div>
 
         {/* Filters & Search */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mb-4 space-y-3">

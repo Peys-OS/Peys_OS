@@ -1,0 +1,27 @@
+{
+  "name": "Pey",
+  "short_name": "Pey",
+  "description": "Send stablecoins to anyone with a magic link. No wallet needed. Built on Polkadot.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FCFCFD",
+  "theme_color": "#6C3FE4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
