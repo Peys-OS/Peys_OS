@@ -1,102 +1,57 @@
 import { motion } from "framer-motion";
-import {
-  Link2, Shield, Globe, Zap, Users, FileText,
-  BarChart3, QrCode, Repeat, Wallet, ArrowLeftRight, Bot,
-} from "lucide-react";
+import { Link2, Shield, Globe, Zap, Users, BarChart3 } from "lucide-react";
+
+import featureMagicLinks from "@/assets/feature-magic-links.png";
+import featureEscrow from "@/assets/feature-escrow.png";
+import featureGlobal from "@/assets/feature-global.png";
+import featureStreaming from "@/assets/feature-streaming.png";
+import featureBatch from "@/assets/feature-batch.png";
+import featureAnalytics from "@/assets/feature-analytics.png";
 
 const features = [
   {
     icon: Link2,
     title: "Magic Claim Links",
-    desc: "Send money via a simple link. No wallet needed — recipients claim with email.",
-    animation: "bounce" as const,
+    desc: "Send money via a simple link. No wallet needed — recipients sign in with email and funds appear instantly in their account.",
+    image: featureMagicLinks,
+    alt: "Magic link payment illustration",
   },
   {
     icon: Shield,
     title: "Smart Contract Escrow",
-    desc: "Funds are locked in audited contracts until claimed or auto-refunded.",
-    animation: "pulse" as const,
+    desc: "Funds are locked in audited smart contracts on Polkadot until claimed. If unclaimed after 7 days, they're automatically refunded.",
+    image: featureEscrow,
+    alt: "Security shield escrow illustration",
   },
   {
     icon: Globe,
     title: "Global Payments",
-    desc: "Send USDC & USDT anywhere on Polkadot with near-zero fees.",
-    animation: "spin" as const,
+    desc: "Send USDC and USDT to anyone in the world on Polkadot Asset Hub with near-zero gas fees. No borders, no limits.",
+    image: featureGlobal,
+    alt: "Global payments illustration",
   },
   {
     icon: Zap,
     title: "Payment Streaming",
-    desc: "Stream payments per second, minute, or hour. Perfect for salaries.",
-    animation: "shake" as const,
+    desc: "Stream payments per second, minute, or hour. Ideal for salaries, subscriptions, and any recurring transfer that needs real-time flow.",
+    image: featureStreaming,
+    alt: "Payment streaming illustration",
   },
   {
     icon: Users,
     title: "Batch Payments",
-    desc: "Pay multiple recipients at once via CSV upload. One click, done.",
-    animation: "bounce" as const,
-  },
-  {
-    icon: FileText,
-    title: "Invoice & Request",
-    desc: "Create payment requests with shareable links. Get paid faster.",
-    animation: "pulse" as const,
-  },
-  {
-    icon: QrCode,
-    title: "QR Code Sharing",
-    desc: "Generate branded QR codes for any payment link. Download as PNG.",
-    animation: "shake" as const,
+    desc: "Upload a CSV and pay hundreds of recipients in one click. Perfect for payroll, airdrops, and bulk distributions.",
+    image: featureBatch,
+    alt: "Batch payments illustration",
   },
   {
     icon: BarChart3,
     title: "Real-time Analytics",
-    desc: "Track volume, claim rates, and geographic distribution live.",
-    animation: "bounce" as const,
-  },
-  {
-    icon: Bot,
-    title: "AI Assistant",
-    desc: "Natural language payments — just say 'Send $50 USDC to alice@email.com'.",
-    animation: "pulse" as const,
-  },
-  {
-    icon: ArrowLeftRight,
-    title: "Cross-Chain XCM",
-    desc: "Transfer stablecoins across Polkadot parachains seamlessly.",
-    animation: "spin" as const,
-  },
-  {
-    icon: Wallet,
-    title: "Auto Wallets",
-    desc: "Recipients get an embedded wallet created automatically on sign-in.",
-    animation: "shake" as const,
-  },
-  {
-    icon: Repeat,
-    title: "Auto-Refund",
-    desc: "Unclaimed payments refund automatically after 7 days. Zero risk.",
-    animation: "bounce" as const,
+    desc: "Track your payment volume, claim rates, geographic reach, and top recipients — all updated live in a beautiful dashboard.",
+    image: featureAnalytics,
+    alt: "Analytics dashboard illustration",
   },
 ];
-
-const iconAnimations = {
-  bounce: {
-    y: [0, -4, 0],
-    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const },
-  },
-  pulse: {
-    scale: [1, 1.1, 1],
-    transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" as const },
-  },
-  spin: {
-    rotate: [0, 360],
-    transition: { duration: 8, repeat: Infinity, ease: "linear" as const },
-  },
-  shake: {
-    x: [0, -2, 2, -2, 0],
-    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" as const },
-  },
-};
 
 export default function FeaturesSection() {
   return (
@@ -117,26 +72,44 @@ export default function FeaturesSection() {
           </p>
         </motion.div>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:mt-20 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mx-auto mt-16 max-w-5xl space-y-12 sm:mt-24 sm:space-y-20">
           {features.map((f, i) => {
             const Icon = f.icon;
+            const isReversed = i % 2 === 1;
+
             return (
               <motion.div
                 key={f.title}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.04 }}
-                className="group bg-card p-6 transition-colors hover:bg-secondary/30 sm:p-8"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className={`flex flex-col items-center gap-8 sm:gap-12 md:flex-row ${
+                  isReversed ? "md:flex-row-reverse" : ""
+                }`}
               >
-                <motion.div
-                  animate={iconAnimations[f.animation]}
-                  className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-colors group-hover:text-foreground"
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
-                </motion.div>
-                <h3 className="text-sm font-semibold text-foreground">{f.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{f.desc}</p>
+                {/* Image */}
+                <div className="flex w-full items-center justify-center md:w-1/2">
+                  <div className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card sm:max-w-sm sm:p-8">
+                    <img
+                      src={f.image}
+                      alt={f.alt}
+                      className="h-auto w-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+
+                {/* Text */}
+                <div className="w-full text-center md:w-1/2 md:text-left">
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary text-primary sm:h-12 sm:w-12">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="font-display text-xl text-foreground sm:text-2xl">{f.title}</h3>
+                  <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                    {f.desc}
+                  </p>
+                </div>
               </motion.div>
             );
           })}
