@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: "What are the fees?",
-    a: "Transaction fees on Polkadot are minimal — typically less than $0.01. Pey charges no additional fees during the hackathon.",
+    a: "Transaction fees on Polkadot are minimal — typically less than $0.01. Peys charges no additional fees during the hackathon.",
   },
 ];
 
