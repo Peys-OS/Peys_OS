@@ -7,6 +7,7 @@ import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import WithdrawModal from "@/components/WithdrawModal";
 
 function formatTime(date: Date) {
   const diff = Date.now() - date.getTime();
