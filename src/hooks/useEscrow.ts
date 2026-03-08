@@ -35,7 +35,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'createPaymentExternal',
       args: [tokenAddress, amount, claimHash, expiry, memo],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
@@ -52,7 +52,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'claim',
       args: [paymentId, secretHash, recipient],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
@@ -63,7 +63,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'refundAfterExpiry',
       args: [paymentId],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
@@ -150,7 +150,7 @@ export function useApproveToken() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ESCROW_CONTRACT_ADDRESS, amount],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
