@@ -78,7 +78,7 @@ export default function RequestPage() {
       memo: form.memo || undefined,
       status: "open",
       createdAt: new Date(),
-      link: `pey.app/request/${id}`,
+      link: `peys.app/request/${id}`,
     };
     setRequests((prev) => [req, ...prev]);
     setCreated(req);
