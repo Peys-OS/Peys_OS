@@ -1,6 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { ESCROW_ABI, ERC20_ABI } from '@/lib/abis.ts';
-import { ESCROW_CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from '@/lib/contracts';
+import { ESCROW_ABI, ERC20_ABI, ESCROW_CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from '@/constants/blockchain';
 import { useCallback } from 'react';
 import { keccak256, toBytes, Address } from 'viem';
 
@@ -78,7 +77,7 @@ export function useEscrow() {
   };
 }
 
-export function usePayment(paymentId: `0x${string}` | undefined) {
+export function usePayment(paymentId: bigint | undefined) {
   const { data } = useReadContract({
     address: ESCROW_CONTRACT_ADDRESS,
     abi: ESCROW_ABI,
