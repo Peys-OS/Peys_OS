@@ -78,7 +78,7 @@ export function useEscrow() {
   };
 }
 
-export function usePayment(paymentId: `0x${string}` | undefined) {
+export function usePayment(paymentId: bigint | undefined) {
   const { data } = useReadContract({
     address: ESCROW_CONTRACT_ADDRESS,
     abi: ESCROW_ABI,
