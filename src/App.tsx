@@ -7,6 +7,7 @@ import { PrivyAppProvider } from "@/contexts/PrivyContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AIChatBubble from "@/components/AIChatBubble";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
