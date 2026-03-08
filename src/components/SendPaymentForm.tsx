@@ -1,13 +1,14 @@
 // Send Payment Form
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2 } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
 import { Link, useSearchParams } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";
+import { MOCK_CONTACTS } from "@/data/contacts";
 
 type Token = "USDC" | "USDT";
 
