@@ -1,19 +1,24 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import type { UserWallet, Transaction } from "@/hooks/useMockData";
+import { usePrivyAuth } from "@/contexts/PrivyContext";
+import type { Transaction } from "@/hooks/useMockData";
+
+interface UserWallet {
+  address: string;
+  balanceUSDC: number;
+  balanceUSDT: number;
+}
+
+export type { UserWallet };
 
 interface AppContextType {
   isLoggedIn: boolean;
+  isLoading: boolean;
   login: () => void;
   logout: () => void;
   wallet: UserWallet;
   transactions: Transaction[];
+  walletAddress: string;
 }
-
-const defaultWallet: UserWallet = {
-  address: "0x1a2B...9f4E",
-  balanceUSDC: 1250.0,
-  balanceUSDT: 340.5,
-};
 
 const defaultTransactions: Transaction[] = [
   { id: "1", type: "sent", amount: 50, token: "USDC", counterparty: "moses@email.com", memo: "Lunch money 🍕", timestamp: new Date(Date.now() - 3600000), claimLink: "abc123" },
@@ -25,16 +30,30 @@ const defaultTransactions: Transaction[] = [
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, isLoading, login, logout, walletAddress } = usePrivyAuth();
+  const [transactions] = useState<Transaction[]>(defaultTransactions);
+
+  const shortAddr = walletAddress
+    ? walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4)
+    : "Not connected";
+
+  // TODO: Replace with real on-chain balance fetching
+  const wallet: UserWallet = {
+    address: shortAddr,
+    balanceUSDC: 0,
+    balanceUSDT: 0,
+  };
 
   return (
     <AppContext.Provider
       value={{
         isLoggedIn,
-        login: () => setIsLoggedIn(true),
-        logout: () => setIsLoggedIn(false),
-        wallet: defaultWallet,
-        transactions: defaultTransactions,
+        isLoading,
+        login,
+        logout,
+        wallet,
+        transactions,
+        walletAddress,
       }}
     >
       {children}
