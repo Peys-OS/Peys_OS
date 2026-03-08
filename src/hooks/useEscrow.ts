@@ -150,7 +150,7 @@ export function useApproveToken() {
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [ESCROW_CONTRACT_ADDRESS, amount],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
