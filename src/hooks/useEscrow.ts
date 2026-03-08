@@ -63,7 +63,7 @@ export function useEscrow() {
       abi: ESCROW_ABI,
       functionName: 'refundAfterExpiry',
       args: [paymentId],
-    });
+    } as any);
 
     return tx;
   }, [writeContract]);
