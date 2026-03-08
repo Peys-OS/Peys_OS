@@ -90,14 +90,20 @@ export default function FeaturesSection() {
               >
                 {/* Image */}
                 <div className="flex w-full items-center justify-center md:w-1/2">
-                  <div className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card sm:max-w-sm sm:p-8">
-                    <img
+                <motion.div
+                    whileHover={{ scale: 1.04 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card sm:max-w-sm sm:p-8"
+                  >
+                    <motion.img
                       src={f.image}
                       alt={f.alt}
                       className="h-auto w-full object-contain"
                       loading="lazy"
+                      whileHover={{ rotate: [0, -2, 2, -1, 0], scale: 1.06 }}
+                      transition={{ duration: 0.6, ease: "easeInOut" }}
                     />
-                  </div>
+                  </motion.div>
                 </div>
 
                 {/* Text */}
