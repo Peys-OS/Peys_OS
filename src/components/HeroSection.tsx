@@ -90,7 +90,7 @@ export default function HeroSection() {
             </motion.div>
             <motion.div
               animate={{ rotate: -360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
               className="absolute h-48 w-48 sm:h-60 sm:w-60"
             >
               <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary/40" />
