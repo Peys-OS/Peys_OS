@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { PrivyAppProvider } from "@/contexts/PrivyContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AIChatBubble from "@/components/AIChatBubble";
@@ -23,25 +24,27 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ThemeProvider>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/send" element={<SendPage />} />
-              <Route path="/claim/:id" element={<ClaimPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/streaming" element={<StreamingPage />} />
-              <Route path="/batch" element={<BatchPage />} />
-              <Route path="/request" element={<RequestPage />} />
-              <Route path="/contacts" element={<ContactsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <AIChatBubble />
-          </BrowserRouter>
-        </AppProvider>
+        <PrivyAppProvider>
+          <AppProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/send" element={<SendPage />} />
+                <Route path="/claim/:id" element={<ClaimPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/streaming" element={<StreamingPage />} />
+                <Route path="/batch" element={<BatchPage />} />
+                <Route path="/request" element={<RequestPage />} />
+                <Route path="/contacts" element={<ContactsPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <AIChatBubble />
+            </BrowserRouter>
+          </AppProvider>
+        </PrivyAppProvider>
       </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 export default function AppHeader() {
-  const { isLoggedIn, login, logout } = useApp();
+  const { isLoggedIn, login, logout, wallet } = useApp();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -69,7 +69,7 @@ export default function AppHeader() {
             <div className="hidden items-center gap-3 xl:flex">
               {isLoggedIn ? (
                 <>
-                  <span className="text-sm text-muted-foreground">0x1a2B...9f4E</span>
+                  <span className="text-sm text-muted-foreground">{wallet.address}</span>
                   <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
                 </>
               ) : (
@@ -119,7 +119,7 @@ export default function AppHeader() {
               <div className="border-t border-border p-4">
                 {isLoggedIn ? (
                   <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground">0x1a2B...9f4E</p>
+                    <p className="text-xs text-muted-foreground">{wallet.address}</p>
                     <button onClick={() => { handleLogout(); setMobileOpen(false); }}
                       className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Sign Out</button>
                   </div>
