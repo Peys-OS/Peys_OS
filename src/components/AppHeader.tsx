@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 export default function AppHeader() {
-  const { isLoggedIn, login, logout } = useApp();
+  const { isLoggedIn, login, logout, wallet } = useApp();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
