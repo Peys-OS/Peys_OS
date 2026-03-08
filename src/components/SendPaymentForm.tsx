@@ -186,7 +186,7 @@ export default function SendPaymentForm() {
   const balance = token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT;
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+    <div className="relative mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
