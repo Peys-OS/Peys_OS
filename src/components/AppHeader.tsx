@@ -5,6 +5,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function AppHeader() {
   const { isLoggedIn, login, logout, wallet } = useApp();
@@ -65,6 +66,8 @@ export default function AppHeader() {
             >
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
+
+            <NotificationBell />
 
             <div className="hidden items-center gap-3 xl:flex">
               {isLoggedIn ? (

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import { Script, console } from "forge-std/Script.sol";
-import { PeyDotEscrow } from "../contracts/PeyDotEscrow.sol";
+import "forge-std/Script.sol";
+import "../contracts/PeyDotEscrow.sol";
 
 contract DeployPeyDotEscrow is Script {
     function run() external {
@@ -23,6 +23,7 @@ contract DeployPeyDotEscrow is Script {
         console.log("Deployer:", vm.addr(deployerPrivateKey));
         console.log("========================================");
         
+        // Output for automation
         console.log("");
         console.log("CONTRACT_ADDRESS=", vm.toString(address(escrow)));
         console.log("");

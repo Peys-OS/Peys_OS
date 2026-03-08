@@ -17,12 +17,10 @@ if [ ! -f ".env" ]; then
 fi
 
 # Load environment variables
-set -a
 source .env
-set +a
 
 # Check PRIVATE_KEY
-if [ -z "$PRIVATE_KEY" ]; then
+if [ -z "$PRIVATE_KEY" ] || [ "$PRIVATE_KEY" == "your_private_key_here" ]; then
     echo "Error: PRIVATE_KEY not set in .env!"
     echo "Please add your private key to .env"
     exit 1
