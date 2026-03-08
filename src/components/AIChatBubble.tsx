@@ -47,10 +47,10 @@ function generateResponse(text: string): string {
     return "Here are your recent transactions:\n\n1. 🔴 Sent $50 USDC → moses@email.com (1h ago)\n2. 🟢 Claimed $200 USDT from alice@email.com (1d ago)\n3. ⏳ Pending $100 USDC → bob@email.com (2h ago)\n\nSee all on your [Dashboard](/dashboard).";
   }
   if (lower.includes("claim") || lower.includes("link") || lower.includes("how")) {
-    return "**How Pey Claim Links work:**\n\n1. You send a payment → funds go into escrow\n2. A unique magic link is generated\n3. Share it via email, text, or QR code\n4. Recipient signs in with email/Google\n5. A wallet is auto-created → they claim instantly\n\nUnclaimed funds auto-refund after 7 days. 🔒";
+    return "**How Peys Claim Links work:**\n\n1. You send a payment → funds go into escrow\n2. A unique magic link is generated\n3. Share it via email, text, or QR code\n4. Recipient signs in with email/Google\n5. A wallet is auto-created → they claim instantly\n\nUnclaimed funds auto-refund after 7 days. 🔒";
   }
   if (lower.includes("fee") || lower.includes("cost")) {
-    return "Pey has **near-zero fees**:\n\n• Network fee: ~$0.01 per transaction\n• Pey fee: **$0** (free during hackathon)\n• Powered by Polkadot Asset Hub";
+    return "Peys has **near-zero fees**:\n\n• Network fee: ~$0.01 per transaction\n• Peys fee: **$0** (free during hackathon)\n• Powered by Polkadot Asset Hub";
   }
   
   return "I can help you with:\n\n• **Send payments** — \"Send $50 USDC to alice@email.com\"\n• **Check balance** — \"What's my balance?\"\n• **View transactions** — \"Show recent activity\"\n• **Learn** — \"How do claim links work?\"\n\nWhat would you like to do?";
@@ -59,7 +59,7 @@ function generateResponse(text: string): string {
 export default function AIChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm Pey AI 👋 I can help you send payments, check balances, and answer questions. Try saying \"Send $50 USDC to alice@email.com\"" },
+    { role: "assistant", content: "Hi! I'm Peys AI 👋 I can help you send payments, check balances, and answer questions. Try saying \"Send $50 USDC to alice@email.com\"" },
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -113,7 +113,7 @@ export default function AIChatBubble() {
                 <Bot className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Pey AI</p>
+                <p className="text-sm font-semibold text-foreground">Peys AI</p>
                 <p className="text-xs text-muted-foreground">Payment assistant</p>
               </div>
               <div className="ml-auto flex h-2 w-2 rounded-full bg-primary animate-pulse" />
