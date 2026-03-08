@@ -27,7 +27,7 @@ type StatusFilter = "all" | "sent" | "claimed" | "pending";
 type TokenFilter = "all" | "USDC" | "USDT";
 
 export default function DashboardPage() {
-  const { isLoggedIn, login, wallet, transactions } = useApp();
+  const { isLoggedIn, login, wallet, transactions, transactionsLoading, refreshTransactions } = useApp();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
