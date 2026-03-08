@@ -30,12 +30,12 @@ export default function HeroSection() {
           </motion.div>
 
           <h1 className="mx-auto max-w-4xl font-display text-4xl leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
-            Pay anyone,{" "}
-            <span className="text-muted-foreground/40">anywhere</span>
+            The stablecoin{" "}
+            <span className="text-muted-foreground/40">payment OS</span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-lg text-sm leading-relaxed text-muted-foreground sm:mt-7 sm:text-base">
-            Send stablecoins with a link. No wallet needed. Recipients claim with email — funds are held in smart contract escrow until claimed.
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-muted-foreground sm:mt-7 sm:text-base">
+            Products built on open infrastructure to deliver better stablecoin payments to every individual, business, and developer on Polkadot.
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:mt-10 sm:flex-row sm:justify-center">
@@ -43,14 +43,14 @@ export default function HeroSection() {
               to="/send"
               className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-semibold text-background transition-all hover:opacity-90 sm:w-auto"
             >
-              Start Sending
+              For Individuals
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
-              to="/claim/demo"
+              to="/batch"
               className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:w-auto"
             >
-              <Play className="h-3.5 w-3.5" /> See How It Works
+              For Organizations
             </Link>
           </div>
         </motion.div>
@@ -63,7 +63,6 @@ export default function HeroSection() {
           className="mx-auto mt-16 max-w-3xl sm:mt-20"
         >
           <div className="relative flex items-center justify-center py-8">
-            {/* Floating geometric shapes in gray */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
@@ -80,7 +79,6 @@ export default function HeroSection() {
               className="absolute h-32 w-32 rounded-full border border-border/20 sm:h-40 sm:w-40"
             />
 
-            {/* Orbiting dots */}
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -96,15 +94,14 @@ export default function HeroSection() {
               <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary/40" />
             </motion.div>
 
-            {/* Center content */}
             <div className="relative z-10 flex flex-col items-center gap-3">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-card sm:h-24 sm:w-24">
                 <span className="font-display text-3xl text-foreground sm:text-4xl">P</span>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> USDC</span>
-                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-muted-foreground" /> USDT</span>
-                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-border" /> XCM</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Individual</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-accent" /> Business</span>
+                <span className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-border" /> Developer</span>
               </div>
             </div>
           </div>

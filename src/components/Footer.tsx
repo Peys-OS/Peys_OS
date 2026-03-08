@@ -14,7 +14,7 @@ export default function Footer() {
               <span className="text-base font-semibold text-foreground">Pey</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              Stablecoin payments for everyone.<br />
+              The stablecoin payment OS.<br />
               Built on Polkadot Asset Hub.
             </p>
             <div className="mt-4 flex gap-3">
@@ -32,21 +32,21 @@ export default function Footer() {
 
           <div className="grid grid-cols-3 gap-8 text-xs">
             <div>
-              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Product</p>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Individual</p>
               <div className="space-y-2.5">
                 <Link to="/send" className="block text-muted-foreground transition-colors hover:text-foreground">Send</Link>
                 <Link to="/claim/demo" className="block text-muted-foreground transition-colors hover:text-foreground">Claim</Link>
-                <Link to="/streaming" className="block text-muted-foreground transition-colors hover:text-foreground">Streams</Link>
-                <Link to="/batch" className="block text-muted-foreground transition-colors hover:text-foreground">Batch</Link>
                 <Link to="/request" className="block text-muted-foreground transition-colors hover:text-foreground">Request</Link>
+                <Link to="/contacts" className="block text-muted-foreground transition-colors hover:text-foreground">Contacts</Link>
               </div>
             </div>
             <div>
-              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Account</p>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Organization</p>
               <div className="space-y-2.5">
-                <Link to="/dashboard" className="block text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
+                <Link to="/batch" className="block text-muted-foreground transition-colors hover:text-foreground">Batch Payroll</Link>
+                <Link to="/streaming" className="block text-muted-foreground transition-colors hover:text-foreground">Streaming</Link>
                 <Link to="/analytics" className="block text-muted-foreground transition-colors hover:text-foreground">Analytics</Link>
-                <Link to="/contacts" className="block text-muted-foreground transition-colors hover:text-foreground">Contacts</Link>
+                <Link to="/dashboard" className="block text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
               </div>
             </div>
             <div>

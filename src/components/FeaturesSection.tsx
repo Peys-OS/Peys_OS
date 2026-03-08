@@ -1,5 +1,7 @@
-import { motion } from "framer-motion";
-import { Link2, Shield, Globe, Zap, Users, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link2, Shield, Globe, Zap, Users, BarChart3, Wallet, Receipt, CreditCard, FileText, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import featureMagicLinks from "@/assets/feature-magic-links.png";
 import featureEscrow from "@/assets/feature-escrow.png";
@@ -8,54 +10,76 @@ import featureStreaming from "@/assets/feature-streaming.png";
 import featureBatch from "@/assets/feature-batch.png";
 import featureAnalytics from "@/assets/feature-analytics.png";
 
-const features = [
+type Segment = "individual" | "organization";
+
+const individualFeatures = [
   {
     icon: Link2,
     title: "Magic Claim Links",
-    desc: "Send money via a simple link. No wallet needed — recipients sign in with email and funds appear instantly in their account.",
+    desc: "Send money via a simple link. No wallet needed — recipients sign in with email and funds appear instantly.",
     image: featureMagicLinks,
-    alt: "Magic link payment illustration",
+    link: "/send",
   },
   {
     icon: Shield,
-    title: "Smart Contract Escrow",
-    desc: "Funds are locked in audited smart contracts on Polkadot until claimed. If unclaimed after 7 days, they're automatically refunded.",
+    title: "Escrow Protection",
+    desc: "Funds are locked in audited smart contracts until claimed. If unclaimed after 7 days, they're automatically refunded.",
     image: featureEscrow,
-    alt: "Security shield escrow illustration",
+    link: "/send",
   },
   {
     icon: Globe,
-    title: "Global Payments",
-    desc: "Send USDC and USDT to anyone in the world on Polkadot Asset Hub with near-zero gas fees. No borders, no limits.",
+    title: "Global Transfers",
+    desc: "Send USDC and USDT to anyone in the world on Polkadot Asset Hub with near-zero fees. No borders.",
     image: featureGlobal,
-    alt: "Global payments illustration",
+    link: "/send",
+  },
+  {
+    icon: Wallet,
+    title: "Instant Wallet",
+    desc: "Recipients get an auto-created wallet on first claim. No seed phrases, no setup — just sign in with email.",
+    image: featureMagicLinks,
+    link: "/claim/demo",
+  },
+];
+
+const orgFeatures = [
+  {
+    icon: Users,
+    title: "Batch Payroll",
+    desc: "Upload a CSV and pay hundreds of employees or contractors in one click. Perfect for global payroll.",
+    image: featureBatch,
+    link: "/batch",
   },
   {
     icon: Zap,
     title: "Payment Streaming",
-    desc: "Stream payments per second, minute, or hour. Ideal for salaries, subscriptions, and any recurring transfer that needs real-time flow.",
+    desc: "Stream payments per second for salaries, subscriptions, and real-time compensation. Complete control over flow.",
     image: featureStreaming,
-    alt: "Payment streaming illustration",
-  },
-  {
-    icon: Users,
-    title: "Batch Payments",
-    desc: "Upload a CSV and pay hundreds of recipients in one click. Perfect for payroll, airdrops, and bulk distributions.",
-    image: featureBatch,
-    alt: "Batch payments illustration",
+    link: "/streaming",
   },
   {
     icon: BarChart3,
-    title: "Real-time Analytics",
-    desc: "Track your payment volume, claim rates, geographic reach, and top recipients — all updated live in a beautiful dashboard.",
+    title: "Analytics & Reports",
+    desc: "Track payment volume, claim rates, geographic reach, and top recipients — all updated live in your dashboard.",
     image: featureAnalytics,
-    alt: "Analytics dashboard illustration",
+    link: "/analytics",
+  },
+  {
+    icon: Receipt,
+    title: "Invoice & Request",
+    desc: "Generate payment requests and invoices with unique links. Recipients pay with one click — you get notified instantly.",
+    image: featureEscrow,
+    link: "/request",
   },
 ];
 
 export default function FeaturesSection() {
+  const [segment, setSegment] = useState<Segment>("individual");
+  const features = segment === "individual" ? individualFeatures : orgFeatures;
+
   return (
-    <section className="py-20 sm:py-28">
+    <section className="border-y border-border py-20 sm:py-28">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -70,56 +94,87 @@ export default function FeaturesSection() {
           <p className="mt-4 text-sm text-muted-foreground sm:text-base">
             A complete payment toolkit — from one-click sends to streaming salaries.
           </p>
+
+          {/* Segment Toggle */}
+          <div className="mx-auto mt-8 inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 p-1">
+            <button
+              onClick={() => setSegment("individual")}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                segment === "individual"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              👤 Individual
+            </button>
+            <button
+              onClick={() => setSegment("organization")}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                segment === "organization"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              🏢 Organization
+            </button>
+          </div>
         </motion.div>
 
-        <div className="mx-auto mt-16 max-w-5xl space-y-12 sm:mt-24 sm:space-y-20">
-          {features.map((f, i) => {
-            const Icon = f.icon;
-            const isReversed = i % 2 === 1;
-
-            return (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className={`flex flex-col items-center gap-8 sm:gap-12 md:flex-row ${
-                  isReversed ? "md:flex-row-reverse" : ""
-                }`}
-              >
-                {/* Image */}
-                <div className="flex w-full items-center justify-center md:w-1/2">
-                <motion.div
-                    whileHover={{ scale: 1.04 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="relative w-full max-w-xs overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card sm:max-w-sm sm:p-8"
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={segment}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35 }}
+            className="mx-auto mt-14 max-w-5xl sm:mt-20"
+          >
+            <div className="grid gap-6 sm:grid-cols-2">
+              {features.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.08 }}
                   >
-                    <motion.img
-                      src={f.image}
-                      alt={f.alt}
-                      className="h-auto w-full object-contain"
-                      loading="lazy"
-                      whileHover={{ rotate: [0, -2, 2, -1, 0], scale: 1.06 }}
-                      transition={{ duration: 0.6, ease: "easeInOut" }}
-                    />
-                  </motion.div>
-                </div>
+                    <Link
+                      to={f.link}
+                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-primary/30 hover:shadow-card"
+                    >
+                      {/* Image */}
+                      <div className="relative flex h-44 items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:h-52">
+                        <motion.img
+                          src={f.image}
+                          alt={f.title}
+                          className="h-full w-auto max-w-full object-contain"
+                          loading="lazy"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      </div>
 
-                {/* Text */}
-                <div className="w-full text-center md:w-1/2 md:text-left">
-                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary text-primary sm:h-12 sm:w-12">
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="font-display text-xl text-foreground sm:text-2xl">{f.title}</h3>
-                  <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-                    {f.desc}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                      {/* Content */}
+                      <div className="flex flex-1 flex-col p-5 sm:p-6">
+                        <div className="mb-3 flex items-center gap-3">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary text-primary">
+                            <Icon className="h-4 w-4" strokeWidth={1.5} />
+                          </div>
+                          <h3 className="font-display text-lg text-foreground">{f.title}</h3>
+                        </div>
+                        <p className="text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+                        <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors group-hover:text-foreground">
+                          Learn more <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );
