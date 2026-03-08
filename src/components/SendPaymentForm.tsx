@@ -70,7 +70,7 @@ export default function SendPaymentForm() {
 
         const newClaimId = uuidv4();
         const claimSecret = uuidv4();
-        const paymentId = `pey_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
+        const paymentId = `peys_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
         const link = `${window.location.origin}/claim/${newClaimId}`;
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
