@@ -239,7 +239,8 @@ export default function DashboardPage() {
           ) : (
             filtered.map((tx, i) => (
               <motion.div key={tx.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
+                onClick={() => setSelectedTx(tx)}
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
               >
                 <div className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBg[tx.type]}`}>
                   <TxIcon type={tx.type} />
