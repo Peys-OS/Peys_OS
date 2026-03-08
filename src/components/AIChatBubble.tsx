@@ -50,7 +50,7 @@ function generateResponse(text: string): string {
     return "**How Peys Claim Links work:**\n\n1. You send a payment → funds go into escrow\n2. A unique magic link is generated\n3. Share it via email, text, or QR code\n4. Recipient signs in with email/Google\n5. A wallet is auto-created → they claim instantly\n\nUnclaimed funds auto-refund after 7 days. 🔒";
   }
   if (lower.includes("fee") || lower.includes("cost")) {
-    return "Pey has **near-zero fees**:\n\n• Network fee: ~$0.01 per transaction\n• Pey fee: **$0** (free during hackathon)\n• Powered by Polkadot Asset Hub";
+    return "Peys has **near-zero fees**:\n\n• Network fee: ~$0.01 per transaction\n• Peys fee: **$0** (free during hackathon)\n• Powered by Polkadot Asset Hub";
   }
   
   return "I can help you with:\n\n• **Send payments** — \"Send $50 USDC to alice@email.com\"\n• **Check balance** — \"What's my balance?\"\n• **View transactions** — \"Show recent activity\"\n• **Learn** — \"How do claim links work?\"\n\nWhat would you like to do?";
