@@ -66,17 +66,17 @@ export default function HeroSection() {
             {/* Floating geometric shapes in gray */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
               className="absolute h-64 w-64 rounded-full border border-border/50 sm:h-80 sm:w-80"
             />
             <motion.div
               animate={{ rotate: -360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
               className="absolute h-48 w-48 rounded-full border border-border/30 sm:h-60 sm:w-60"
             />
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               className="absolute h-32 w-32 rounded-full border border-border/20 sm:h-40 sm:w-40"
             />
 
