@@ -1,6 +1,6 @@
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { ESCROW_ABI, ERC20_ABI } from '../lib/abis';
-import { ESCROW_CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from '../lib/contracts';
+import { ESCROW_ABI, ERC20_ABI } from '@/lib/abis';
+import { ESCROW_CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from '@/lib/contracts';
 import { useCallback } from 'react';
 import { keccak256, toBytes, Address } from 'viem';
 
