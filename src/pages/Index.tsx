@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import HeroSection from "@/components/HeroSection";
+import ProductsSection from "@/components/ProductsSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import SocialProofSection from "@/components/SocialProofSection";
@@ -13,6 +14,7 @@ const Index = () => {
       <AppHeader />
       <main>
         <HeroSection />
+        <ProductsSection />
         <FeaturesSection />
         <HowItWorksSection />
         <SocialProofSection />

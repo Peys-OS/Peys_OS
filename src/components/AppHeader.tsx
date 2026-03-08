@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,15 +12,18 @@ export default function AppHeader() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [productsOpen, setProductsOpen] = useState(false);
 
-  const navItems = [
-    { to: "/", label: "Home" },
+  const individualItems = [
     { to: "/send", label: "Send" },
     { to: "/request", label: "Request" },
+    { to: "/contacts", label: "Contacts" },
+  ];
+
+  const orgItems = [
     { to: "/streaming", label: "Streams" },
     { to: "/batch", label: "Batch" },
-    { to: "/contacts", label: "Contacts" },
-    { to: "/dashboard", label: "Dashboard" },
+    { to: "/analytics", label: "Analytics" },
   ];
 
   const handleLogin = () => {
@@ -45,18 +48,71 @@ export default function AppHeader() {
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full border border-border bg-secondary/50 px-1.5 py-1 xl:flex">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.to;
-              return (
-                <Link key={item.to} to={item.to}
-                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
-                >{item.label}</Link>
-              );
-            })}
+            <Link to="/"
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                location.pathname === "/"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
+            >Home</Link>
+
+            {/* Products dropdown */}
+            <div className="relative"
+              onMouseEnter={() => setProductsOpen(true)}
+              onMouseLeave={() => setProductsOpen(false)}
+            >
+              <button
+                className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-secondary`}
+              >
+                Products <ChevronDown className="h-3 w-3" />
+              </button>
+
+              <AnimatePresence>
+                {productsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full pt-2 z-50"
+                  >
+                    <div className="w-64 rounded-xl border border-border bg-card p-3 shadow-elevated">
+                      <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Individual</p>
+                      {individualItems.map((item) => (
+                        <Link key={item.to} to={item.to}
+                          onClick={() => setProductsOpen(false)}
+                          className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                            location.pathname === item.to
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          }`}
+                        >{item.label}</Link>
+                      ))}
+                      <div className="my-2 border-t border-border" />
+                      <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Organization</p>
+                      {orgItems.map((item) => (
+                        <Link key={item.to} to={item.to}
+                          onClick={() => setProductsOpen(false)}
+                          className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                            location.pathname === item.to
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                          }`}
+                        >{item.label}</Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Link to="/dashboard"
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                location.pathname === "/dashboard"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
+            >Dashboard</Link>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -110,14 +166,27 @@ export default function AppHeader() {
                 <button onClick={() => setMobileOpen(false)} className="text-muted-foreground"><X className="h-5 w-5" /></button>
               </div>
               <nav className="flex flex-col gap-1 p-4">
-                {navItems.map((item) => {
-                  const isActive = location.pathname === item.to;
-                  return (
-                    <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                      className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                    >{item.label}</Link>
-                  );
-                })}
+                <Link to="/" onClick={() => setMobileOpen(false)}
+                  className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === "/" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                >Home</Link>
+
+                <p className="mt-3 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Individual</p>
+                {individualItems.map((item) => (
+                  <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
+                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                  >{item.label}</Link>
+                ))}
+
+                <p className="mt-3 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Organization</p>
+                {orgItems.map((item) => (
+                  <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
+                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                  >{item.label}</Link>
+                ))}
+
+                <Link to="/dashboard" onClick={() => setMobileOpen(false)}
+                  className={`mt-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === "/dashboard" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                >Dashboard</Link>
               </nav>
               <div className="border-t border-border p-4">
                 {isLoggedIn ? (
