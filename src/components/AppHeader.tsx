@@ -5,6 +5,7 @@ import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function AppHeader() {
   const { isLoggedIn, login, logout, wallet } = useApp();
