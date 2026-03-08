@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
