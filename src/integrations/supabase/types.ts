@@ -14,13 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          payment_id: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          payment_id?: string | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          payment_id?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          claim_link: string
+          claim_secret: string
+          claimed_at: string | null
+          claimed_by_user_id: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          memo: string | null
+          payment_id: string
+          recipient_email: string
+          sender_email: string
+          sender_user_id: string
+          sender_wallet: string | null
+          status: string
+          token: string
+          tx_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          claim_link: string
+          claim_secret: string
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          memo?: string | null
+          payment_id: string
+          recipient_email: string
+          sender_email: string
+          sender_user_id: string
+          sender_wallet?: string | null
+          status?: string
+          token: string
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          claim_link?: string
+          claim_secret?: string
+          claimed_at?: string | null
+          claimed_by_user_id?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          memo?: string | null
+          payment_id?: string
+          recipient_email?: string
+          sender_email?: string
+          sender_user_id?: string
+          sender_wallet?: string | null
+          status?: string
+          token?: string
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      notify_recipient: {
+        Args: {
+          p_message: string
+          p_payment_id: string
+          p_recipient_email: string
+          p_title: string
+          p_type?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
