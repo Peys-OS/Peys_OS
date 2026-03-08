@@ -124,16 +124,19 @@ export default function DashboardPage() {
         </motion.div>
 
         {/* Quick links */}
-        <div className="mb-4 flex gap-3 sm:mb-6">
-          <Link to="/analytics" className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4">
+          <Link to="/analytics" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
             <BarChart3 className="h-4 w-4 text-primary" /> Analytics
           </Link>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-            className="flex-1 rounded-lg border border-primary/20 bg-gradient-card-hover p-3 sm:rounded-xl"
-          >
-            <p className="text-xs font-medium text-foreground">💡 Yield coming soon</p>
-            <p className="text-xs text-muted-foreground">Bifrost LSTs on Polkadot</p>
-          </motion.div>
+          <Link to="/streaming" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
+            <Zap className="h-4 w-4 text-primary" /> Streams
+          </Link>
+          <Link to="/batch" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
+            <Users className="h-4 w-4 text-primary" /> Batch
+          </Link>
+          <Link to="/request" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
+            <FileText className="h-4 w-4 text-primary" /> Requests
+          </Link>
         </div>
 
         {/* Filters & Search */}

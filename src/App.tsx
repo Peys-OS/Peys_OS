@@ -11,6 +11,9 @@ import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
 import DashboardPage from "./pages/DashboardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import StreamingPage from "./pages/StreamingPage";
+import BatchPage from "./pages/BatchPage";
+import RequestPage from "./pages/RequestPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
               <Route path="/claim/:id" element={<ClaimPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/streaming" element={<StreamingPage />} />
+              <Route path="/batch" element={<BatchPage />} />
+              <Route path="/request" element={<RequestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AIChatBubble />
