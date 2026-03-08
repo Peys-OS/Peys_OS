@@ -13,9 +13,10 @@ type Token = "USDC" | "USDT";
 
 export default function SendPaymentForm() {
   const { isLoggedIn, login, wallet } = useApp();
+  const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "done">("form");
   const [linkCopied, setLinkCopied] = useState(false);
