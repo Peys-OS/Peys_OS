@@ -23,10 +23,10 @@ export default function HeroSection() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5"
+            className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-5 py-2 shadow-sm"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-medium text-muted-foreground">Polkadot Solidity Hackathon — EVM Track</span>
+            <span className="text-sm font-semibold tracking-wide text-foreground">🚀 Polkadot Solidity Hackathon — EVM Track</span>
           </motion.div>
 
           <h1 className="mx-auto max-w-4xl font-display text-4xl leading-[1.1] text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
@@ -66,31 +66,31 @@ export default function HeroSection() {
             {/* Floating geometric shapes in gray */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
               className="absolute h-64 w-64 rounded-full border border-border/50 sm:h-80 sm:w-80"
             />
             <motion.div
               animate={{ rotate: -360 }}
-              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
               className="absolute h-48 w-48 rounded-full border border-border/30 sm:h-60 sm:w-60"
             />
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               className="absolute h-32 w-32 rounded-full border border-border/20 sm:h-40 sm:w-40"
             />
 
             {/* Orbiting dots */}
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
               className="absolute h-64 w-64 sm:h-80 sm:w-80"
             >
               <div className="absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-foreground/20" />
             </motion.div>
             <motion.div
               animate={{ rotate: -360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
               className="absolute h-48 w-48 sm:h-60 sm:w-60"
             >
               <div className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary/40" />
