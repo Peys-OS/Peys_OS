@@ -172,7 +172,7 @@ export default function SendPaymentForm() {
 
   const shareLink = async () => {
     const shareData = {
-      title: `Payment of ${amount} ${token} on Pey`,
+      title: `Payment of ${amount} ${token} on Peys`,
       text: `Claim your ${amount} ${token}! ${memo || ""}`,
       url: fullLink,
     };
