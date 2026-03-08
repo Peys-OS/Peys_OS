@@ -132,12 +132,60 @@ export default function SendPaymentForm() {
                     className="w-full rounded-xl border border-border bg-background py-3 pl-9 pr-4 text-2xl font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:py-4 sm:pl-10 sm:text-3xl"
                   />
                 </div>
-                <input
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="Email or phone (optional)"
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
-                />
+                <div className="relative" ref={recipientRef}>
+                  <div className="relative">
+                    <input
+                      value={recipient}
+                      onChange={(e) => { setRecipient(e.target.value); setShowContacts(true); }}
+                      onFocus={() => setShowContacts(true)}
+                      placeholder="Email or phone (optional)"
+                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowContacts(!showContacts)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <Users className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <AnimatePresence>
+                    {showContacts && (() => {
+                      const q = recipient.toLowerCase();
+                      const filtered = MOCK_CONTACTS.filter(
+                        (c) => !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
+                      );
+                      if (filtered.length === 0) return null;
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
+                        >
+                          <div className="max-h-48 overflow-y-auto py-1">
+                            {filtered.map((c) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => { setRecipient(c.email); setShowContacts(false); }}
+                                className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-secondary/60"
+                              >
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                  {c.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-foreground">{c.name}</p>
+                                  <p className="truncate text-xs text-muted-foreground">{c.email}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
+                  </AnimatePresence>
+                </div>
                 <input
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
