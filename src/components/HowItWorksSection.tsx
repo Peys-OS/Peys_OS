@@ -1,71 +1,81 @@
 import { motion } from "framer-motion";
-import claimMockup from "@/assets/claim-phone-mockup.png";
+import { Send, Link2, Mail, Wallet } from "lucide-react";
 
 const steps = [
-  { num: "01", title: "Choose amount & token", desc: "Select USDC or USDT and enter the amount. Add an optional note for the recipient." },
-  { num: "02", title: "Generate a magic link", desc: "A unique claim link is created and funds are deposited into secure escrow." },
-  { num: "03", title: "Share via text, email, or QR", desc: "Copy the link or share a QR code — the recipient doesn't need any crypto knowledge." },
-  { num: "04", title: "Recipient claims instantly", desc: "They sign in with email or Google. A wallet is created automatically. One tap to claim." },
+  {
+    icon: Send,
+    num: "01",
+    title: "Enter amount & token",
+    desc: "Choose USDC or USDT, enter the amount, add an optional memo.",
+  },
+  {
+    icon: Link2,
+    num: "02",
+    title: "Magic link is generated",
+    desc: "Funds deposit into escrow. A unique claim link is created instantly.",
+  },
+  {
+    icon: Mail,
+    num: "03",
+    title: "Share via any channel",
+    desc: "Text, email, QR code, or social media — your recipient gets the link.",
+  },
+  {
+    icon: Wallet,
+    num: "04",
+    title: "One-tap claim",
+    desc: "Recipient signs in with email. Wallet auto-created. Funds claimed.",
+  },
 ];
 
 export default function HowItWorksSection() {
   return (
-    <section className="py-16 sm:py-24">
+    <section className="border-y border-border py-20 sm:py-28">
       <div className="container mx-auto px-4">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          {/* Phone Mockup - hidden on small mobile, shown on sm+ */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="hidden justify-center sm:flex"
-          >
-            <div className="relative">
-              <div className="absolute -inset-8 rounded-full bg-primary/5 blur-3xl" />
-              <img
-                src={claimMockup}
-                alt="Pey claim flow on mobile phone"
-                className="relative z-10 h-[320px] object-contain animate-float sm:h-[400px] lg:h-[450px]"
-                loading="lazy"
-              />
-            </div>
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mx-auto max-w-2xl text-center"
+        >
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">How it works</p>
+          <h2 className="mt-3 font-display text-2xl text-foreground sm:text-4xl md:text-5xl">
+            Four steps. Under 60 seconds.
+          </h2>
+        </motion.div>
 
-          {/* Steps */}
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="font-display text-2xl text-foreground sm:text-4xl md:text-5xl">
-                How it works
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground sm:mt-4 sm:text-base">
-                From send to claim — in under 60 seconds.
-              </p>
-            </motion.div>
-
-            <div className="mt-8 space-y-4 sm:mt-10 sm:space-y-6">
-              {steps.map((step, i) => (
+        <div className="mx-auto mt-14 max-w-4xl sm:mt-20">
+          <div className="grid gap-0 sm:grid-cols-4">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              return (
                 <motion.div
                   key={step.num}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex gap-3 sm:gap-4"
+                  className="relative flex flex-col items-center text-center px-4 py-6"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
-                    {step.num}
-                  </span>
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground sm:text-base">{step.title}</h4>
-                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{step.desc}</p>
+                  {/* Connector line */}
+                  {i < steps.length - 1 && (
+                    <div className="absolute right-0 top-[3.5rem] hidden h-px w-full bg-border sm:block" style={{ left: "50%" }} />
+                  )}
+
+                  <div className="relative z-10 mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card">
+                    <motion.div
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.3 }}
+                    >
+                      <Icon className="h-6 w-6 text-muted-foreground" strokeWidth={1.5} />
+                    </motion.div>
                   </div>
+                  <span className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">{step.num}</span>
+                  <h4 className="text-sm font-semibold text-foreground">{step.title}</h4>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{step.desc}</p>
                 </motion.div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
