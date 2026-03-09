@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -8,86 +10,177 @@ interface Message {
 }
 
 const SUGGESTIONS = [
-  "Send $50 USDC to alice@email.com",
-  "Check my balance",
+  "What's my balance?",
   "Show recent transactions",
+  "How do I send a payment?",
   "How do claim links work?",
 ];
 
-function parsePaymentIntent(text: string): { amount?: number; token?: string; recipient?: string; memo?: string } | null {
-  const amountMatch = text.match(/\$?(\d+(?:\.\d+)?)/);
-  const tokenMatch = text.match(/\b(USDC|USDT)\b/i);
-  const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
-  
-  if (amountMatch) {
-    return {
-      amount: parseFloat(amountMatch[1]),
-      token: tokenMatch ? tokenMatch[1].toUpperCase() : "USDC",
-      recipient: emailMatch ? emailMatch[0] : undefined,
-    };
-  }
-  return null;
-}
-
-function generateResponse(text: string): string {
-  const lower = text.toLowerCase();
-  
-  const intent = parsePaymentIntent(text);
-  if (intent?.amount && intent.recipient) {
-    return `I'll help you send **$${intent.amount} ${intent.token || "USDC"}** to **${intent.recipient}**.\n\n→ [Open Send Form](/send) to complete this payment.\n\nFunds will be held in escrow until claimed.`;
-  }
-  if (intent?.amount) {
-    return `Got it — **$${intent.amount} ${intent.token || "USDC"}**. Who should I send it to? Provide an email or just go to the [Send page](/send).`;
-  }
-  
-  if (lower.includes("balance")) {
-    return "Your current balance:\n\n• **USDC**: $1,250.00 (4.2% APY)\n• **USDT**: $340.50\n• **Total**: $1,590.50\n\nView details on your [Dashboard](/dashboard).";
-  }
-  if (lower.includes("transaction") || lower.includes("recent") || lower.includes("history")) {
-    return "Here are your recent transactions:\n\n1. 🔴 Sent $50 USDC → moses@email.com (1h ago)\n2. 🟢 Claimed $200 USDT from alice@email.com (1d ago)\n3. ⏳ Pending $100 USDC → bob@email.com (2h ago)\n\nSee all on your [Dashboard](/dashboard).";
-  }
-  if (lower.includes("claim") || lower.includes("link") || lower.includes("how")) {
-    return "**How Peys Claim Links work:**\n\n1. You send a payment → funds go into escrow\n2. A unique magic link is generated\n3. Share it via email, text, or QR code\n4. Recipient signs in with email/Google\n5. A wallet is auto-created → they claim instantly\n\nUnclaimed funds auto-refund after 7 days. 🔒";
-  }
-  if (lower.includes("fee") || lower.includes("cost")) {
-    return "Peys has **near-zero fees**:\n\n• Network fee: ~$0.01 per transaction\n• Peys fee: **$0** (free during hackathon)\n• Powered by Polkadot Asset Hub";
-  }
-  
-  return "I can help you with:\n\n• **Send payments** — \"Send $50 USDC to alice@email.com\"\n• **Check balance** — \"What's my balance?\"\n• **View transactions** — \"Show recent activity\"\n• **Learn** — \"How do claim links work?\"\n\nWhat would you like to do?";
-}
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-assistant`;
 
 export default function AIChatBubble() {
+  const { isLoggedIn, wallet, walletAddress, transactions } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm Peys AI 👋 I can help you send payments, check balances, and answer questions. Try saying \"Send $50 USDC to alice@email.com\"" },
+    { role: "assistant", content: "Hi! I'm **Peys AI** 👋 I can help you send payments, check balances, and navigate the app. What would you like to do?" },
   ]);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isTyping]);
+  }, [messages, isStreaming]);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { role: "user", content: input.trim() };
-    setMessages((prev) => [...prev, userMsg]);
+  const buildContext = useCallback(() => ({
+    isLoggedIn,
+    walletAddress,
+    balanceUSDC: wallet.balanceUSDC,
+    balanceUSDT: wallet.balanceUSDT,
+    transactions: transactions.slice(0, 10).map((tx) => ({
+      type: tx.type,
+      amount: tx.amount,
+      token: tx.token,
+      counterparty: tx.counterparty,
+      memo: tx.memo,
+      timestamp: tx.timestamp.toISOString(),
+    })),
+  }), [isLoggedIn, walletAddress, wallet, transactions]);
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text || isStreaming) return;
+
+    const userMsg: Message = { role: "user", content: text };
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
-    setIsTyping(true);
+    setIsStreaming(true);
 
+    // Only send user/assistant messages (no system)
+    const apiMessages = updatedMessages.map(({ role, content }) => ({ role, content }));
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    let assistantContent = "";
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: apiMessages,
+          context: buildContext(),
+        }),
+        signal: controller.signal,
+      });
+
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        const errorMsg = errorData.error || "Something went wrong. Please try again.";
+        setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${errorMsg}` }]);
+        setIsStreaming(false);
+        return;
+      }
+
+      if (!resp.body) throw new Error("No response body");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              const current = assistantContent;
+              setMessages((prev) => {
+                const last = prev[prev.length - 1];
+                if (last?.role === "assistant" && prev.length > updatedMessages.length) {
+                  return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: current } : m));
+                }
+                return [...prev, { role: "assistant", content: current }];
+              });
+            }
+          } catch {
+            buffer = line + "\n" + buffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (buffer.trim()) {
+        for (let raw of buffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              const current = assistantContent;
+              setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: current } : m)));
+            }
+          } catch { /* ignore */ }
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        console.error("Chat error:", e);
+        if (!assistantContent) {
+          setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
+        }
+      }
+    } finally {
+      setIsStreaming(false);
+      abortRef.current = null;
+    }
+  };
+
+  const handleSuggestion = (s: string) => {
+    setInput(s);
+    // Auto-send after a tick
     setTimeout(() => {
-      const response = generateResponse(userMsg.content);
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
-      setIsTyping(false);
-    }, 600 + Math.random() * 800);
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+      document.getElementById("peys-chat-form")?.dispatchEvent(new Event("submit", { bubbles: true }));
+    }, 50);
   };
 
   return (
     <>
-      {/* Floating button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
@@ -97,7 +190,6 @@ export default function AIChatBubble() {
         {isOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />}
       </motion.button>
 
-      {/* Chat panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -114,9 +206,12 @@ export default function AIChatBubble() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Peys AI</p>
-                <p className="text-xs text-muted-foreground">Payment assistant</p>
+                <p className="text-xs text-muted-foreground">
+                  {isStreaming ? "Thinking..." : "Payment assistant"}
+                </p>
               </div>
-              <div className="ml-auto flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+              {isStreaming && <Loader2 className="ml-auto h-4 w-4 animate-spin text-primary" />}
+              {!isStreaming && <div className="ml-auto flex h-2 w-2 rounded-full bg-primary animate-pulse" />}
             </div>
 
             {/* Messages */}
@@ -140,21 +235,19 @@ export default function AIChatBubble() {
                         : "bg-secondary text-foreground"
                     }`}
                   >
-                    {msg.content.split("\n").map((line, j) => (
-                      <p key={j} className={j > 0 ? "mt-1" : ""}>
-                        {line.split(/(\*\*.*?\*\*)/).map((part, k) =>
-                          part.startsWith("**") && part.endsWith("**") ? (
-                            <strong key={k}>{part.slice(2, -2)}</strong>
-                          ) : part.startsWith("[") && part.includes("](/") ? (
-                            <a key={k} href={part.match(/\((.*?)\)/)?.[1] || "#"} className="underline text-primary">
-                              {part.match(/\[(.*?)\]/)?.[1]}
+                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-0.5 [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0">
+                      <ReactMarkdown
+                        components={{
+                          a: ({ href, children }) => (
+                            <a href={href} className="text-primary underline hover:opacity-80">
+                              {children}
                             </a>
-                          ) : (
-                            <span key={k}>{part}</span>
-                          )
-                        )}
-                      </p>
-                    ))}
+                          ),
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                   {msg.role === "user" && (
                     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -163,7 +256,7 @@ export default function AIChatBubble() {
                   )}
                 </motion.div>
               ))}
-              {isTyping && (
+              {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex items-center gap-2">
                   <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
                     <Bot className="h-3 w-3 text-primary" />
@@ -183,7 +276,7 @@ export default function AIChatBubble() {
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
-                    onClick={() => { setInput(s); }}
+                    onClick={() => setInput(s)}
                     className="shrink-0 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                   >
                     {s}
@@ -194,19 +287,24 @@ export default function AIChatBubble() {
 
             {/* Input */}
             <div className="border-t border-border p-3">
-              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+              <form
+                id="peys-chat-form"
+                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                className="flex gap-2"
+              >
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Send $50 USDC to..."
+                  placeholder={isLoggedIn ? "Ask about your payments..." : "Ask me anything..."}
                   className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+                  disabled={isStreaming}
                 />
                 <button
                   type="submit"
-                  disabled={!input.trim() || isTyping}
+                  disabled={!input.trim() || isStreaming}
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
-                  <Send className="h-4 w-4" />
+                  {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </button>
               </form>
             </div>
