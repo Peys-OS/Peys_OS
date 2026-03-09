@@ -51,7 +51,7 @@ export default function ProductsSection() {
             Built for individuals.<br />Ready for teams.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground sm:text-base">
-            Whether you're sending money to a friend or running payroll for 500 employees — Pey has you covered.
+            Whether you're sending money to a friend or running payroll for 500 employees — Peys has you covered.
           </p>
         </motion.div>
 

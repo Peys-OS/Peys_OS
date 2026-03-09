@@ -9,12 +9,12 @@ const stats = [
 
 const testimonials = [
   {
-    quote: "Pey made it effortless to send stablecoins to my family. They just clicked a link — no crypto headaches.",
+    quote: "Peys made it effortless to send stablecoins to my family. They just clicked a link — no crypto headaches.",
     name: "Adaeze O.",
     role: "Freelancer, Lagos",
   },
   {
-    quote: "We pay our remote contractors globally with Pey. The magic link flow means zero wallet onboarding.",
+    quote: "We pay our remote contractors globally with Peys. The magic link flow means zero wallet onboarding.",
     name: "Kenji M.",
     role: "Founder, Tokyo",
   },

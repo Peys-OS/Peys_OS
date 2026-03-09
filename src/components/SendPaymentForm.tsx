@@ -70,7 +70,7 @@ export default function SendPaymentForm() {
 
         const newClaimId = uuidv4();
         const claimSecret = uuidv4();
-        const paymentId = `pey_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
+        const paymentId = `peys_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
         const link = `${window.location.origin}/claim/${newClaimId}`;
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -163,7 +163,7 @@ export default function SendPaymentForm() {
     img.onload = () => {
       ctx?.drawImage(img, 0, 0, 512, 512);
       const link = document.createElement("a");
-      link.download = `pey-payment-${claimId}.png`;
+      link.download = `peys-payment-${claimId}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     };
@@ -172,7 +172,7 @@ export default function SendPaymentForm() {
 
   const shareLink = async () => {
     const shareData = {
-      title: `Payment of ${amount} ${token} on Pey`,
+      title: `Payment of ${amount} ${token} on Peys`,
       text: `Claim your ${amount} ${token}! ${memo || ""}`,
       url: fullLink,
     };
