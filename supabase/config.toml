@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.blockchain-webhook]
 verify_jwt = false
+
+[functions.payment-assistant]
+verify_jwt = false
