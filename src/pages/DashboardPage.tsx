@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [showReceive, setShowReceive] = useState(false);
 
   if (!isLoggedIn) {
     return (
