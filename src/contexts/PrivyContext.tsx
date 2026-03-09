@@ -122,8 +122,8 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
             createOnLogin: 'off',
           },
         },
-        defaultChain: westendAssetHub,
-        supportedChains: [westendAssetHub],
+        defaultChain: paseoAssetHub,
+        supportedChains: [paseoAssetHub],
       }}
     >
       <PrivyAuthInner>{children}</PrivyAuthInner>
