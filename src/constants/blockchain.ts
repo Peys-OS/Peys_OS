@@ -15,7 +15,7 @@ export const ESCROW_ABI = [
   { inputs: [{ name: "paymentId", type: "uint256" }], name: "getPayment", outputs: [{ name: "", type: "tuple", components: [{ name: "sender", type: "address" }, { name: "token", type: "address" }, { name: "amount", type: "uint256" }, { name: "claimHash", type: "bytes32" }, { name: "expiry", type: "uint256" }, { name: "claimed", type: "bool" }, { name: "refunded", type: "bool" }, { name: "memo", type: "string" }] }], stateMutability: "view", type: "function" },
 ] as const;
 
-export const ESCROW_CONTRACT_ADDRESS: Address = "0x0000000000000000000000000000000000000000" as Address;
-export const USDC_ADDRESS: Address = "0x0000000000000000000000000000000000000000" as Address;
-export const USDT_ADDRESS: Address = "0x0000000000000000000000000000000000000000" as Address;
-export const RPC_URL = "https://westend-asset-hub-eth-rpc.polkadot.io";
+export const ESCROW_CONTRACT_ADDRESS: Address = "0xc9497Ec40951FbB98C02c666b7F9Fa143678E2Be" as Address;
+export const USDC_ADDRESS: Address = "0x5aD4d8d5D8e3b8dA4dC4f4F4f4f4f4f4f4f4f4f4f" as Address;
+export const USDT_ADDRESS: Address = "0x5aD4d8d5D8e3b8dA4dC4f4F4f4f4f4f4f4f4f4f4f" as Address;
+export const RPC_URL = "https://eth-asset-hub-paseo.dotters.network";

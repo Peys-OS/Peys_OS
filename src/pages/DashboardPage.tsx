@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle } from "lucide-react";
+import WalletReceiveCard from "@/components/WalletReceiveCard";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
@@ -28,12 +29,13 @@ type StatusFilter = "all" | "sent" | "claimed" | "pending";
 type TokenFilter = "all" | "USDC" | "USDT";
 
 export default function DashboardPage() {
-  const { isLoggedIn, login, wallet, transactions, transactionsLoading, refreshTransactions } = useApp();
+  const { isLoggedIn, login, wallet, walletAddress, transactions, transactionsLoading, refreshTransactions } = useApp();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [showReceive, setShowReceive] = useState(false);
 
   if (!isLoggedIn) {
     return (
@@ -130,6 +132,12 @@ export default function DashboardPage() {
               <Send className="h-4 w-4" /> Send
             </Link>
             <button
+              onClick={() => setShowReceive((v) => !v)}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors sm:rounded-xl sm:py-3 ${showReceive ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:bg-secondary"}`}
+            >
+              <QrCode className="h-4 w-4" /> Receive
+            </button>
+            <button
               onClick={() => setWithdrawOpen(true)}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
             >
@@ -137,6 +145,15 @@ export default function DashboardPage() {
             </button>
           </div>
         </motion.div>
+
+        {/* Receive card */}
+        <AnimatePresence>
+          {showReceive && (
+            <div className="mb-4 sm:mb-6">
+              <WalletReceiveCard address={walletAddress || wallet.address} />
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Quick links */}
         <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4">

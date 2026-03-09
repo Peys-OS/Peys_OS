@@ -106,7 +106,7 @@ export default function BatchPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "pey-batch-sample.csv";
+    a.download = "peys-batch-sample.csv";
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Sample CSV downloaded");

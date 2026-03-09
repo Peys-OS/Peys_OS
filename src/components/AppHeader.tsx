@@ -41,10 +41,8 @@ export default function AppHeader() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:px-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
-              <span className="text-xs font-bold text-primary-foreground sm:text-sm">P</span>
-            </div>
-            <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Pey</span>
+            <img src="/peys_logo_alone.png" alt="Peys" className="h-10 w-10 rounded-lg sm:h-11 sm:w-11" />
+            <span className="text-base font-semibold text-foreground tracking-tight sm:text-lg">Peys</span>
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full border border-border bg-secondary/50 px-1.5 py-1 xl:flex">
@@ -129,7 +127,7 @@ export default function AppHeader() {
               {isLoggedIn ? (
                 <>
                   <span className="text-sm text-muted-foreground">{wallet.address}</span>
-                  <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
+                  <button onClick={handleLogout} className="rounded-lg bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">Sign Out</button>
                 </>
               ) : (
                 <>
@@ -193,7 +191,7 @@ export default function AppHeader() {
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground">{wallet.address}</p>
                     <button onClick={() => { handleLogout(); setMobileOpen(false); }}
-                      className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Sign Out</button>
+                      className="w-full rounded-lg bg-destructive/10 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">Sign Out</button>
                   </div>
                 ) : (
                   <div className="space-y-2">
