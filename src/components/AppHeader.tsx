@@ -191,7 +191,7 @@ export default function AppHeader() {
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground">{wallet.address}</p>
                     <button onClick={() => { handleLogout(); setMobileOpen(false); }}
-                      className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary">Sign Out</button>
+                      className="w-full rounded-lg bg-destructive/10 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">Sign Out</button>
                   </div>
                 ) : (
                   <div className="space-y-2">
