@@ -104,7 +104,7 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
 
 /**
  * Top-level Privy provider — wrap your entire app with this.
- * Configures Privy with Westend Asset Hub chain and all login methods.
+ * Configures Privy with Paseo Asset Hub chain and all login methods.
  */
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   return (
