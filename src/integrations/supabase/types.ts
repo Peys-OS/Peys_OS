@@ -120,28 +120,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string | null
           created_at: string
           display_name: string | null
           email: string | null
           id: string
+          organization_name: string | null
+          organization_type: string | null
           updated_at: string
           user_id: string
           wallet_address: string | null
         }
         Insert: {
+          account_type?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          organization_name?: string | null
+          organization_type?: string | null
           updated_at?: string
           user_id: string
           wallet_address?: string | null
         }
         Update: {
+          account_type?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           id?: string
+          organization_name?: string | null
+          organization_type?: string | null
           updated_at?: string
           user_id?: string
           wallet_address?: string | null
