@@ -127,7 +127,7 @@ export default function AppHeader() {
               {isLoggedIn ? (
                 <>
                   <span className="text-sm text-muted-foreground">{wallet.address}</span>
-                  <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
+                  <button onClick={handleLogout} className="rounded-lg bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20">Sign Out</button>
                 </>
               ) : (
                 <>
