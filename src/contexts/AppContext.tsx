@@ -30,9 +30,9 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const publicClient = createPublicClient({
   chain: {
-    id: 420420421,
-    name: "Westend Asset Hub",
-    nativeCurrency: { name: "Westend", symbol: "WND", decimals: 18 },
+    id: 420420422,
+    name: "Paseo Asset Hub",
+    nativeCurrency: { name: "Paseo", symbol: "PAS", decimals: 18 },
     rpcUrls: { default: { http: [RPC_URL] } },
   },
   transport: http(RPC_URL),
