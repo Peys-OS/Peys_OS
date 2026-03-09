@@ -1,1 +1,16 @@
 project_id = "cmziclvkjnrbmzxaxlxe"
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.claim-payment]
+verify_jwt = false
+
+[functions.get-payment]
+verify_jwt = false
+
+[functions.get-user-payments]
+verify_jwt = false
+
+[functions.blockchain-webhook]
+verify_jwt = false
