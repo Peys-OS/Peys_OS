@@ -17,6 +17,7 @@ import StreamingPage from "./pages/StreamingPage";
 import BatchPage from "./pages/BatchPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
