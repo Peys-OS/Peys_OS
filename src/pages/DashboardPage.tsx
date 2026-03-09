@@ -132,6 +132,12 @@ export default function DashboardPage() {
               <Send className="h-4 w-4" /> Send
             </Link>
             <button
+              onClick={() => setShowReceive((v) => !v)}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors sm:rounded-xl sm:py-3 ${showReceive ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:bg-secondary"}`}
+            >
+              <QrCode className="h-4 w-4" /> Receive
+            </button>
+            <button
               onClick={() => setWithdrawOpen(true)}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
             >
