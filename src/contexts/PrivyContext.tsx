@@ -2,15 +2,15 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { PrivyProvider as PrivyReactProvider, usePrivy, useWallets } from '@privy-io/react-auth';
 import { defineChain } from 'viem';
 
-// Westend Asset Hub EVM testnet chain definition
-const westendAssetHub = defineChain({
-  id: 420420421,
-  name: 'Westend Asset Hub',
-  network: 'westend-asset-hub',
-  nativeCurrency: { name: 'Westend', symbol: 'WND', decimals: 18 },
+// Paseo Asset Hub EVM testnet chain definition
+const paseoAssetHub = defineChain({
+  id: 420420422,
+  name: 'Paseo Asset Hub',
+  network: 'paseo-asset-hub',
+  nativeCurrency: { name: 'Paseo', symbol: 'PAS', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://westend-asset-hub-eth-rpc.polkadot.io'] },
-    public: { http: ['https://westend-asset-hub-eth-rpc.polkadot.io'] },
+    default: { http: ['https://eth-asset-hub-paseo.dotters.network'] },
+    public: { http: ['https://eth-asset-hub-paseo.dotters.network'] },
   },
   testnet: true,
 });
