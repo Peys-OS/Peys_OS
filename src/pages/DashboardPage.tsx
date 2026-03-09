@@ -146,6 +146,15 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
+        {/* Receive card */}
+        <AnimatePresence>
+          {showReceive && (
+            <div className="mb-4 sm:mb-6">
+              <WalletReceiveCard address={walletAddress || wallet.address} />
+            </div>
+          )}
+        </AnimatePresence>
+
         {/* Quick links */}
         <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4">
           <Link to="/analytics" className="flex items-center justify-center gap-2 rounded-lg border border-border bg-card py-3 text-sm font-medium text-foreground shadow-soft transition-colors hover:bg-secondary sm:rounded-xl">
