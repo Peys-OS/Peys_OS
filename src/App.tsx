@@ -41,6 +41,7 @@ const App = () => (
                 <Route path="/batch" element={<BatchPage />} />
                 <Route path="/request" element={<RequestPage />} />
                 <Route path="/contacts" element={<ContactsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <AIChatBubble />
