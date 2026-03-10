@@ -58,6 +58,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          blockchain_payment_id: string | null
           claim_link: string
           claim_secret: string
           claimed_at: string | null
@@ -78,6 +79,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          blockchain_payment_id?: string | null
           claim_link: string
           claim_secret: string
           claimed_at?: string | null
@@ -98,6 +100,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          blockchain_payment_id?: string | null
           claim_link?: string
           claim_secret?: string
           claimed_at?: string | null
