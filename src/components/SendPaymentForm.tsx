@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2 } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -12,16 +12,30 @@ import { MOCK_CONTACTS } from "@/data/contacts";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
-import { Address, keccak256, toHex, parseAbiItem, Log, getEventSelector, decodeEventLog } from "viem";
-import { usePublicClient, useAccount } from "wagmi";
+import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
+import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
 
 type Token = "USDC" | "USDT";
+
+interface NetworkOption {
+  id: number;
+  name: string;
+  shortName: string;
+  color: string;
+}
+
+const networks: NetworkOption[] = [
+  { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF" },
+  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F" },
+  { id: 420420421, name: "Polkadot", shortName: "Polkadot", color: "#E6007A" },
+];
 
 export default function SendPaymentForm() {
   const { isLoggedIn, login, wallet, walletAddress } = useApp();
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
+  const [selectedNetwork, setSelectedNetwork] = useState<number>(84532);
   const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
@@ -29,25 +43,57 @@ export default function SendPaymentForm() {
   const [showQR, setShowQR] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
+  const [showNetworkSelector, setShowNetworkSelector] = useState(false);
   const [claimId, setClaimId] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [fullLink, setFullLink] = useState("");
   const recipientRef = useRef<HTMLDivElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
+  const networkRef = useRef<HTMLDivElement>(null);
 
   const { createPayment } = useEscrow();
   const publicClient = usePublicClient();
-  const { chain } = useAccount();
+  const { chain: connectedChain } = useAccount();
+  const { switchChain } = useSwitchChain();
+  const chainId = useChainId();
 
+  // Auto-detect network from connected wallet
+  useEffect(() => {
+    if (connectedChain?.id && networks.find(n => n.id === connectedChain.id)) {
+      setSelectedNetwork(connectedChain.id);
+    }
+  }, [connectedChain]);
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (recipientRef.current && !recipientRef.current.contains(e.target as Node)) {
         setShowContacts(false);
       }
+      if (networkRef.current && !networkRef.current.contains(e.target as Node)) {
+        setShowNetworkSelector(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const currentNetwork = networks.find(n => n.id === selectedNetwork) || networks[0];
+  const config = getChainConfig(selectedNetwork);
+
+  const handleNetworkChange = async (networkId: number) => {
+    setSelectedNetwork(networkId);
+    setShowNetworkSelector(false);
+    
+    // Switch wallet to selected network
+    if (switchChain && networkId !== chainId) {
+      try {
+        switchChain({ chainId: networkId });
+      } catch (err) {
+        console.log("Wallet switch rejected, will use selected network");
+      }
+    }
+  };
 
   const handleSend = async () => {
     if (!isLoggedIn) { login(); return; }
@@ -104,11 +150,10 @@ export default function SendPaymentForm() {
         if (error) throw error;
 
         // 2. Create payment on blockchain
-        const chainId = chain?.id || 84532; // Default to Base Sepolia (84532)
-        const config = getChainConfig(chainId);
-        const tokenAddress = token === "USDC" ? config.usdcAddress : config.usdtAddress;
+        const chainId = selectedNetwork;
+        const chainConfig = getChainConfig(chainId);
+        const tokenAddress = token === "USDC" ? chainConfig.usdcAddress : chainConfig.usdtAddress;
         const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
-        const claimHash = keccak256(toHex(claimSecret));
         const expiryDays = 7;
 
         const txHash = await createPayment(
@@ -131,12 +176,10 @@ export default function SendPaymentForm() {
         // Find the PaymentCreated event log
         const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
         
-        // Find the log with the matching topic
         const log = (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic);
         
         if (!log) throw new Error("PaymentCreated event not found in transaction logs");
 
-        // Decode the event to get the paymentId
         let blockchainPaymentId: string;
         try {
           const decoded = decodeEventLog({
@@ -145,7 +188,7 @@ export default function SendPaymentForm() {
             topics: log.topics,
           }) as any;
           
-          blockchainPaymentId = decoded.args.paymentId; // bytes32
+          blockchainPaymentId = decoded.args.paymentId;
           
           if (!blockchainPaymentId) {
             throw new Error("paymentId not found in event args");
@@ -220,39 +263,6 @@ export default function SendPaymentForm() {
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
-  const downloadQR = () => {
-    if (!qrRef.current) return;
-    const svg = qrRef.current.querySelector("svg");
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      ctx?.drawImage(img, 0, 0, 512, 512);
-      const link = document.createElement("a");
-      link.download = `peys-payment-${claimId}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
-  };
-
-  const shareLink = async () => {
-    const shareData = {
-      title: `Payment of ${amount} ${token} on Peys`,
-      text: `Claim your ${amount} ${token}! ${memo || ""}`,
-      url: fullLink,
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
-    } else {
-      copyLink();
-    }
-  };
-
   const balance = token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT;
 
   return (
@@ -297,6 +307,64 @@ export default function SendPaymentForm() {
           <AnimatePresence mode="wait">
             {step === "form" && (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3 sm:space-y-4">
+                
+                {/* Network Selector */}
+                <div className="relative" ref={networkRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowNetworkSelector(!showNetworkSelector)}
+                    className="flex w-full items-center justify-between rounded-xl border border-border bg-secondary/50 px-4 py-3 transition-colors hover:bg-secondary"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ backgroundColor: currentNetwork.color }}
+                      >
+                        {currentNetwork.shortName.slice(0, 2)}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs text-muted-foreground">Network</p>
+                        <p className="font-medium text-foreground">{currentNetwork.name}</p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${showNetworkSelector ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {showNetworkSelector && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
+                      >
+                        {networks.map((network) => (
+                          <button
+                            key={network.id}
+                            type="button"
+                            onClick={() => handleNetworkChange(network.id)}
+                            className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 ${selectedNetwork === network.id ? 'bg-primary/10' : ''}`}
+                          >
+                            <div 
+                              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+                              style={{ backgroundColor: network.color }}
+                            >
+                              {network.shortName.slice(0, 2)}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-foreground">{network.name}</p>
+                            </div>
+                            {selectedNetwork === network.id && (
+                              <Check className="h-4 w-4 text-primary" />
+                            )}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Token Selector */}
                 <div className="flex gap-2">
                   {(["USDC", "USDT"] as Token[]).map((t) => (
                     <button
@@ -312,9 +380,13 @@ export default function SendPaymentForm() {
                     </button>
                   ))}
                 </div>
+                
                 {isLoggedIn && (
-                  <p className="text-xs text-muted-foreground">Balance: {balance.toFixed(2)} {token}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Balance: {balance.toFixed(2)} {token} on {currentNetwork.shortName}
+                  </p>
                 )}
+                
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground sm:text-2xl">$</span>
                   <input
@@ -325,6 +397,7 @@ export default function SendPaymentForm() {
                     className="w-full rounded-xl border border-border bg-background py-3 pl-9 pr-4 text-2xl font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring sm:py-4 sm:pl-10 sm:text-3xl"
                   />
                 </div>
+                
                 <div className="relative" ref={recipientRef}>
                   <div className="relative">
                     <input
@@ -380,12 +453,14 @@ export default function SendPaymentForm() {
                     })()}
                   </AnimatePresence>
                 </div>
+                
                 <input
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   placeholder="Add a note (optional)"
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                 />
+                
                 <button
                   onClick={handleSend}
                   disabled={!amount || Number(amount) <= 0 || !recipient}
@@ -400,7 +475,20 @@ export default function SendPaymentForm() {
             {step === "confirm" && (
               <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-3 sm:space-y-4">
                 <div className="space-y-2.5 rounded-xl border border-border bg-secondary/50 p-3 sm:space-y-3 sm:p-4">
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">Amount</span><span className="font-semibold text-foreground">{Number(amount).toFixed(2)} {token}</span></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="font-semibold text-foreground">{Number(amount).toFixed(2)} {token}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Network</span>
+                    <span className="flex items-center gap-2">
+                      <div 
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: currentNetwork.color }}
+                      />
+                      <span className="text-foreground">{currentNetwork.name}</span>
+                    </span>
+                  </div>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">To</span><span className="text-foreground">{recipient}</span></div>
                   {memo && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Note</span><span className="text-foreground">{memo}</span></div>}
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expires</span><span className="text-foreground">7 days</span></div>
@@ -415,7 +503,7 @@ export default function SendPaymentForm() {
             {step === "sending" && (
               <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Creating payment...</p>
+                <p className="text-sm text-muted-foreground">Creating payment on {currentNetwork.name}...</p>
               </motion.div>
             )}
 
@@ -426,7 +514,7 @@ export default function SendPaymentForm() {
                 </div>
                 <h3 className="font-display text-lg text-foreground sm:text-xl">Payment Created! 🎉</h3>
                 <p className="text-sm text-muted-foreground">
-                  {Number(amount).toFixed(2)} {token} sent to <span className="font-medium text-foreground">{recipient}</span>
+                  {Number(amount).toFixed(2)} {token} sent on <span className="font-medium text-foreground">{currentNetwork.name}</span>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {recipient} will receive a notification. If they're not on Pey yet, they can sign up and claim instantly.
@@ -448,19 +536,10 @@ export default function SendPaymentForm() {
                     <Share2 className="h-5 w-5" />
                     Share
                   </button>
-                  <button onClick={() => setShowCard(true)} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 10h20" /></svg>
-                    Card
+                  <button onClick={() => { setStep("form"); setAmount(""); setRecipient(""); setMemo(""); }} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <Send className="h-5 w-5" />
+                    Send Another
                   </button>
-                </div>
-
-                <div className="flex gap-2">
-                  <button onClick={() => { setStep("form"); setAmount(""); setRecipient(""); setMemo(""); }}
-                    className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:py-3"
-                  >Send Another</button>
-                  <Link to="/dashboard" className="flex flex-1 items-center justify-center rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:py-3">
-                    Dashboard
-                  </Link>
                 </div>
               </motion.div>
             )}
@@ -468,58 +547,53 @@ export default function SendPaymentForm() {
         </div>
       </motion.div>
 
-      {/* QR Code Modal */}
       <AnimatePresence>
         {showQR && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
             onClick={() => setShowQR(false)}
           >
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative rounded-2xl bg-card p-6"
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-xs rounded-2xl border border-border bg-card p-6 shadow-elevated text-center"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg text-foreground">QR Code</h3>
-                <button onClick={() => setShowQR(false)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
-              </div>
-              <div ref={qrRef} className="mx-auto mb-4 flex items-center justify-center rounded-xl bg-background p-4">
-                <QRCodeSVG value={fullLink} size={200} bgColor="transparent" fgColor="currentColor" className="text-foreground" level="M" />
-              </div>
-              <p className="mb-4 text-xs text-muted-foreground break-all">{fullLink}</p>
-              <button onClick={downloadQR} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                <Download className="h-4 w-4" /> Download QR
+              <button
+                onClick={() => setShowQR(false)}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
               </button>
+              <div ref={qrRef} className="p-2">
+                <QRCodeSVG value={fullLink} size={200} />
+              </div>
+              <p className="mt-3 text-center text-xs text-muted-foreground">Scan to claim payment</p>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Payment Card Modal */}
       <AnimatePresence>
         {showCard && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
-            onClick={() => setShowCard(false)}
-          >
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm"
-            >
-              <div className="mb-3 flex justify-end">
-                <button onClick={() => setShowCard(false)} className="rounded-full bg-card p-2 text-muted-foreground hover:text-foreground border border-border">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <PaymentCard
-                sender="You"
-                amount={Number(amount)}
-                token={token}
-                memo={memo}
-                claimId={claimId}
-              />
-            </motion.div>
-          </motion.div>
+          <PaymentCard
+            payment={{
+              id: claimId,
+              amount: Number(amount),
+              token,
+              recipient,
+              memo,
+              status: "pending",
+              created_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            }}
+            link={fullLink}
+            onClose={() => setShowCard(false)}
+          />
         )}
       </AnimatePresence>
     </div>
