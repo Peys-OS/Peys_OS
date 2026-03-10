@@ -263,6 +263,19 @@ export default function SendPaymentForm() {
     setTimeout(() => setLinkCopied(false), 2000);
   };
 
+  const shareLink = async () => {
+    const shareData = {
+      title: `Payment of ${amount} ${token} on Peys`,
+      text: `Claim your ${amount} ${token}! ${memo || ""}`,
+      url: fullLink,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch {}
+    } else {
+      copyLink();
+    }
+  };
+
   const balance = token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT;
 
   return (
