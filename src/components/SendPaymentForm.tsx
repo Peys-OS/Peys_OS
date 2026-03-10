@@ -276,7 +276,11 @@ export default function SendPaymentForm() {
     }
   };
 
-  const balance = token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT;
+  // Get balance for selected network
+  const networkBalance = wallet.networkBalances?.find(nb => nb.chainId === selectedNetwork);
+  const balance = networkBalance 
+    ? (token === "USDC" ? networkBalance.usdc : networkBalance.usdt)
+    : (token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT);
 
   return (
     <div className="relative mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
