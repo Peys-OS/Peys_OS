@@ -1,4 +1,4 @@
-project_id = "cmziclvkjnrbmzxaxlxe"
+project_id = "nhxjvhohfgihmrtiytix"
 
 [functions.create-payment]
 verify_jwt = false
