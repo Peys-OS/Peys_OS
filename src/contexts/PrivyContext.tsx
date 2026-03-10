@@ -1,16 +1,15 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { PrivyProvider as PrivyReactProvider, usePrivy, useWallets } from '@privy-io/react-auth';
 import { defineChain } from 'viem';
+import { baseSepolia, celoAlfajores } from 'viem/chains';
 
 // Paseo Asset Hub EVM testnet chain definition
 const paseoAssetHub = defineChain({
-  id: 420420422,
+  id: 420420421,
   name: 'Paseo Asset Hub',
-  network: 'paseo-asset-hub',
   nativeCurrency: { name: 'Paseo', symbol: 'PAS', decimals: 18 },
   rpcUrls: {
     default: { http: ['https://eth-asset-hub-paseo.dotters.network'] },
-    public: { http: ['https://eth-asset-hub-paseo.dotters.network'] },
   },
   testnet: true,
 });
@@ -122,8 +121,8 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
             createOnLogin: 'off',
           },
         },
-        defaultChain: paseoAssetHub,
-        supportedChains: [paseoAssetHub],
+        defaultChain: baseSepolia,
+        supportedChains: [paseoAssetHub, baseSepolia, celoAlfajores],
       }}
     >
       <PrivyAuthInner>{children}</PrivyAuthInner>
