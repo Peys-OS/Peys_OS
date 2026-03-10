@@ -121,8 +121,8 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
             createOnLogin: 'off',
           },
         },
-        defaultChain: paseoAssetHub,
-        supportedChains: [paseoAssetHub],
+        defaultChain: baseSepolia,
+        supportedChains: [paseoAssetHub, baseSepolia, celoAlfajores],
       }}
     >
       <PrivyAuthInner>{children}</PrivyAuthInner>
