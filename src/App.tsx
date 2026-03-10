@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { WagmiProvider } from "@privy-io/wagmi";
+import { config } from "@/lib/wagmi";
 import { PrivyAppProvider } from "@/contexts/PrivyContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -24,36 +26,38 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ThemeProvider>
-        <PrivyAppProvider>
-          <AppProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/send" element={<SendPage />} />
-                <Route path="/claim/:id" element={<ClaimPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/assets" element={<AssetsPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/streaming" element={<StreamingPage />} />
-                <Route path="/batch" element={<BatchPage />} />
-                <Route path="/request" element={<RequestPage />} />
-                <Route path="/contacts" element={<ContactsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <AIChatBubble />
-              <MobileBottomNav />
-            </BrowserRouter>
-          </AppProvider>
-        </PrivyAppProvider>
-      </ThemeProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <PrivyAppProvider>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <AppProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/send" element={<SendPage />} />
+                  <Route path="/claim/:id" element={<ClaimPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/assets" element={<AssetsPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/streaming" element={<StreamingPage />} />
+                  <Route path="/batch" element={<BatchPage />} />
+                  <Route path="/request" element={<RequestPage />} />
+                  <Route path="/contacts" element={<ContactsPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <AIChatBubble />
+                <MobileBottomNav />
+              </BrowserRouter>
+            </AppProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
+  </PrivyAppProvider>
 );
 
 export default App;
