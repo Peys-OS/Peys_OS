@@ -1,14 +1,31 @@
 import { motion } from "framer-motion";
 
 interface PaymentCardProps {
-  sender: string;
-  amount: number;
-  token: "USDC" | "USDT";
+  payment?: {
+    id: string;
+    amount: number;
+    token: "USDC" | "USDT";
+    recipient?: string;
+    memo?: string;
+    status?: string;
+    created_at?: string;
+    expires_at?: string;
+  };
+  sender?: string;
+  amount?: number;
+  token?: "USDC" | "USDT";
   memo?: string;
-  claimId: string;
+  claimId?: string;
+  link?: string;
+  onClose?: () => void;
 }
 
-export default function PaymentCard({ sender, amount, token, memo, claimId }: PaymentCardProps) {
+export default function PaymentCard({ payment, sender, amount, token, memo, claimId, link, onClose }: PaymentCardProps) {
+  const pAmount = payment?.amount ?? amount ?? 0;
+  const pToken = payment?.token ?? token ?? "USDC";
+  const pMemo = payment?.memo ?? memo ?? "";
+  const pClaimId = payment?.id ?? claimId ?? "";
+  
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -30,24 +47,24 @@ export default function PaymentCard({ sender, amount, token, memo, claimId }: Pa
 
         {/* Amount */}
         <div className="text-center mb-6">
-          <p className="text-sm text-muted-foreground">{sender} sent</p>
+          <p className="text-sm text-muted-foreground">{sender || "Someone"} sent</p>
           <h2 className="mt-1 font-display text-4xl text-foreground sm:text-5xl">
-            ${amount.toFixed(2)}
+            ${pAmount.toFixed(2)}
           </h2>
-          <p className="mt-1 text-sm font-medium text-primary">{token}</p>
+          <p className="mt-1 text-sm font-medium text-primary">{pToken}</p>
         </div>
 
         {/* Memo */}
-        {memo && (
+        {pMemo && (
           <div className="mb-6 rounded-xl border border-border bg-secondary/50 p-3 text-center">
-            <p className="text-sm text-foreground">"{memo}"</p>
+            <p className="text-sm text-foreground">"{pMemo}"</p>
           </div>
         )}
 
         {/* Claim CTA */}
         <div className="rounded-xl bg-primary p-4 text-center">
           <p className="text-sm font-semibold text-primary-foreground">Tap to claim your funds</p>
-          <p className="mt-1 text-xs text-primary-foreground/70">peys.app/claim/{claimId}</p>
+          <p className="mt-1 text-xs text-primary-foreground/70">peys.app/claim/{pClaimId}</p>
         </div>
 
         {/* Footer */}
