@@ -37,6 +37,7 @@ export default function SendPaymentForm() {
 
   const { createPayment } = useEscrow();
   const publicClient = usePublicClient();
+  const { chain } = useAccount();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -103,7 +104,7 @@ export default function SendPaymentForm() {
         if (error) throw error;
 
         // 2. Create payment on blockchain
-        const chainId = 420420421; // Default chain
+        const chainId = chain?.id || 84532; // Default to Base Sepolia (84532)
         const config = getChainConfig(chainId);
         const tokenAddress = token === "USDC" ? config.usdcAddress : config.usdtAddress;
         const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
