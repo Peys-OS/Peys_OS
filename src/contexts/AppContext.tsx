@@ -1,17 +1,30 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { usePrivyAuth } from "@/contexts/PrivyContext";
 import { createPublicClient, http, formatUnits, type Address } from "viem";
-import { ERC20_ABI, USDC_ADDRESS, USDT_ADDRESS, RPC_URL } from "@/constants/blockchain";
+import { ERC20_ABI } from "@/constants/blockchain";
+import { chainConfigs } from "@/lib/chains";
 import { supabase } from "@/integrations/supabase/client";
 import type { Transaction } from "@/hooks/useMockData";
+
+// Network balance interface
+export interface NetworkBalance {
+  chainId: number;
+  networkName: string;
+  usdc: number;
+  usdt: number;
+  nativeToken: number;
+  nativeSymbol: string;
+}
 
 interface UserWallet {
   address: string;
   balanceUSDC: number;
   balanceUSDT: number;
+  totalBalanceUSD: number;
+  networkBalances: NetworkBalance[];
 }
 
-export type { UserWallet };
+export type { UserWallet, NetworkBalance };
 
 interface AppContextType {
   isLoggedIn: boolean;
@@ -24,21 +37,31 @@ interface AppContextType {
   refreshBalances: () => void;
   refreshTransactions: () => void;
   transactionsLoading: boolean;
+  selectedNetwork: number | null;
+  setSelectedNetwork: (network: number | null) => void;
 }
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-const publicClient = createPublicClient({
-  chain: {
-    id: 420420422,
-    name: "Paseo Asset Hub",
-    nativeCurrency: { name: "Paseo", symbol: "PAS", decimals: 18 },
-    rpcUrls: { default: { http: [RPC_URL] } },
-  },
-  transport: http(RPC_URL),
-});
-
 const AppContext = createContext<AppContextType | null>(null);
+
+// Create public clients for each network
+const publicClients = Object.entries(chainConfigs).reduce((acc, [chainId, config]) => {
+  acc[Number(chainId)] = createPublicClient({
+    chain: {
+      id: config.id,
+      name: config.name,
+      nativeCurrency: { 
+        name: config.name.includes("Polkadot") ? "DOT" : config.name.includes("Celo") ? "CELO" : "ETH",
+        symbol: config.name.includes("Polkadot") ? "DOT" : config.name.includes("Celo") ? "CELO" : "ETH",
+        decimals: 18 
+      },
+      rpcUrls: { default: { http: [config.rpcUrl] } },
+    },
+    transport: http(config.rpcUrl),
+  });
+  return acc;
+}, {} as Record<number, ReturnType<typeof createPublicClient>>);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { isLoggedIn, isLoading, login, logout, walletAddress } = usePrivyAuth();
@@ -46,6 +69,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [balanceUSDC, setBalanceUSDC] = useState(0);
   const [balanceUSDT, setBalanceUSDT] = useState(0);
+  const [totalBalanceUSD, setTotalBalanceUSD] = useState(0);
+  const [networkBalances, setNetworkBalances] = useState<NetworkBalance[]>([]);
+  const [selectedNetwork, setSelectedNetwork] = useState<number | null>(null);
 
   const shortAddr = walletAddress
     ? walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4)
@@ -55,38 +81,80 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!walletAddress || !isLoggedIn) {
       setBalanceUSDC(0);
       setBalanceUSDT(0);
+      setTotalBalanceUSD(0);
+      setNetworkBalances([]);
       return;
     }
 
     const addr = walletAddress as Address;
+    const netBalances: NetworkBalance[] = [];
+    let totalUSDC = 0;
+    let totalUSDT = 0;
 
-    const readBalance = async (tokenAddr: Address) => {
-      const [raw, dec] = await Promise.all([
-        (publicClient as any).readContract({
-          address: tokenAddr,
-          abi: ERC20_ABI,
-          functionName: "balanceOf",
-          args: [addr],
-        }) as Promise<bigint>,
-        ((publicClient as any).readContract({
-          address: tokenAddr,
-          abi: ERC20_ABI,
-          functionName: "decimals",
-        }) as Promise<number>).catch(() => 6),
-      ]);
-      return Number(formatUnits(raw, Number(dec)));
+    const readBalance = async (client: typeof publicClients[number], tokenAddr: Address) => {
+      if (tokenAddr === ZERO_ADDRESS) return 0;
+      try {
+        const [raw] = await Promise.all([
+          (client as any).readContract({
+            address: tokenAddr,
+            abi: ERC20_ABI,
+            functionName: "balanceOf",
+            args: [addr],
+          }) as Promise<bigint>,
+        ]);
+        return Number(formatUnits(raw, 6)); // USDC/USDT have 6 decimals
+      } catch (err) {
+        console.warn(`Failed to read balance for ${tokenAddr}:`, err);
+        return 0;
+      }
     };
 
-    try {
-      if (USDC_ADDRESS !== ZERO_ADDRESS) {
-        setBalanceUSDC(await readBalance(USDC_ADDRESS));
+    const readNativeBalance = async (client: typeof publicClients[number], config: typeof chainConfigs[number]) => {
+      try {
+        const balance = await client.getBalance({ address: addr });
+        return Number(formatUnits(balance, 18));
+      } catch (err) {
+        return 0;
       }
-      if (USDT_ADDRESS !== ZERO_ADDRESS) {
-        setBalanceUSDT(await readBalance(USDT_ADDRESS));
-      }
-    } catch (err) {
-      console.warn("Balance fetch failed (tokens may not be deployed yet):", err);
-    }
+    };
+
+    // Fetch balances from all networks
+    await Promise.all(
+      Object.entries(chainConfigs).map(async ([chainId, config]) => {
+        const client = publicClients[Number(chainId)];
+        const [usdcBalance, usdtBalance, nativeBalance] = await Promise.all([
+          readBalance(client, config.usdcAddress),
+          readBalance(client, config.usdtAddress),
+          readNativeBalance(client, config),
+        ]);
+
+        const nativeSymbol = config.name.includes("Polkadot") 
+          ? "DOT" 
+          : config.name.includes("Celo") 
+            ? "CELO" 
+            : "ETH";
+
+        netBalances.push({
+          chainId: Number(chainId),
+          networkName: config.name,
+          usdc: usdcBalance,
+          usdt: usdtBalance,
+          nativeToken: nativeBalance,
+          nativeSymbol,
+        });
+
+        totalUSDC += usdcBalance;
+        totalUSDT += usdtBalance;
+      })
+    );
+
+    // Sort by total balance (USDC + USDT) descending
+    netBalances.sort((a, b) => (b.usdc + b.usdt) - (a.usdc + a.usdt));
+
+    setBalanceUSDC(totalUSDC);
+    setBalanceUSDT(totalUSDT);
+    setTotalBalanceUSD(totalUSDC + totalUSDT);
+    setNetworkBalances(netBalances);
   }, [walletAddress, isLoggedIn]);
 
   // Fetch real transactions from Supabase
@@ -175,6 +243,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     address: shortAddr,
     balanceUSDC,
     balanceUSDT,
+    totalBalanceUSD,
+    networkBalances,
   };
 
   return (
@@ -190,6 +260,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refreshBalances: fetchBalances,
         refreshTransactions: fetchTransactions,
         transactionsLoading,
+        selectedNetwork,
+        setSelectedNetwork,
       }}
     >
       {children}

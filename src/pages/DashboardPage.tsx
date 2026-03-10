@@ -111,20 +111,25 @@ export default function DashboardPage() {
             </button>
           </div>
           <h2 className="mt-1 font-display text-3xl text-foreground sm:text-4xl">
-            ${(wallet.balanceUSDC + wallet.balanceUSDT).toLocaleString("en", { minimumFractionDigits: 2 })}
+            ${wallet.totalBalanceUSD.toLocaleString("en", { minimumFractionDigits: 2 })}
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">All balances in USDC · 1 USDC = 1 USD</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Across {wallet.networkBalances.length} networks · <Link to="/assets" className="text-primary hover:underline">View breakdown</Link>
+          </p>
 
-          <div className="mt-4 flex gap-2 sm:mt-5 sm:gap-3">
-            <div className="flex-1 rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:mt-5 sm:gap-3">
+            <div className="rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
               <p className="text-xs text-muted-foreground">USDC</p>
               <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">${wallet.balanceUSDC.toFixed(2)}</p>
-              <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">4.2% APY</span>
             </div>
-            <div className="flex-1 rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
+            <div className="rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
               <p className="text-xs text-muted-foreground">USDT</p>
               <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">${wallet.balanceUSDT.toFixed(2)}</p>
             </div>
+            <Link to="/assets" className="rounded-lg border border-border bg-secondary/50 p-3 text-center transition-colors hover:bg-secondary sm:rounded-xl sm:p-4">
+              <p className="text-xs text-muted-foreground">Networks</p>
+              <p className="mt-1 text-base font-semibold text-primary sm:text-lg">{wallet.networkBalances.length}</p>
+            </Link>
           </div>
 
           <div className="mt-4 flex gap-2 sm:mt-5">

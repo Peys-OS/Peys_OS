@@ -1,7 +1,8 @@
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
-import { ESCROW_ABI, ERC20_ABI, ESCROW_CONTRACT_ADDRESS, USDC_ADDRESS, USDT_ADDRESS } from '@/constants/blockchain';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from 'wagmi';
+import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
+import { getChainConfig } from '@/lib/chains';
 import { useCallback } from 'react';
-import { keccak256, toBytes, Address } from 'viem';
+import { keccak256, toBytes, Address, Hex } from 'viem';
 
 export interface Payment {
   sender: string;
@@ -18,6 +19,17 @@ export function useEscrow() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ 
     hash 
   });
+  const { chain } = useAccount();
+
+  const getContractAddresses = useCallback(() => {
+    const chainId = chain?.id || 420420421; // Default to Polkadot Asset Hub
+    const config = getChainConfig(chainId);
+    return {
+      escrowContract: config.escrowContract,
+      usdcAddress: config.usdcAddress,
+      usdtAddress: config.usdtAddress,
+    };
+  }, [chain]);
 
   const createPayment = useCallback(async (
     tokenAddress: Address,
@@ -25,51 +37,72 @@ export function useEscrow() {
     secret: string,
     memo: string,
     expiryDays: number = 7
-  ) => {
+  ): Promise<Hex | undefined> => {
     const claimHash = keccak256(toBytes(secret));
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
+    const { escrowContract } = getContractAddresses();
+
+    if (!writeContract) {
+      console.error("writeContract is not available");
+      return undefined;
+    }
 
     const tx = await writeContract({
-      address: ESCROW_CONTRACT_ADDRESS,
+      address: escrowContract,
       abi: ESCROW_ABI,
       functionName: 'createPaymentExternal',
       args: [tokenAddress, amount, claimHash, expiry, memo],
     } as any);
 
-    return tx;
-  }, [writeContract]);
+    // wagmi v3 might have type inference issues, cast through unknown
+    return tx as unknown as Hex | undefined;
+  }, [writeContract, getContractAddresses]);
 
   const claimPayment = useCallback(async (
-    paymentId: bigint,
+    paymentId: Hex,
     secret: string
-  ) => {
+  ): Promise<Hex | undefined> => {
     const secretHash = keccak256(toBytes(secret));
+    const { escrowContract } = getContractAddresses();
+
+    if (!writeContract) {
+      console.error("writeContract is not available");
+      return undefined;
+    }
 
     const tx = await writeContract({
-      address: ESCROW_CONTRACT_ADDRESS,
+      address: escrowContract,
       abi: ESCROW_ABI,
       functionName: 'claim',
       args: [paymentId, secretHash],
     } as any);
 
-    return tx;
-  }, [writeContract]);
+    return tx as unknown as Hex | undefined;
+  }, [writeContract, getContractAddresses]);
 
-  const refundPayment = useCallback(async (paymentId: bigint) => {
+  const refundPayment = useCallback(async (paymentId: Hex): Promise<Hex | undefined> => {
+    const { escrowContract } = getContractAddresses();
+
+    if (!writeContract) {
+      console.error("writeContract is not available");
+      return undefined;
+    }
+
     const tx = await writeContract({
-      address: ESCROW_CONTRACT_ADDRESS,
+      address: escrowContract,
       abi: ESCROW_ABI,
       functionName: 'refundAfterExpiry',
       args: [paymentId],
     } as any);
 
-    return tx;
-  }, [writeContract]);
+    return tx as unknown as Hex | undefined;
+  }, [writeContract, getContractAddresses]);
 
   return {
     createPayment,
     claimPayment,
     refundPayment,
+    getContractAddresses,
     hash,
     isWriting,
     isConfirming,
@@ -77,9 +110,11 @@ export function useEscrow() {
   };
 }
 
-export function usePayment(paymentId: bigint | undefined) {
+export function usePayment(paymentId: Hex | undefined, chainId?: number) {
+  const { escrowContract } = getChainConfig(chainId || 420420421);
+  
   const { data } = useReadContract({
-    address: ESCROW_CONTRACT_ADDRESS,
+    address: escrowContract,
     abi: ESCROW_ABI,
     functionName: 'getPayment',
     args: paymentId !== undefined ? [paymentId] : undefined,
@@ -120,12 +155,14 @@ export function useTokenBalance(tokenAddress: Address, walletAddress: Address | 
   };
 }
 
-export function useAllowance(tokenAddress: Address, owner: Address | undefined) {
+export function useAllowance(tokenAddress: Address, owner: Address | undefined, chainId?: number) {
+  const { escrowContract } = getChainConfig(chainId || 420420421);
+  
   const { data, isError, isLoading, refetch } = useReadContract({
     address: tokenAddress,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: owner ? [owner, ESCROW_CONTRACT_ADDRESS] : undefined,
+    args: owner ? [owner, escrowContract] : undefined,
     query: {
       enabled: !!owner,
     },
@@ -139,19 +176,20 @@ export function useAllowance(tokenAddress: Address, owner: Address | undefined) 
   };
 }
 
-export function useApproveToken() {
+export function useApproveToken(chainId?: number) {
   const { data: hash, writeContract, isPending: isWriting } = useWriteContract();
+  const { escrowContract } = getChainConfig(chainId || 420420421);
 
   const approve = useCallback(async (tokenAddress: Address, amount: bigint) => {
     const tx = await writeContract({
       address: tokenAddress,
       abi: ERC20_ABI,
       functionName: 'approve',
-      args: [ESCROW_CONTRACT_ADDRESS, amount],
+      args: [escrowContract, amount],
     } as any);
 
     return tx;
-  }, [writeContract]);
+  }, [writeContract, escrowContract]);
 
   return {
     approve,
@@ -160,4 +198,4 @@ export function useApproveToken() {
   };
 }
 
-export { USDC_ADDRESS, USDT_ADDRESS, ESCROW_CONTRACT_ADDRESS };
+export { getChainConfig };

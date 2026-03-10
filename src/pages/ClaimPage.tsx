@@ -8,6 +8,8 @@ import { useApp } from "@/contexts/AppContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fireBurst } from "@/utils/confetti";
+import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
+import { useAccount } from "wagmi";
 
 interface PaymentData {
   id: string;
@@ -20,6 +22,8 @@ interface PaymentData {
   status: string;
   expires_at: string;
   created_at: string;
+  blockchain_payment_id?: string;
+  claim_secret?: string;
 }
 
 export default function ClaimPage() {
@@ -58,6 +62,8 @@ export default function ClaimPage() {
     fetchPayment();
   }, [id]);
 
+  const { claimPayment } = useEscrow();
+
   const handleClaim = async () => {
     if (!isLoggedIn) {
       login();
@@ -75,6 +81,17 @@ export default function ClaimPage() {
         return;
       }
 
+      // 1. Call claim on blockchain
+      if (!payment.blockchain_payment_id) {
+        throw new Error("Payment not found on blockchain");
+      }
+      
+      // Pass the hex string directly (bytes32)
+      const txHash = await claimPayment(payment.blockchain_payment_id as `0x${string}`, payment.claim_secret || "");
+      
+      if (!txHash) throw new Error("Failed to claim transaction");
+
+      // 2. Update database status
       const { error: updateErr } = await supabase
         .from("payments")
         .update({

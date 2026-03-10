@@ -1,6 +1,7 @@
 [profile.default]
-src = "contracts"
-out = "out"
+src = "contracts/src"
+out = "contracts/out"
+test = "contracts/test"
 libs = ["lib"]
 solc_version = "0.8.15"
 optimizer = true
@@ -12,6 +13,8 @@ via_ir = true
 polkadotHub = "${POLKADOT_HUB_RPC_URL}"
 polkadotHubTestnet = "${POLKADOT_HUB_TESTNET_RPC_URL}"
 moonbase = "${MOONBASE_RPC_URL}"
+celo = "${CELO_RPC_URL}"
+base = "${BASE_RPC_URL}"
 
 [profile.default.fuzz]
 runs = 256

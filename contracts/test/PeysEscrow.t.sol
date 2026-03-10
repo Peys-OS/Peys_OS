@@ -2,7 +2,7 @@
 pragma solidity ^0.8.15;
 
 import "forge-std/Test.sol";
-import "../contracts/PeyDotEscrow.sol";
+import "../src/PeysEscrow.sol";
 
 contract MockERC20 is IERC20 {
     mapping(address => uint256) private _balances;
@@ -90,8 +90,8 @@ contract MockERC20 is IERC20 {
     }
 }
 
-contract PeyDotEscrowTest is Test {
-    PeyDotEscrow public escrow;
+contract PeysEscrowTest is Test {
+    PeysEscrow public escrow;
     MockERC20 public usdc;
     MockERC20 public usdt;
 
@@ -105,7 +105,7 @@ contract PeyDotEscrowTest is Test {
     bytes32 public wrongClaimHash = keccak256(abi.encodePacked("wrong"));
 
     function setUp() public {
-        escrow = new PeyDotEscrow();
+        escrow = new PeysEscrow();
         usdc = new MockERC20("USD Coin", "USDC");
         usdt = new MockERC20("Tether USD", "USDT");
 
@@ -183,7 +183,7 @@ contract PeyDotEscrowTest is Test {
         );
 
         vm.prank(recipient);
-        vm.expectRevert(PeyDotEscrow.InvalidClaimHash.selector);
+        vm.expectRevert(PeysEscrow.InvalidClaimHash.selector);
         escrow.claim(paymentId, wrongClaimHash, recipient);
     }
 
@@ -217,7 +217,7 @@ contract PeyDotEscrowTest is Test {
         );
 
         vm.prank(sender);
-        vm.expectRevert(PeyDotEscrow.PaymentExpired.selector);
+        vm.expectRevert(PeysEscrow.PaymentExpired.selector);
         escrow.refundAfterExpiry(paymentId);
     }
 
@@ -233,7 +233,7 @@ contract PeyDotEscrowTest is Test {
         vm.warp(block.timestamp + 8 days);
 
         vm.prank(other);
-        vm.expectRevert(PeyDotEscrow.NotSender.selector);
+        vm.expectRevert(PeysEscrow.NotSender.selector);
         escrow.refundAfterExpiry(paymentId);
     }
 
@@ -249,13 +249,13 @@ contract PeyDotEscrowTest is Test {
         vm.warp(block.timestamp + 8 days);
 
         vm.prank(recipient);
-        vm.expectRevert(PeyDotEscrow.PaymentExpired.selector);
+        vm.expectRevert(PeysEscrow.PaymentExpired.selector);
         escrow.claim(paymentId, claimHash, recipient);
     }
 
     function testZeroAmount() public {
         vm.prank(sender);
-        vm.expectRevert(PeyDotEscrow.ZeroAmount.selector);
+        vm.expectRevert(PeysEscrow.ZeroAmount.selector);
         escrow.createPaymentWithDefaultExpiry(
             address(usdc),
             0,
@@ -266,7 +266,7 @@ contract PeyDotEscrowTest is Test {
 
     function testInvalidExpiry() public {
         vm.prank(sender);
-        vm.expectRevert(PeyDotEscrow.InvalidExpiry.selector);
+        vm.expectRevert(PeysEscrow.InvalidExpiry.selector);
         escrow.createPaymentExternal(
             address(usdc),
             AMOUNT,
@@ -278,7 +278,7 @@ contract PeyDotEscrowTest is Test {
 
     function testPaymentNotFound() public {
         bytes32 nonExistentId = keccak256(abi.encodePacked("non-existent"));
-        vm.expectRevert(PeyDotEscrow.PaymentNotFound.selector);
+        vm.expectRevert(PeysEscrow.PaymentNotFound.selector);
         escrow.refundAfterExpiry(nonExistentId);
     }
 }

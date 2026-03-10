@@ -1,19 +1,9 @@
 import type { Address } from "viem";
+import { ESCROW_ABI as CORRECT_ESCROW_ABI, ERC20_ABI } from "@/lib/abis";
 
-export const ERC20_ABI = [
-  { inputs: [{ name: "account", type: "address" }], name: "balanceOf", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "decimals", outputs: [{ name: "", type: "uint8" }], stateMutability: "view", type: "function" },
-  { inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }], name: "transfer", outputs: [{ name: "", type: "bool" }], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }], name: "approve", outputs: [{ name: "", type: "bool" }], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "owner", type: "address" }, { name: "spender", type: "address" }], name: "allowance", outputs: [{ name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-] as const;
-
-export const ESCROW_ABI = [
-  { inputs: [{ name: "token", type: "address" }, { name: "amount", type: "uint256" }, { name: "claimHash", type: "bytes32" }, { name: "expiry", type: "uint256" }, { name: "memo", type: "string" }], name: "createPaymentExternal", outputs: [{ name: "", type: "uint256" }], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "paymentId", type: "uint256" }, { name: "secret", type: "bytes32" }], name: "claimPayment", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "paymentId", type: "uint256" }], name: "refundPayment", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ name: "paymentId", type: "uint256" }], name: "getPayment", outputs: [{ name: "", type: "tuple", components: [{ name: "sender", type: "address" }, { name: "token", type: "address" }, { name: "amount", type: "uint256" }, { name: "claimHash", type: "bytes32" }, { name: "expiry", type: "uint256" }, { name: "claimed", type: "bool" }, { name: "refunded", type: "bool" }, { name: "memo", type: "string" }] }], stateMutability: "view", type: "function" },
-] as const;
+// Re-export the correct ABIs from lib/abis.ts to avoid duplication
+export { ERC20_ABI };
+export const ESCROW_ABI = CORRECT_ESCROW_ABI;
 
 export const ESCROW_CONTRACT_ADDRESS: Address = "***REMOVED***" as Address;
 export const USDC_ADDRESS: Address = "0x5aD4d8d5D8e3b8dA4dC4f4F4f4f4f4f4f4f4f4f4f" as Address;

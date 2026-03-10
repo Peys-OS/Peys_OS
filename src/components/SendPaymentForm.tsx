@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { MOCK_CONTACTS } from "@/data/contacts";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
+import { Address, keccak256, toHex, parseAbiItem, Log, getEventSelector, decodeEventLog } from "viem";
+import { usePublicClient, useAccount } from "wagmi";
 
 type Token = "USDC" | "USDT";
 
@@ -31,6 +34,9 @@ export default function SendPaymentForm() {
   const [fullLink, setFullLink] = useState("");
   const recipientRef = useRef<HTMLDivElement>(null);
   const qrRef = useRef<HTMLDivElement>(null);
+
+  const { createPayment } = useEscrow();
+  const publicClient = usePublicClient();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -74,7 +80,7 @@ export default function SendPaymentForm() {
         const link = `${window.location.origin}/claim/${newClaimId}`;
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-        // Save payment to database
+        // 1. Save preliminary payment to database
         const { data: payment, error } = await supabase
           .from("payments")
           .insert({
@@ -96,7 +102,71 @@ export default function SendPaymentForm() {
 
         if (error) throw error;
 
-        // Create notification for recipient if they exist
+        // 2. Create payment on blockchain
+        const { chain } = useAccount();
+        const chainId = chain?.id || 420420421;
+        const config = getChainConfig(chainId);
+        const tokenAddress = token === "USDC" ? config.usdcAddress : config.usdtAddress;
+        const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
+        const claimHash = keccak256(toHex(claimSecret));
+        const expiryDays = 7;
+
+        const txHash = await createPayment(
+          tokenAddress as Address,
+          amountBigInt,
+          claimSecret,
+          memo || "",
+          expiryDays
+        );
+
+        if (!txHash) throw new Error("Failed to create transaction");
+
+        // 3. Wait for transaction receipt and extract paymentId from logs
+        if (!publicClient) throw new Error("Public client not available");
+        
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        
+        if (!receipt) throw new Error("Transaction receipt not found");
+
+        // Find the PaymentCreated event log
+        const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
+        
+        // Find the log with the matching topic
+        const log = (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic);
+        
+        if (!log) throw new Error("PaymentCreated event not found in transaction logs");
+
+        // Decode the event to get the paymentId
+        let blockchainPaymentId: string;
+        try {
+          const decoded = decodeEventLog({
+            abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
+            data: log.data,
+            topics: log.topics,
+          }) as any;
+          
+          blockchainPaymentId = decoded.args.paymentId; // bytes32
+          
+          if (!blockchainPaymentId) {
+            throw new Error("paymentId not found in event args");
+          }
+        } catch (decodeError) {
+          console.error("Failed to decode event log:", decodeError);
+          throw new Error("Failed to extract payment ID from transaction logs");
+        }
+
+        // 4. Update database with blockchain paymentId and transaction hash
+        const { error: updateError } = await supabase
+          .from("payments")
+          .update({
+            tx_hash: txHash,
+            blockchain_payment_id: blockchainPaymentId,
+          })
+          .eq("id", payment.id);
+
+        if (updateError) throw updateError;
+
+        // 5. Notify recipient if they exist
         const { data: recipientProfile } = await supabase
           .from("profiles")
           .select("user_id")
@@ -113,7 +183,7 @@ export default function SendPaymentForm() {
           });
         }
 
-        // Try to send email notification via edge function
+        // 6. Send email notification
         try {
           await supabase.functions.invoke("send-payment-notification", {
             body: {
