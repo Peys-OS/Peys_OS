@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Notify recipient using the database function
+    // Notify recipient using the database function (in-app notification)
     await supabaseClient.rpc("notify_recipient", {
       p_recipient_email: recipientEmail,
       p_title: `💸 New payment of ${amount} ${token}`,
@@ -106,6 +106,42 @@ Deno.serve(async (req) => {
       p_payment_id: payment.id,
       p_type: "payment_received",
     });
+
+    // Send email notification with claim link
+    const appUrl = Deno.env.get("APP_URL") || "https://peydot.io";
+    const fullClaimLink = `${appUrl}/claim/${claimLink}`;
+
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && serviceRoleKey) {
+        const notificationResponse = await fetch(
+          `${supabaseUrl}/functions/v1/send-payment-notification`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({
+              recipientEmail,
+              senderEmail: senderProfile?.email || user.email || "",
+              amount,
+              token,
+              memo,
+              claimLink: fullClaimLink,
+              appUrl,
+            }),
+          }
+        );
+
+        const notificationResult = await notificationResponse.json();
+        console.log("Email notification result:", notificationResult);
+      }
+    } catch (emailError) {
+      console.error("Error sending email notification:", emailError);
+    }
 
     return new Response(
       JSON.stringify({
