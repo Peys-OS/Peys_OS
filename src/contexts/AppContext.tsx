@@ -24,7 +24,7 @@ interface UserWallet {
   networkBalances: NetworkBalance[];
 }
 
-export type { UserWallet, NetworkBalance };
+
 
 interface AppContextType {
   isLoggedIn: boolean;
