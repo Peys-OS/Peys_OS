@@ -9,11 +9,7 @@ interface IERC20 {
     function allowance(address owner, address spender) external view returns (uint256);
 }
 
-interface IXCM {
-    function transfer(address token, address recipient, uint256 amount) external returns (bool);
-}
-
-contract PeyDotEscrow {
+contract PeysEscrow {
     uint256 public constant DEFAULT_EXPIRY = 7 days;
     uint256 public constant MIN_EXPIRY = 1 days;
     uint256 public constant MAX_EXPIRY = 30 days;

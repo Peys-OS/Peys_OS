@@ -10,7 +10,13 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "contract:build": "cd contracts && forge build",
+    "contract:test": "cd contracts && forge test",
+    "contract:deploy:polkadot": "cd contracts && forge script script/DeployPolkadot.s.sol --rpc-url $VITE_RPC_URL_POLKADOT --broadcast --verify --etherscan-api-key $POLKADOT_EXPLORER_API_KEY",
+    "contract:deploy:celo-alfajores": "cd contracts && forge script script/DeployCeloAlfajores.s.sol --rpc-url $VITE_RPC_URL_CELO --broadcast --verify --etherscan-api-key $CELOSCAN_API_KEY",
+    "contract:deploy:base-sepolia": "cd contracts && forge script script/DeployBaseSepolia.s.sol --rpc-url $VITE_RPC_URL_BASE_SEPOLIA --broadcast --verify --etherscan-api-key $BASESCAN_API_KEY",
+    "contract:deploy:testnets": "cd contracts && forge script script/DeployTestnets.s.sol --broadcast"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

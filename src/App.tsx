@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
 import DashboardPage from "./pages/DashboardPage";
+import AssetsPage from "./pages/AssetsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import StreamingPage from "./pages/StreamingPage";
 import BatchPage from "./pages/BatchPage";
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/send" element={<SendPage />} />
                 <Route path="/claim/:id" element={<ClaimPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/assets" element={<AssetsPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/streaming" element={<StreamingPage />} />
                 <Route path="/batch" element={<BatchPage />} />
