@@ -106,6 +106,13 @@ export default function SendPaymentForm() {
         toast.error("Please enter a valid amount");
         return;
       }
+
+      // Check if user has sufficient balance
+      if (Number(amount) > balance) {
+        toast.error(`Insufficient ${token} balance on ${currentNetwork.name}. You have ${balance.toFixed(2)} ${token}.`);
+        return;
+      }
+
       setStep("confirm");
       return;
     }
@@ -117,6 +124,13 @@ export default function SendPaymentForm() {
         // Check if user is logged in via Privy
         if (!isLoggedIn || !walletAddress) {
           toast.error("Please sign in first");
+          setStep("form");
+          return;
+        }
+
+        // Double-check balance before transaction
+        if (Number(amount) > balance) {
+          toast.error(`Insufficient ${token} balance. You have ${balance.toFixed(2)} ${token}.`);
           setStep("form");
           return;
         }
