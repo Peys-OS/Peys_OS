@@ -103,8 +103,7 @@ export default function SendPaymentForm() {
         if (error) throw error;
 
         // 2. Create payment on blockchain
-        const { chain } = useAccount();
-        const chainId = chain?.id || 420420421;
+        const chainId = 420420421; // Default chain
         const config = getChainConfig(chainId);
         const tokenAddress = token === "USDC" ? config.usdcAddress : config.usdtAddress;
         const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
