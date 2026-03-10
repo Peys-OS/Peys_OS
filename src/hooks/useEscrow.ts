@@ -22,7 +22,7 @@ export function useEscrow() {
   const { chain } = useAccount();
 
   const getContractAddresses = useCallback(() => {
-    const chainId = chain?.id || 420420421; // Default to Polkadot Asset Hub
+    const chainId = chain?.id || 84532; // Default to Base Sepolia
     const config = getChainConfig(chainId);
     return {
       escrowContract: config.escrowContract,
@@ -40,11 +40,23 @@ export function useEscrow() {
   ): Promise<Hex | undefined> => {
     const claimHash = keccak256(toBytes(secret));
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
-    const { escrowContract } = getContractAddresses();
+    const { escrowContract, usdcAddress } = getContractAddresses();
 
     if (!writeContract) {
       console.error("writeContract is not available");
       return undefined;
+    }
+
+    // First, approve the escrow contract to spend USDC
+    try {
+      await writeContract({
+        address: usdcAddress,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [escrowContract, amount],
+      } as any);
+    } catch (approveError) {
+      console.warn("Approval might have been skipped or failed:", approveError);
     }
 
     const tx = await writeContract({
