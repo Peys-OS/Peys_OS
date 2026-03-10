@@ -114,8 +114,8 @@ export default function SendPaymentForm() {
       setStep("sending");
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        // Check if user is logged in via Privy
+        if (!isLoggedIn || !walletAddress) {
           toast.error("Please sign in first");
           setStep("form");
           return;
@@ -127,14 +127,14 @@ export default function SendPaymentForm() {
         const link = `${window.location.origin}/claim/${newClaimId}`;
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-        // 1. Save preliminary payment to database
+        // 1. Save preliminary payment to database using wallet address as sender identifier
         const { data: payment, error } = await supabase
           .from("payments")
           .insert({
             payment_id: paymentId,
-            sender_user_id: user.id,
-            sender_email: user.email || "",
-            sender_wallet: walletAddress || null,
+            sender_user_id: null, // Using wallet address instead
+            sender_email: "", // Could collect email from Privy if available
+            sender_wallet: walletAddress,
             recipient_email: recipient,
             amount: Number(amount),
             token,
@@ -221,7 +221,7 @@ export default function SendPaymentForm() {
             user_id: recipientProfile.user_id,
             type: "payment_received",
             title: `💰 You received ${Number(amount).toFixed(2)} ${token}!`,
-            message: `${user.email || "Someone"} sent you ${Number(amount).toFixed(2)} ${token}${memo ? ` — "${memo}"` : ""}. Claim it now!`,
+            message: `${walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone"} sent you ${Number(amount).toFixed(2)} ${token}${memo ? ` — "${memo}"` : ""}. Claim it now!`,
             payment_id: payment.id,
           });
         }
@@ -231,7 +231,7 @@ export default function SendPaymentForm() {
           await supabase.functions.invoke("send-payment-notification", {
             body: {
               recipientEmail: recipient,
-              senderEmail: user.email,
+              senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "",
               amount: Number(amount),
               token,
               memo,
