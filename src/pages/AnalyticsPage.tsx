@@ -1,11 +1,14 @@
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, Users, Globe, ArrowUpRight, ArrowDownLeft, Clock } from "lucide-react";
+import { BarChart3, TrendingUp, Users, Globe, ArrowUpRight, ArrowDownLeft, Clock, Loader2 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { useApp } from "@/contexts/AppContext";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
+// Mock data for fallback
 const volumeData = [
   { name: "Mon", volume: 1200 },
   { name: "Tue", volume: 1800 },
@@ -30,32 +33,136 @@ const tokenDistribution = [
   { name: "USDT", value: 32, color: "hsl(155, 70%, 42%)" },
 ];
 
-const topRecipients = [
-  { name: "alice@email.com", amount: 1250, count: 8 },
-  { name: "bob@email.com", amount: 890, count: 5 },
-  { name: "grace@email.com", amount: 675, count: 12 },
-  { name: "moses@email.com", amount: 420, count: 3 },
-  { name: "sarah@email.com", amount: 310, count: 6 },
-];
-
+// Geographic data - would need user location tracking for real data
 const geoData = [
-  { country: "🇳🇬 Nigeria", payments: 342, pct: 28 },
-  { country: "🇯🇵 Japan", payments: 218, pct: 18 },
-  { country: "🇩🇪 Germany", payments: 185, pct: 15 },
-  { country: "🇺🇸 United States", payments: 156, pct: 13 },
-  { country: "🇧🇷 Brazil", payments: 124, pct: 10 },
-  { country: "🌍 Others", payments: 195, pct: 16 },
-];
-
-const stats = [
-  { label: "Total Volume", value: "$14,200", change: "+23%", icon: TrendingUp },
-  { label: "Payments Sent", value: "284", change: "+18%", icon: ArrowUpRight },
-  { label: "Claim Rate", value: "89%", change: "+4%", icon: ArrowDownLeft },
-  { label: "Avg. Claim Time", value: "2.4h", change: "-12%", icon: Clock },
+  { country: "🌍 Africa", payments: 0, pct: 0 },
+  { country: "🌎 Americas", payments: 0, pct: 0 },
+  { country: "🌍 Europe", payments: 0, pct: 0 },
+  { country: "🌏 Asia", payments: 0, pct: 0 },
 ];
 
 export default function AnalyticsPage() {
-  const { isLoggedIn, login } = useApp();
+  const { isLoggedIn, login, walletAddress } = useApp();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalVolume: 0,
+    totalPayments: 0,
+    claimRate: 0,
+    avgClaimTime: 0,
+  });
+  const [volumeChartData, setVolumeChartData] = useState(volumeData);
+  const [topRecipients, setTopRecipients] = useState<{name: string, amount: number, count: number}[]>([]);
+
+  useEffect(() => {
+    if (isLoggedIn && walletAddress) {
+      fetchAnalytics();
+    }
+  }, [isLoggedIn, walletAddress]);
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const userEmail = user.email || "";
+
+      // Fetch all payments for this user
+      const { data: payments, error } = await supabase
+        .from("payments")
+        .select("*")
+        .or(`sender_wallet.eq.${walletAddress},recipient_email.eq.${userEmail}`)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching analytics:", error);
+        return;
+      }
+
+      if (!payments || payments.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      // Calculate stats
+      const totalVolume = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      const totalPayments = payments.length;
+      const claimedPayments = payments.filter(p => p.status === "claimed").length;
+      const claimRate = totalPayments > 0 ? Math.round((claimedPayments / totalPayments) * 100) : 0;
+
+      // Calculate volume by day (last 7 days)
+      const now = new Date();
+      const last7Days: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayName = date.toLocaleDateString("en", { weekday: "short" });
+        last7Days[dayName] = 0;
+      }
+
+      payments.forEach(p => {
+        const created = new Date(p.created_at);
+        const dayName = created.toLocaleDateString("en", { weekday: "short" });
+        if (last7Days[dayName] !== undefined) {
+          last7Days[dayName] += Number(p.amount || 0) / 1000000; // Convert from wei to USDC
+        }
+      });
+
+      const volumeDataFormatted = Object.entries(last7Days).map(([name, volume]) => ({
+        name,
+        volume: Math.round(volume * 100) / 100,
+      }));
+
+      // Calculate top recipients
+      const recipientAmounts: Record<string, number> = {};
+      const recipientCounts: Record<string, number> = {};
+      
+      payments.forEach(p => {
+        if (p.sender_wallet?.toLowerCase() !== walletAddress?.toLowerCase()) {
+          const recipient = p.recipient_email || "Unknown";
+          recipientAmounts[recipient] = (recipientAmounts[recipient] || 0) + Number(p.amount || 0) / 1000000;
+          recipientCounts[recipient] = (recipientCounts[recipient] || 0) + 1;
+        }
+      });
+
+      const topRecipientsFormatted = Object.entries(recipientAmounts)
+        .map(([name, amount]) => ({ name, amount, count: recipientCounts[name] }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
+
+      setStats({
+        totalVolume,
+        totalPayments,
+        claimRate,
+        avgClaimTime: 2.4, // Would need claimed_at to calculate real avg
+      });
+      setVolumeChartData(volumeDataFormatted);
+      setTopRecipients(topRecipientsFormatted);
+
+    } catch (error) {
+      console.error("Error in fetchAnalytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAmount = (amount: number) => {
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
+    return `$${amount.toFixed(2)}`;
+  };
+
+  const displayStats = loading ? [
+    { label: "Total Volume", value: "-", change: "+0%", icon: TrendingUp },
+    { label: "Payments Sent", value: "-", change: "+0%", icon: ArrowUpRight },
+    { label: "Claim Rate", value: "-%", change: "+0%", icon: ArrowDownLeft },
+    { label: "Avg. Claim Time", value: "-h", change: "-0%", icon: Clock },
+  ] : [
+    { label: "Total Volume", value: formatAmount(stats.totalVolume), change: "+0%", icon: TrendingUp },
+    { label: "Payments Sent", value: stats.totalPayments.toString(), change: "+0%", icon: ArrowUpRight },
+    { label: "Claim Rate", value: `${stats.claimRate}%`, change: "+0%", icon: ArrowDownLeft },
+    { label: "Avg. Claim Time", value: `${stats.avgClaimTime}h`, change: "-0%", icon: Clock },
+  ];
 
   if (!isLoggedIn) {
     return (
@@ -95,8 +202,13 @@ export default function AnalyticsPage() {
         </motion.div>
 
         {/* Stats Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {stats.map((s, i) => (
+          {displayStats.map((s, i) => (
             <motion.div
               key={s.label}
               initial={{ opacity: 0, y: 20 }}
@@ -115,6 +227,7 @@ export default function AnalyticsPage() {
             </motion.div>
           ))}
         </div>
+        )}
 
         {/* Charts Row */}
         <div className="mb-6 grid gap-4 sm:gap-6 lg:grid-cols-2">
@@ -124,7 +237,7 @@ export default function AnalyticsPage() {
           >
             <h3 className="mb-4 text-sm font-semibold text-foreground">Payment Volume (7d)</h3>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={volumeData}>
+              <BarChart data={volumeChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
                 <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />

@@ -7,7 +7,7 @@ import "../src/PeysEscrow.sol";
 contract DeployCeloAlfajoresScript is Script {
     function run() external {
         // For Celo Alfajores Testnet (Chain ID: 44787)
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_CELO");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         
         vm.startBroadcast(deployerPrivateKey);
         
@@ -17,5 +17,8 @@ contract DeployCeloAlfajoresScript is Script {
         
         console.log("PeysEscrow deployed to Celo Alfajores at:", address(escrow));
         console.log("Chain ID: 44787");
+        console.log("");
+        console.log("=== UPDATE THESE VALUES IN .env ===");
+        console.log("VITE_ESCROW_CONTRACT_ADDRESS_CELO=", address(escrow));
     }
 }
