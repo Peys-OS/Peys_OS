@@ -15,7 +15,7 @@ dist-ssr
 # Foundry
 out/
 cache/
-lib/
+/lib/
 
 # environment variables
 .env
