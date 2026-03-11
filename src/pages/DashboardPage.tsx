@@ -37,6 +37,23 @@ export default function DashboardPage() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [showReceive, setShowReceive] = useState(false);
 
+  // Refresh transactions when dashboard becomes visible
+  useEffect(() => {
+    if (isLoggedIn) {
+      refreshTransactions();
+      
+      // Also refresh when tab becomes visible again
+      const handleVisibilityChange = () => {
+        if (!document.hidden && isLoggedIn) {
+          refreshTransactions();
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+  }, [isLoggedIn, refreshTransactions]);
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background">

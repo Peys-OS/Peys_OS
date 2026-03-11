@@ -10,6 +10,7 @@ export interface Transaction {
   timestamp: Date;
   claimLink?: string;
   expiresAt?: Date;
+  status?: string;
 }
 
 export interface UserWallet {

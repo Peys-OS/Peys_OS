@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -39,6 +39,7 @@ export default function SendPaymentForm() {
   const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
+  const [sendingPhase, setSendingPhase] = useState<"approving" | "creating" | "waiting">("waiting");
   const [linkCopied, setLinkCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showCard, setShowCard] = useState(false);
@@ -119,6 +120,7 @@ export default function SendPaymentForm() {
 
     if (step === "confirm") {
       setStep("sending");
+      setSendingPhase("waiting");
 
       try {
         // Check if user is logged in via Privy
@@ -170,46 +172,84 @@ export default function SendPaymentForm() {
         const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
         const expiryDays = 7;
 
-        const txHash = await createPayment(
-          tokenAddress as Address,
-          amountBigInt,
-          claimSecret,
-          memo || "",
-          expiryDays
-        );
+        setSendingPhase("approving");
+        
+        let txHash;
+        try {
+          txHash = await createPayment(
+            tokenAddress as Address,
+            amountBigInt,
+            claimSecret,
+            memo || "",
+            expiryDays,
+            () => {
+              // Approval transaction is being sent
+              setSendingPhase("approving");
+            },
+            () => {
+              // Approval confirmed, now creating the payment
+              setSendingPhase("creating");
+            }
+          );
+        } catch (txError: any) {
+          console.error("Transaction error:", txError);
+          const errorMsg = txError.message || txError.code?.toString() || '';
+          
+          // Check for user rejection
+          if (errorMsg.includes('user rejected') || txError.code === 4001) {
+            throw new Error("Transaction was cancelled. Please try again.");
+          }
+          
+          // Check for nonce or RPC errors
+          if (errorMsg.includes('nonce') || errorMsg.includes('-32000') || errorMsg.includes('-32002') || errorMsg.includes('too many errors')) {
+            throw new Error("Wallet nonce issue detected. Please open your BitGet wallet, go to activity, and cancel or speed up any pending transactions. Then refresh this page and try again.");
+          }
+          
+          // For other errors, show a generic message but include details
+          throw new Error(`Transaction failed: ${errorMsg || 'Unknown error'}`);
+        }
 
-        if (!txHash) throw new Error("Failed to create transaction");
+        if (!txHash) throw new Error("Failed to create transaction - no transaction hash received");
 
         // 3. Wait for transaction receipt and extract paymentId from logs
-        if (!publicClient) throw new Error("Public client not available");
+        if (!publicClient) throw new Error("Public client not available - please refresh and try again");
         
-        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        let receipt;
+        try {
+          receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        } catch (receiptError: any) {
+          console.error("Failed to get receipt:", receiptError);
+          // If the transaction was submitted but we can't get receipt, it might still have gone through
+          // Show success with a note
+          toast.warning("Transaction submitted but could not confirm receipt. Please check your wallet activity.");
+          // Still try to update the payment record
+        }
         
-        if (!receipt) throw new Error("Transaction receipt not found");
+        if (!receipt) {
+          // Receipt not found - transaction might still be pending
+          // Save with tx hash anyway so user can track it
+          console.warn("Transaction receipt not found, payment may still be pending");
+        }
 
         // Find the PaymentCreated event log
         const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
         
-        const log = (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic);
+        const log = receipt?.logs ? (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic) : null;
         
-        if (!log) throw new Error("PaymentCreated event not found in transaction logs");
-
-        let blockchainPaymentId: string;
-        try {
-          const decoded = decodeEventLog({
-            abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
-            data: log.data,
-            topics: log.topics,
-          }) as any;
-          
-          blockchainPaymentId = decoded.args.paymentId;
-          
-          if (!blockchainPaymentId) {
-            throw new Error("paymentId not found in event args");
+        let blockchainPaymentId: string | null = null;
+        
+        if (log) {
+          try {
+            const decoded = decodeEventLog({
+              abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
+              data: log.data,
+              topics: log.topics,
+            }) as any;
+            
+            blockchainPaymentId = decoded.args.paymentId;
+          } catch (decodeError) {
+            console.warn("Failed to decode event log:", decodeError);
           }
-        } catch (decodeError) {
-          console.error("Failed to decode event log:", decodeError);
-          throw new Error("Failed to extract payment ID from transaction logs");
         }
 
         // 4. Update database with blockchain paymentId and transaction hash
@@ -264,7 +304,14 @@ export default function SendPaymentForm() {
         toast.success("Payment created! Share the link to get paid 🎉");
       } catch (err: any) {
         console.error("Payment creation failed:", err);
-        toast.error(err.message || "Failed to create payment");
+        const errorMessage = err.message || "Failed to create payment";
+        
+        // Check for nonce-related errors
+        if (errorMessage.includes('nonce') || errorMessage.includes('Nonce too low')) {
+          toast.error("Nonce error: Please check MetaMask for pending transactions. You can cancel or speed up the stuck transaction, then try again.");
+        } else {
+          toast.error(errorMessage);
+        }
         setStep("confirm");
       }
     }
@@ -534,7 +581,20 @@ export default function SendPaymentForm() {
             {step === "sending" && (
               <motion.div key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Creating payment on {currentNetwork.name}...</p>
+                <p className="text-sm text-muted-foreground">
+                  {sendingPhase === "approving" 
+                    ? `Approving ${token} on ${currentNetwork.name}...` 
+                    : sendingPhase === "creating"
+                    ? `Creating payment on ${currentNetwork.name}...`
+                    : `Processing on ${currentNetwork.name}...`
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {sendingPhase === "approving" 
+                    ? "Check your wallet to confirm the approval" 
+                    : "Please wait, this may take a moment"
+                  }
+                </p>
               </motion.div>
             )}
 
