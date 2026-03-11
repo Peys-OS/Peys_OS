@@ -1,11 +1,14 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, FileText, X, Check, AlertCircle, Send, Download } from "lucide-react";
+import { Upload, FileText, X, Check, AlertCircle, Send, Download, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { fireBurst } from "@/utils/confetti";
+import { useEscrow } from "@/hooks/useEscrow";
+import { getChainConfig } from "@/lib/chains";
+import { supabase } from "@/integrations/supabase/client";
 
 interface BatchRecipient {
   email: string;
@@ -23,11 +26,13 @@ grace@email.com,75,USDT,Birthday gift
 moses@email.com,200,USDC,Freelance work`;
 
 export default function BatchPage() {
-  const { isLoggedIn, login } = useApp();
+  const { isLoggedIn, login, walletAddress } = useApp();
+  const { createPayment } = useEscrow();
   const [recipients, setRecipients] = useState<BatchRecipient[]>([]);
   const [step, setStep] = useState<"upload" | "review" | "processing" | "done">("upload");
   const [processedCount, setProcessedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedNetwork, setSelectedNetwork] = useState(84532); // Default to Base Sepolia
 
   if (!isLoggedIn) {
     return (
@@ -120,14 +125,73 @@ export default function BatchPage() {
     setStep("processing");
     setProcessedCount(0);
 
+    const chainConfig = getChainConfig(selectedNetwork);
+    const tokenAddress = chainConfig.usdcAddress;
+
     for (let i = 0; i < recipients.length; i++) {
-      await new Promise((r) => setTimeout(r, 400 + Math.random() * 600));
+      const recipient = recipients[i];
+      
+      try {
+        // Generate a random secret for this payment
+        const secret = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const amountBigInt = BigInt(recipient.amount * 1000000); // USDC has 6 decimals
+
+        // Create the payment
+        const txHash = await createPayment(
+          tokenAddress as `0x${string}`,
+          amountBigInt,
+          secret,
+          recipient.memo || "",
+          7
+        );
+
+        if (txHash) {
+          // Generate claim link and secret
+          const paymentId = crypto.randomUUID();
+          const claimSecret = Math.random().toString(36).substring(2) + Date.now().toString(36);
+          const claimLink = `${window.location.origin}/claim/${paymentId}`;
+          
+          // Save to database
+          await supabase.from("payments").insert({
+            payment_id: paymentId,
+            sender_wallet: walletAddress,
+            sender_email: "",
+            recipient_email: recipient.email,
+            amount: recipient.amount,
+            token: recipient.token,
+            memo: recipient.memo,
+            claim_secret: claimSecret,
+            claim_link: claimLink,
+            status: "pending",
+            tx_hash: txHash,
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          } as any);
+
+          setRecipients((prev) =>
+            prev.map((r, idx) =>
+              idx === i ? { ...r, status: "success" as const } : r
+            )
+          );
+        } else {
+          setRecipients((prev) =>
+            prev.map((r, idx) =>
+              idx === i ? { ...r, status: "error" as const, error: "Transaction failed" } : r
+            )
+          }
+        }
+      } catch (error: any) {
+        console.error("Payment error:", error);
+        setRecipients((prev) =>
+          prev.map((r, idx) =>
+            idx === i ? { ...r, status: "error" as const, error: error.message || "Transaction failed" } : r
+          )
+        );
+      }
+
       setProcessedCount(i + 1);
-      setRecipients((prev) =>
-        prev.map((r, idx) =>
-          idx === i ? { ...r, status: Math.random() > 0.1 ? "success" : "error", error: Math.random() > 0.1 ? undefined : "Insufficient balance" } : r
-        )
-      );
+      
+      // Small delay between transactions
+      await new Promise((r) => setTimeout(r, 1000));
     }
 
     setStep("done");
