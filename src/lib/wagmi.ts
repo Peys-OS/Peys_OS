@@ -1,6 +1,22 @@
-import { http, createConfig } from 'wagmi';
+import { http, createConfig, fallback } from 'wagmi';
 import { mainnet, polygon, arbitrum, celo, base, baseSepolia } from 'wagmi/chains';
-import { injected } from 'wagmi/connectors';
+import { injected, coinbaseWallet, walletConnect } from 'wagmi/connectors';
+
+const baseSepoliaRpcs = [
+  import.meta.env.VITE_RPC_URL_BASE_SEPOLIA || 'https://base-sepolia.g.alchemy.com/v2/demo',
+  'https://sepolia.base.org',
+  'https://base-sepolia-rpc.publicnode.com',
+];
+
+const celoRpcs = [
+  import.meta.env.VITE_RPC_URL_CELO || 'https://alfajores-forno.celo-testnet.org',
+  'https://alfajores.celo.org',
+];
+
+const polkadotRpcs = [
+  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
+  'https://polkadot-asset-hub-rpc.dotters.cloud',
+];
 
 // Define Polkadot Asset Hub (EVM compatible)
 export const polkadotAssetHub = {
@@ -14,10 +30,10 @@ export const polkadotAssetHub = {
   },
   rpcUrls: {
     default: {
-      http: [import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network'],
+      http: polkadotRpcs,
     },
     public: {
-      http: [import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network'],
+      http: polkadotRpcs,
     },
   },
   blockExplorers: {
@@ -40,10 +56,10 @@ export const celoAlfajores = {
   },
   rpcUrls: {
     default: {
-      http: [import.meta.env.VITE_RPC_URL_CELO || 'https://alfajores-forno.celo-testnet.org'],
+      http: celoRpcs,
     },
     public: {
-      http: [import.meta.env.VITE_RPC_URL_CELO || 'https://alfajores-forno.celo-testnet.org'],
+      http: celoRpcs,
     },
   },
   blockExplorers: {
@@ -58,17 +74,18 @@ export const celoAlfajores = {
 export const config = createConfig({
   chains: [polkadotAssetHub, celoAlfajores, celo, base, baseSepolia, mainnet, polygon, arbitrum],
   transports: {
-    [polkadotAssetHub.id]: http(import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network'),
-    [celoAlfajores.id]: http(import.meta.env.VITE_RPC_URL_CELO || 'https://alfajores-forno.celo-testnet.org'),
-    [celo.id]: http(import.meta.env.VITE_RPC_URL_CELO || 'https://forno.celo.org'),
+    [polkadotAssetHub.id]: fallback(polkadotRpcs.map(rpc => http(rpc)), { rank: true }),
+    [celoAlfajores.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
+    [celo.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
     [base.id]: http(import.meta.env.VITE_RPC_URL_BASE || 'https://mainnet.base.org'),
-    [baseSepolia.id]: http(import.meta.env.VITE_RPC_URL_BASE_SEPOLIA || 'https://sepolia.base.org'),
+    [baseSepolia.id]: fallback(baseSepoliaRpcs.map(rpc => http(rpc)), { rank: true }),
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [arbitrum.id]: http(),
   },
   connectors: [
     injected(),
+    coinbaseWallet(),
   ],
 });
 

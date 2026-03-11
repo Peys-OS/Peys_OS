@@ -176,13 +176,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const userEmail = user.email || "";
 
+      // Get user's wallet address from the app context
+      const userWallet = walletAddress;
+
       // Fetch payments where user is sender OR recipient
-      const { data: payments, error } = await supabase
+      // Also include payments where sender_wallet matches user's wallet address
+      let query = supabase
         .from("payments")
         .select("*")
-        .or(`sender_user_id.eq.${user.id},recipient_email.eq.${userEmail}`)
         .order("created_at", { ascending: false })
         .limit(50);
+
+      // Build the OR filter
+      const orFilter = [];
+      if (user.id) {
+        orFilter.push(`sender_user_id.eq.${user.id}`);
+      }
+      if (userEmail) {
+        orFilter.push(`recipient_email.eq.${userEmail}`);
+      }
+      if (userWallet) {
+        orFilter.push(`sender_wallet.eq.${userWallet}`);
+      }
+
+      if (orFilter.length > 0) {
+        query = query.or(orFilter.join(','));
+      }
+
+      const { data: payments, error } = await query;
 
       if (error) {
         console.error("Error fetching payments:", error);
@@ -193,17 +214,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const mapped: Transaction[] = (payments || []).map((p) => {
         let type: Transaction["type"];
+        
+        // Determine transaction type based on status and who sent/received
+        const isSender = p.sender_user_id === user.id || p.sender_wallet?.toLowerCase() === userWallet?.toLowerCase();
+        const isRecipient = p.recipient_email?.toLowerCase() === userEmail?.toLowerCase();
+        
         if (p.status === "claimed") {
-          type = p.sender_user_id === user.id ? "sent" : "claimed";
+          type = isSender ? "sent" : "claimed";
         } else if (p.status === "pending") {
-          type = p.sender_user_id === user.id ? "pending" : "pending";
+          // For pending, show as "pending" if user is the sender (money in escrow)
+          // If user is recipient and it's pending, show as "pending" too
+          type = "pending";
+        } else if (p.status === "expired") {
+          type = isSender ? "sent" : "claimed";
         } else {
-          type = "sent";
+          type = isSender ? "sent" : "claimed";
         }
 
         // Show the other party
-        const counterparty =
-          p.sender_user_id === user.id ? p.recipient_email : p.sender_email;
+        let counterparty: string;
+        if (isSender) {
+          counterparty = p.recipient_email || "Unknown";
+        } else {
+          counterparty = p.sender_email || p.sender_wallet?.slice(0, 6) + "..." + p.sender_wallet?.slice(-4) || "Unknown";
+        }
 
         return {
           id: p.id,
@@ -215,6 +249,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           timestamp: new Date(p.created_at),
           claimLink: p.claim_link || undefined,
           expiresAt: p.expires_at ? new Date(p.expires_at) : undefined,
+          status: p.status, // Include raw status for debugging
         };
       });
 
@@ -224,7 +259,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setTransactionsLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, walletAddress]);
 
   useEffect(() => {
     fetchBalances();
