@@ -52,6 +52,12 @@ export default function HeroSection() {
             >
               For Organizations
             </Link>
+            <Link
+              to="/developers"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border px-7 py-3.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:w-auto"
+            >
+              For Developers
+            </Link>
           </div>
         </motion.div>
 
