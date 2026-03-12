@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Menu, X, ChevronRight, ChevronDown, ArrowLeft, Circle } from "lucide-react";
@@ -160,8 +160,7 @@ const pageHeadings: Record<string, { id: string; label: string }[]> = {
 function useActiveHeading(headings: { id: string; label: string }[]) {
   const [activeId, setActiveId] = useState<string>("");
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useState(() => {
+  useEffect(() => {
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
@@ -172,7 +171,7 @@ function useActiveHeading(headings: { id: string; label: string }[]) {
           }
         });
       },
-      { rootMargin: "-80px 0px -80% 0px" }
+      { rootMargin: "-100px 0px -70% 0px" }
     );
 
     headings.forEach((heading) => {
@@ -181,7 +180,7 @@ function useActiveHeading(headings: { id: string; label: string }[]) {
     });
 
     return () => observer.disconnect();
-  });
+  }, [headings]);
 
   return activeId;
 }
@@ -259,22 +258,12 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const location = useLocation();
   
   const currentHeadings = pageHeadings[location.pathname] || [];
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const activeHeading = useActiveHeading(currentHeadings);
 
   const scrollToHeading = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 100;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth"
-      });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -341,16 +330,25 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
               
               {/* Progress indicator */}
               <div className="mt-6 pt-4 border-t border-border">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Circle className={`h-2 w-2 fill-current ${activeHeading ? 'text-green-500' : 'text-muted-foreground'}`} />
-                  <span>{currentHeadings.findIndex(h => h.id === activeHeading) + 1} of {currentHeadings.length}</span>
-                </div>
-                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
-                  <div 
-                    className="h-full bg-primary rounded-full transition-all duration-300"
-                    style={{ width: `${((currentHeadings.findIndex(h => h.id === activeHeading) + 1) / currentHeadings.length) * 100}%` }}
-                  />
-                </div>
+                {activeHeading ? (
+                  <>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Circle className="h-2 w-2 fill-current text-green-500" />
+                      <span>{currentHeadings.findIndex(h => h.id === activeHeading) + 1} of {currentHeadings.length}</span>
+                    </div>
+                    <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-300"
+                        style={{ width: `${((currentHeadings.findIndex(h => h.id === activeHeading) + 1) / currentHeadings.length) * 100}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Circle className="h-2 w-2 fill-current text-muted-foreground" />
+                    <span>0 of {currentHeadings.length}</span>
+                  </div>
+                )}
               </div>
             </div>
           </aside>
