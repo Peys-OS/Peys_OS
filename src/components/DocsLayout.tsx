@@ -8,7 +8,7 @@ const navItems = [
   { 
     section: "Documentation", 
     items: [
-      { to: "/docs", label: "Full developer docs", desc: "Overview of all features" },
+      { to: "/docs", label: "Overview", desc: "Full developer docs" },
     ]
   },
   { 
@@ -19,9 +19,9 @@ const navItems = [
     ]
   },
   { 
-    section: "Core Concepts", 
+    section: "Products", 
     items: [
-      { to: "/docs/payments", label: "Payments", desc: "Create & manage payments" },
+      { to: "/docs/payments", label: "Magic Claim Links", desc: "Send payments via email" },
       { to: "/docs/claims", label: "Payment Claims", desc: "Claim flow" },
       { to: "/docs/webhooks", label: "Webhooks", desc: "Event notifications" },
     ]
@@ -29,7 +29,7 @@ const navItems = [
   { 
     section: "API Reference", 
     items: [
-      { to: "/docs/api/authentication", label: "REST API", desc: "Authentication" },
+      { to: "/docs/api/authentication", label: "Authentication", desc: "API keys" },
       { to: "/docs/api/payments", label: "Payments API", desc: "Endpoints" },
       { to: "/docs/api/webhooks-api", label: "Webhooks API", desc: "Configure webhooks" },
     ]
@@ -40,24 +40,30 @@ const navItems = [
       { to: "/docs/sdks/javascript", label: "JavaScript SDK", desc: "JS & TypeScript" },
       { to: "/docs/sdks/python", label: "Python SDK", desc: "Python library" },
       { to: "/docs/sdks/go", label: "Go SDK", desc: "Go client" },
-      { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing plans" },
     ]
   },
   { 
-    section: "Widgets", 
+    section: "UI Components", 
     items: [
       { to: "/docs/widgets/overview", label: "Overview", desc: "Embed payments" },
       { to: "/docs/widgets/pay-button", label: "Pay Button", desc: "Simple button" },
       { to: "/docs/widgets/payment-form", label: "Payment Form", desc: "Full form" },
     ]
   },
+  { 
+    section: "Resources", 
+    items: [
+      { to: "/docs/sdks/pricing", label: "Pricing", desc: "Plans and billing" },
+    ]
+  },
 ];
 
 const pageHeadings: Record<string, { id: string; label: string }[]> = {
   "/docs": [
-    { id: "overview", label: "Overview" },
-    { id: "why-developers", label: "Why Developers Choose Peys" },
-    { id: "supported-blockchains", label: "Supported Blockchains" },
+    { id: "getting-started", label: "Getting Started" },
+    { id: "products", label: "Products" },
+    { id: "use-cases", label: "Popular Use Cases" },
+    { id: "networks", label: "Supported Networks" },
   ],
   "/docs/quickstart": [
     { id: "step-1-install", label: "Step 1: Install the SDK" },
