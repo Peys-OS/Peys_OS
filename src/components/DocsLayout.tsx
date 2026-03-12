@@ -32,6 +32,7 @@ const navItems = [
       { to: "/docs/api/authentication", label: "Authentication", desc: "API keys" },
       { to: "/docs/api/payments", label: "Payments API", desc: "Endpoints" },
       { to: "/docs/api/webhooks-api", label: "Webhooks API", desc: "Configure webhooks" },
+      { to: "/docs/api/errors", label: "Errors & Limits", desc: "Error codes" },
     ]
   },
   { 
