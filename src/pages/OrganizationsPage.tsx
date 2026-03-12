@@ -917,13 +917,19 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
       // Try Supabase auth first, fallback to wallet address
       const { data: { user } } = await supabase.auth.getUser();
       let ownerId = user?.id;
+      let ownerEmail = user?.email;
       
       if (!ownerId && walletAddress) {
         ownerId = walletAddress;
       }
+      
+      if (!ownerEmail && privyUser?.email) {
+        ownerEmail = privyUser.email;
+      }
 
-      if (!ownerId && !privyUser?.id) {
+      if (!ownerId) {
         toast.error("Please sign in first");
+        setLoading(false);
         return;
       }
 
@@ -934,7 +940,7 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         slug,
         description: form.description,
         website: form.website,
-        owner_id: ownerId || privyUser?.id,
+        owner_id: ownerId,
         created_at: new Date().toISOString(),
       };
 
@@ -946,7 +952,7 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
           slug,
           description: form.description,
           website: form.website,
-          owner_id: user.id,
+          owner_id: ownerId,
         })
         .select()
         .single();
@@ -962,8 +968,8 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
           .from("organization_members")
           .insert({
             organization_id: newOrg.id,
-            user_id: user.id,
-            email: user.email,
+            user_id: ownerId,
+            email: ownerEmail || null,
             role: "owner",
             status: "active",
             accepted_at: new Date().toISOString(),
