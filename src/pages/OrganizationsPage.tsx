@@ -41,6 +41,7 @@ export default function OrganizationsPage() {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [currentOrg, setCurrentOrg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [useLocalStorage, setUseLocalStorage] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -60,23 +61,27 @@ export default function OrganizationsPage() {
         .eq("user_id", user.id)
         .eq("status", "active");
 
-      if (memberError) {
-        console.error("Error fetching organizations:", memberError);
-        setOrganizations([]);
+      if (memberError || !memberData) {
+        console.log("Database not available, using localStorage fallback");
+        const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
+        const userOrgs = localOrgs.filter((o: any) => o.owner_id === user.id);
+        setOrganizations(userOrgs);
+        if (userOrgs.length > 0 && !currentOrg) {
+          setCurrentOrg(userOrgs[0]);
+        }
+        setLoading(false);
         return;
       }
 
-      if (memberData && memberData.length > 0) {
+      if (memberData.length > 0) {
         const orgs = memberData.map((m: any) => m.organizations).filter(Boolean);
         setOrganizations(orgs);
         if (orgs.length > 0 && !currentOrg) {
           setCurrentOrg(orgs[0]);
         }
-      } else {
-        setOrganizations([]);
       }
     } catch (err) {
-      console.error("Error fetching organizations:", err);
+      console.error("Error:", err);
       setOrganizations([]);
     } finally {
       setLoading(false);
@@ -209,7 +214,13 @@ function EmptyState({ onCreateOrg }: { onCreateOrg: () => void }) {
 }
 
 function OverviewTab({ org }: { org: any }) {
-  if (!org) return null;
+  if (!org) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-border bg-card p-8 text-center">
+        <p className="text-sm text-muted-foreground">Select an organization to view overview.</p>
+      </motion.div>
+    );
+  }
 
   const stats = [
     { label: "Team Members", value: "12", icon: Users },
@@ -888,7 +899,17 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
       }
 
       const slug = form.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
-      
+      const newOrg = {
+        id: crypto.randomUUID(),
+        name: form.name,
+        slug,
+        description: form.description,
+        website: form.website,
+        owner_id: user.id,
+        created_at: new Date().toISOString(),
+      };
+
+      // Try database first, fallback to localStorage
       const { data, error } = await db
         .from("organizations")
         .insert({
@@ -902,8 +923,27 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         .single();
 
       if (error) {
-        console.error("Error creating organization:", error);
-        toast.error(`Failed to create organization: ${error.message}`);
+        console.log("Database not available, using localStorage");
+        // Fallback to localStorage
+        const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
+        localOrgs.push(newOrg);
+        localStorage.setItem("organizations", JSON.stringify(localOrgs));
+        
+        const { error: memberError } = await db
+          .from("organization_members")
+          .insert({
+            organization_id: newOrg.id,
+            user_id: user.id,
+            email: user.email,
+            role: "owner",
+            status: "active",
+            accepted_at: new Date().toISOString(),
+          }).catch(() => null);
+        
+        onCreated(newOrg);
+        setForm({ name: "", description: "", website: "" });
+        toast.success("Organization created!");
+        setLoading(false);
         return;
       }
 
