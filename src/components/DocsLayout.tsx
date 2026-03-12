@@ -40,6 +40,7 @@ const navItems = [
       { to: "/docs/sdks/javascript", label: "JavaScript SDK", desc: "JS & TypeScript" },
       { to: "/docs/sdks/python", label: "Python SDK", desc: "Python library" },
       { to: "/docs/sdks/go", label: "Go SDK", desc: "Go client" },
+      { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing plans" },
     ]
   },
   { 
@@ -131,6 +132,14 @@ const pageHeadings: Record<string, { id: string; label: string }[]> = {
     { id: "initialization", label: "Initialization" },
     { id: "usage", label: "Usage Examples" },
     { id: "error-handling", label: "Error Handling" },
+  ],
+  "/docs/sdks/pricing": [
+    { id: "overview", label: "Overview" },
+    { id: "supported-sdks", label: "Supported SDKs" },
+    { id: "pricing-plans", label: "Pricing Plans" },
+    { id: "performance", label: "SDK Performance" },
+    { id: "features", label: "Feature Comparison" },
+    { id: "faq", label: "FAQ" },
   ],
   "/docs/widgets/overview": [
     { id: "overview", label: "Overview" },

@@ -43,6 +43,7 @@ import WidgetsOverviewPage from "./pages/docs/WidgetsOverviewPage";
 import PayButtonPage from "./pages/docs/PayButtonPage";
 import PaymentFormPage from "./pages/docs/PaymentFormPage";
 import PricingPage from "./pages/docs/PricingPage";
+import SDKPricingPage from "./pages/docs/SDKPricingPage";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => (
                   <Route path="/docs/widgets/pay-button" element={<PayButtonPage />} />
                   <Route path="/docs/widgets/payment-form" element={<PaymentFormPage />} />
                   <Route path="/docs/pricing" element={<PricingPage />} />
+                  <Route path="/docs/sdks/pricing" element={<SDKPricingPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <AIChatBubble />

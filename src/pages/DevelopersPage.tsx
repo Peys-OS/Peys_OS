@@ -1,7 +1,57 @@
 import { motion } from "framer-motion";
-import { Code, Terminal, Box, Globe, ArrowRight, Lock, FileText, Zap, CreditCard, Key, Shield, Clock, CheckCircle } from "lucide-react";
+import { Code, Terminal, Box, Globe, ArrowRight, Lock, FileText, Zap, CreditCard, Key, Shield, Clock, CheckCircle, Link } from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
+
+const pricingTiers = [
+  {
+    name: "Free",
+    price: "$0",
+    period: "/month",
+    description: "Perfect for testing and small projects",
+    features: [
+      "1,000 API calls/month",
+      "Testnet only",
+      "Community support",
+      "Basic analytics",
+      "All SDK languages",
+    ],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Pro",
+    price: "$99",
+    period: "/month",
+    description: "For growing businesses and production apps",
+    features: [
+      "100,000 API calls/month",
+      "Mainnet + Testnet",
+      "Priority support",
+      "Webhooks",
+      "Advanced analytics",
+      "Multiple organization seats",
+    ],
+    cta: "Upgrade to Pro",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    description: "For high-volume enterprises",
+    features: [
+      "Unlimited API calls",
+      "Dedicated support",
+      "Custom rate limits",
+      "SLA guarantee",
+      "Account manager",
+      "Custom integrations",
+    ],
+    cta: "Contact Sales",
+    popular: false,
+  },
+];
 
 const features = [
   {
@@ -77,7 +127,7 @@ export default function DevelopersPage() {
                 <a href="#features" className="inline-flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 font-semibold text-background transition-opacity hover:opacity-90">
                   Explore Features <ArrowRight className="h-4 w-4" />
                 </a>
-                <a href="mailto:developers@peys.io" className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-semibold text-foreground transition-colors hover:bg-secondary">
+                <a href="mailto:peys.xyz@gmail.com" className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-semibold text-foreground transition-colors hover:bg-secondary">
                   Request Access
                 </a>
               </div>
@@ -191,6 +241,90 @@ export default function DevelopersPage() {
           </div>
         </section>
 
+        <section id="pricing" className="border-t border-border py-20 lg:py-24">
+          <div className="container mx-auto max-w-6xl px-4 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mx-auto max-w-2xl text-center"
+            >
+              <h2 className="font-display text-3xl text-foreground sm:text-4xl">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Pay only for what you use. No hidden fees.
+              </p>
+            </motion.div>
+
+            <div className="mt-12 lg:mt-16 grid gap-6 lg:grid-cols-3 max-w-5xl mx-auto">
+              {pricingTiers.map((tier, i) => (
+                <motion.div
+                  key={tier.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`relative rounded-2xl border p-6 ${
+                    tier.popular
+                      ? "border-primary bg-card/50 shadow-lg shadow-primary/10"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  {tier.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-foreground">{tier.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{tier.description}</p>
+                  </div>
+                  
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold text-foreground">{tier.price}</span>
+                    {tier.period && (
+                      <span className="text-muted-foreground">{tier.period}</span>
+                    )}
+                  </div>
+                  
+                  <ul className="space-y-3 mb-6">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span className="text-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <RouterLink
+                    to="/docs/sdks/pricing"
+                    className={`block w-full text-center py-2 rounded-lg font-medium transition-colors ${
+                      tier.popular
+                        ? "bg-primary text-primary-foreground hover:opacity-90"
+                        : "bg-secondary text-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    {tier.cta}
+                  </RouterLink>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <RouterLink
+                to="/docs/sdks/pricing"
+                className="inline-flex items-center gap-2 text-primary hover:underline"
+              >
+                View full SDK pricing details <ArrowRight className="h-4 w-4" />
+              </RouterLink>
+            </div>
+          </div>
+        </section>
+
         <section className="border-t border-border py-16 sm:py-20">
           <div className="container mx-auto max-w-6xl px-4">
             <motion.div
@@ -248,7 +382,7 @@ export default function DevelopersPage() {
               </p>
               <div className="mt-8">
                 <a
-                  href="mailto:developers@peys.io"
+                  href="mailto:peys.xyz@gmail.com"
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
                 >
                   Request Access <ArrowRight className="h-4 w-4" />
