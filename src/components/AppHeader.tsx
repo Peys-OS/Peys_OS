@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, ChevronDown, MessageCircle, Send, Wallet, Link2, Users, Zap, BarChart3, FileText, CreditCard, Building2, User } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown, MessageCircle, Send, Wallet, Link2, Users, Zap, BarChart3, FileText, CreditCard, Building2, User, Code, Terminal, Box, Globe, Lock } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,7 @@ export default function AppHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [personalOpen, setPersonalOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
 
   const personalItems = [
     { to: "/send", label: "Send Money", desc: "Send via link or address", icon: Send },
@@ -27,6 +28,13 @@ export default function AppHeader() {
     { to: "/streaming", label: "Streaming", desc: "Stream payments", icon: Zap },
     { to: "/analytics", label: "Analytics", desc: "Track & report", icon: BarChart3 },
     { to: "/dashboard", label: "Dashboard", desc: "Overview", icon: Building2 },
+  ];
+
+  const devItems = [
+    { to: "/developers", label: "REST API", desc: "Programmatic access", icon: Globe, coming: true },
+    { to: "/developers", label: "SDKs", desc: "JavaScript, Python, Go", icon: Code, coming: true },
+    { to: "/developers", label: "Webhooks", desc: "Event notifications", icon: Terminal, coming: true },
+    { to: "/developers", label: "Widgets", desc: "Embed payment UI", icon: Box, coming: true },
   ];
 
   const handleLogin = () => {
@@ -176,6 +184,75 @@ export default function AppHeader() {
                               <div className="text-xs text-muted-foreground">{item.desc}</div>
                             </div>
                           </Link>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Developers dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setDevOpen(true)}
+              onMouseLeave={() => setDevOpen(false)}
+            >
+              <button
+                className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                  devOpen
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                <Code className="h-4 w-4" />
+                Developers <ChevronDown className="h-3 w-3" />
+              </button>
+
+              <AnimatePresence>
+                {devOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full pt-2 z-50"
+                  >
+                    <div className="w-72 rounded-xl border border-border bg-card p-2 shadow-elevated">
+                      <div className="mb-2 px-3 py-1 flex items-center gap-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                          For Developers
+                        </p>
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                          Coming Soon
+                        </span>
+                      </div>
+                      {devItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <div
+                            key={item.to}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors cursor-pointer ${
+                              item.coming
+                                ? "text-muted-foreground/50 cursor-not-allowed"
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground flex items-center gap-2">
+                                {item.label}
+                                {item.coming && (
+                                  <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
+                                    Soon
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
