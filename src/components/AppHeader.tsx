@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown, MessageCircle, Send, Wallet, Link2, Users, Zap, BarChart3, FileText, CreditCard, Building2, User } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,18 +12,21 @@ export default function AppHeader() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
+  const [personalOpen, setPersonalOpen] = useState(false);
+  const [orgOpen, setOrgOpen] = useState(false);
 
-  const individualItems = [
-    { to: "/send", label: "Send" },
-    { to: "/request", label: "Request" },
-    { to: "/contacts", label: "Contacts" },
+  const personalItems = [
+    { to: "/send", label: "Send Money", desc: "Send via link or address", icon: Send },
+    { to: "/request", label: "Request", desc: "Create payment request", icon: FileText },
+    { to: "/contacts", label: "Contacts", desc: "Manage recipients", icon: Users },
+    { to: "/whatsapp", label: "WhatsApp", desc: "Pay via chat", icon: MessageCircle },
   ];
 
   const orgItems = [
-    { to: "/streaming", label: "Streams" },
-    { to: "/batch", label: "Batch" },
-    { to: "/analytics", label: "Analytics" },
+    { to: "/batch", label: "Batch Payments", desc: "Pay multiple people", icon: CreditCard },
+    { to: "/streaming", label: "Streaming", desc: "Stream payments", icon: Zap },
+    { to: "/analytics", label: "Analytics", desc: "Track & report", icon: BarChart3 },
+    { to: "/dashboard", label: "Dashboard", desc: "Overview", icon: Building2 },
   ];
 
   const handleLogin = () => {
@@ -63,20 +66,25 @@ export default function AppHeader() {
               Home
             </Link>
 
-            {/* Products dropdown */}
+            {/* Personal dropdown */}
             <div
               className="relative"
-              onMouseEnter={() => setProductsOpen(true)}
-              onMouseLeave={() => setProductsOpen(false)}
+              onMouseEnter={() => setPersonalOpen(true)}
+              onMouseLeave={() => setPersonalOpen(false)}
             >
               <button
-                className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-secondary`}
+                className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                  personalOpen
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
               >
-                Products <ChevronDown className="h-3 w-3" />
+                <User className="h-4 w-4" />
+                Personal <ChevronDown className="h-3 w-3" />
               </button>
 
               <AnimatePresence>
-                {productsOpen && (
+                {personalOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -84,42 +92,92 @@ export default function AppHeader() {
                     transition={{ duration: 0.15 }}
                     className="absolute left-0 top-full pt-2 z-50"
                   >
-                    <div className="w-64 rounded-xl border border-border bg-card p-3 shadow-elevated">
-                      <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-                        Individual
+                    <div className="w-72 rounded-xl border border-border bg-card p-2 shadow-elevated">
+                      <p className="mb-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                        For Individuals
                       </p>
-                      {individualItems.map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setProductsOpen(false)}
-                          className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                            location.pathname === item.to
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                          }`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                      <div className="my-2 border-t border-border" />
-                      <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-                        Organization
+                      {personalItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => setPersonalOpen(false)}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                              location.pathname === item.to
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{item.label}</div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Organization dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setOrgOpen(true)}
+              onMouseLeave={() => setOrgOpen(false)}
+            >
+              <button
+                className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                  orgOpen
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                <Building2 className="h-4 w-4" />
+                Organization <ChevronDown className="h-3 w-3" />
+              </button>
+
+              <AnimatePresence>
+                {orgOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 top-full pt-2 z-50"
+                  >
+                    <div className="w-72 rounded-xl border border-border bg-card p-2 shadow-elevated">
+                      <p className="mb-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                        For Teams & Business
                       </p>
-                      {orgItems.map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setProductsOpen(false)}
-                          className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
-                            location.pathname === item.to
-                              ? "bg-primary/10 text-primary font-medium"
-                              : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                          }`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
+                      {orgItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => setOrgOpen(false)}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                              location.pathname === item.to
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{item.label}</div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 )}
@@ -237,9 +295,9 @@ export default function AppHeader() {
                 </Link>
 
                 <p className="mt-3 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-                  Individual
+                  Personal
                 </p>
-                {individualItems.map((item) => (
+                {personalItems.map((item) => (
                   <Link
                     key={item.to}
                     to={item.to}

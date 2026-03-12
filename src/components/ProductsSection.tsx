@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight, User, Building2, Send, Link2, Globe, Zap, Users, BarChart3, Shield, FileText, CreditCard, Repeat, Wallet, Receipt } from "lucide-react";
+import { ArrowUpRight, User, Building2, Send, Link2, Globe, Zap, Users, BarChart3, Shield, FileText, CreditCard, Repeat, Wallet, Receipt, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const products = [
@@ -16,6 +16,22 @@ const products = [
       { icon: Globe, text: "Pay anyone globally" },
       { icon: Wallet, text: "Auto-created wallet" },
       { icon: Shield, text: "Escrow protection" },
+    ],
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp",
+    tagline: "Pay right from your chat",
+    description: "Send USDC instantly through WhatsApp. No apps to download — just message and money moves. Perfect for friends, family, and tips.",
+    icon: MessageCircle,
+    color: "accent",
+    link: "/whatsapp",
+    badge: "New",
+    features: [
+      { icon: MessageCircle, text: "Chat to pay" },
+      { icon: Globe, text: "Global coverage" },
+      { icon: Shield, text: "Secure & encrypted" },
+      { icon: Wallet, text: "Instant wallet" },
     ],
   },
   {
