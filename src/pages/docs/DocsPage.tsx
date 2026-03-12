@@ -16,7 +16,8 @@ export default function DocsPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-8">
+        <section id="overview" className="mt-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { icon: Zap, title: "Quick Start", desc: "Get started in minutes", to: "/docs/quickstart" },
             { icon: Code, title: "SDKs", desc: "Official libraries for popular languages", to: "/docs/sdks/javascript" },
@@ -40,9 +41,10 @@ export default function DocsPage() {
               </Link>
             );
           })}
-        </div>
+          </div>
+        </section>
 
-        <section className="mt-16">
+        <section id="why-developers" className="mt-16">
           <h2 className="text-2xl font-bold text-foreground">Why Developers Choose Peys</h2>
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             {[
@@ -67,8 +69,7 @@ export default function DocsPage() {
           </div>
         </section>
 
-        <section className="mt-16">
-          <h2 className="text-2xl font-bold text-foreground">Supported Blockchains</h2>
+        <section id="supported-blockchains" className="mt-16">
           <p className="mt-4 text-muted-foreground">
             Peys supports multiple blockchain networks for maximum flexibility:
           </p>
