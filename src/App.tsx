@@ -10,6 +10,7 @@ import { AppProvider } from "@/contexts/AppContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import AIChatBubble from "@/components/AIChatBubble";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
 import ClaimPage from "./pages/ClaimPage";
@@ -53,6 +54,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/send" element={<SendPage />} />

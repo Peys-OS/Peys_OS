@@ -164,3 +164,14 @@
     box-shadow: var(--shadow-glow);
   }
 }
+
+/* Make footer stick to bottom on pages with min-h-screen and footer */
+.min-h-screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.min-h-screen > main,
+.min-h-screen > :not(.absolute):not(.fixed):not(.relative):not(.pointer-events-none) {
+  flex: 1;
+}
