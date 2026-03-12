@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Menu, X, ChevronRight, ChevronDown, ArrowLeft, Circle } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
-import Footer from "@/components/Footer";
 
 const navItems = [
   { 
@@ -357,8 +356,6 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           </aside>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 }
