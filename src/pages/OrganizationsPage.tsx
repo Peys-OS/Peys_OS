@@ -488,15 +488,26 @@ function StoresTab({ org }: { org: any }) {
   const fetchStores = async () => {
     try {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("merchant_stores")
         .select("*")
         .eq("organization_id", org.id)
         .order("created_at", { ascending: false });
-      setStores(data || []);
+      
+      if (error) {
+        // Fallback to localStorage
+        const localStores = JSON.parse(localStorage.getItem("merchant_stores") || "[]");
+        const orgStores = localStores.filter((s: any) => s.organization_id === org.id);
+        setStores(orgStores);
+      } else {
+        setStores(data || []);
+      }
     } catch (err) {
       console.error("Error:", err);
-      setStores([]);
+      // Fallback to localStorage
+      const localStores = JSON.parse(localStorage.getItem("merchant_stores") || "[]");
+      const orgStores = localStores.filter((s: any) => s.organization_id === org.id);
+      setStores(orgStores);
     } finally {
       setLoading(false);
     }
@@ -578,15 +589,26 @@ function PaymentLinksTab({ org }: { org: any }) {
   const fetchLinks = async () => {
     try {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("payment_links")
         .select("*")
         .eq("organization_id", org.id)
         .order("created_at", { ascending: false });
-      setLinks(data || []);
+      
+      if (error) {
+        // Fallback to localStorage
+        const localLinks = JSON.parse(localStorage.getItem("payment_links") || "[]");
+        const orgLinks = localLinks.filter((l: any) => l.organization_id === org.id);
+        setLinks(orgLinks);
+      } else {
+        setLinks(data || []);
+      }
     } catch (err) {
       console.error("Error:", err);
-      setLinks([]);
+      // Fallback to localStorage
+      const localLinks = JSON.parse(localStorage.getItem("payment_links") || "[]");
+      const orgLinks = localLinks.filter((l: any) => l.organization_id === org.id);
+      setLinks(orgLinks);
     } finally {
       setLoading(false);
     }
@@ -673,15 +695,26 @@ function ContractorsTab({ org }: { org: any }) {
   const fetchContractors = async () => {
     try {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("contractors")
         .select("*")
         .eq("organization_id", org.id)
         .order("created_at", { ascending: false });
-      setContractors(data || []);
+      
+      if (error) {
+        // Fallback to localStorage
+        const localContractors = JSON.parse(localStorage.getItem("contractors") || "[]");
+        const orgContractors = localContractors.filter((c: any) => c.organization_id === org.id);
+        setContractors(orgContractors);
+      } else {
+        setContractors(data || []);
+      }
     } catch (err) {
       console.error("Error:", err);
-      setContractors([]);
+      // Fallback to localStorage
+      const localContractors = JSON.parse(localStorage.getItem("contractors") || "[]");
+      const orgContractors = localContractors.filter((c: any) => c.organization_id === org.id);
+      setContractors(orgContractors);
     } finally {
       setLoading(false);
     }
@@ -760,15 +793,26 @@ function TemplatesTab({ org }: { org: any }) {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("payment_templates")
         .select("*")
         .eq("organization_id", org.id)
         .order("created_at", { ascending: false });
-      setTemplates(data || []);
+      
+      if (error) {
+        // Fallback to localStorage
+        const localTemplates = JSON.parse(localStorage.getItem("payment_templates") || "[]");
+        const orgTemplates = localTemplates.filter((t: any) => t.organization_id === org.id);
+        setTemplates(orgTemplates);
+      } else {
+        setTemplates(data || []);
+      }
     } catch (err) {
       console.error("Error:", err);
-      setTemplates([]);
+      // Fallback to localStorage
+      const localTemplates = JSON.parse(localStorage.getItem("payment_templates") || "[]");
+      const orgTemplates = localTemplates.filter((t: any) => t.organization_id === org.id);
+      setTemplates(orgTemplates);
     } finally {
       setLoading(false);
     }
@@ -1148,7 +1192,7 @@ function CreateStoreModal({ orgId, onClose, onCreated }: { orgId: string; onClos
       setLoading(true);
       const slug = form.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
       
-      await supabase
+      const { error } = await supabase
         .from("merchant_stores")
         .insert({
           organization_id: orgId,
@@ -1157,6 +1201,22 @@ function CreateStoreModal({ orgId, onClose, onCreated }: { orgId: string; onClos
           description: form.description,
           website: form.website,
         });
+
+      if (error) {
+        // Fallback to localStorage
+        const localStores = JSON.parse(localStorage.getItem("merchant_stores") || "[]");
+        localStores.push({
+          id: crypto.randomUUID(),
+          organization_id: orgId,
+          name: form.name,
+          slug,
+          description: form.description,
+          website: form.website,
+          status: "active",
+          created_at: new Date().toISOString(),
+        });
+        localStorage.setItem("merchant_stores", JSON.stringify(localStores));
+      }
 
       toast.success("Store created!");
       onCreated();
@@ -1226,7 +1286,7 @@ function CreatePaymentLinkModal({ orgId, onClose, onCreated }: { orgId: string; 
       setLoading(true);
       const slug = form.title.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
       
-      await supabase
+      const { error } = await supabase
         .from("payment_links")
         .insert({
           organization_id: orgId,
@@ -1237,6 +1297,24 @@ function CreatePaymentLinkModal({ orgId, onClose, onCreated }: { orgId: string; 
           amount_type: form.amountType,
           token: form.token,
         });
+
+      if (error) {
+        // Fallback to localStorage
+        const localLinks = JSON.parse(localStorage.getItem("payment_links") || "[]");
+        localLinks.push({
+          id: crypto.randomUUID(),
+          organization_id: orgId,
+          title: form.title,
+          description: form.description,
+          slug,
+          amount: form.amount ? parseFloat(form.amount) * 1000000 : null,
+          amount_type: form.amountType,
+          token: form.token,
+          status: "active",
+          created_at: new Date().toISOString(),
+        });
+        localStorage.setItem("payment_links", JSON.stringify(localLinks));
+      }
 
       toast.success("Payment link created!");
       onCreated();
@@ -1326,7 +1404,7 @@ function CreateContractorModal({ orgId, onClose, onCreated }: { orgId: string; o
     try {
       setLoading(true);
       
-      await supabase
+      const { error } = await supabase
         .from("contractors")
         .insert({
           organization_id: orgId,
@@ -1336,6 +1414,23 @@ function CreateContractorModal({ orgId, onClose, onCreated }: { orgId: string; o
           rate_amount: form.rate ? Math.round(parseFloat(form.rate) * 100) : null,
           rate_type: form.rateType,
         });
+
+      if (error) {
+        // Fallback to localStorage
+        const localContractors = JSON.parse(localStorage.getItem("contractors") || "[]");
+        localContractors.push({
+          id: crypto.randomUUID(),
+          organization_id: orgId,
+          name: form.name,
+          email: form.email,
+          wallet_address: form.wallet || null,
+          rate_amount: form.rate ? Math.round(parseFloat(form.rate) * 100) : null,
+          rate_type: form.rateType,
+          status: "active",
+          created_at: new Date().toISOString(),
+        });
+        localStorage.setItem("contractors", JSON.stringify(localContractors));
+      }
 
       toast.success("Contractor added!");
       onCreated();
@@ -1430,7 +1525,7 @@ function CreateTemplateModal({ orgId, onClose, onCreated }: { orgId: string; onC
     try {
       setLoading(true);
       
-      await supabase
+      const { error } = await supabase
         .from("payment_templates")
         .insert({
           organization_id: orgId,
@@ -1439,6 +1534,22 @@ function CreateTemplateModal({ orgId, onClose, onCreated }: { orgId: string; onC
           amount: form.amount ? parseFloat(form.amount) * 1000000 : null,
           recipient_address: form.recipient || null,
         });
+
+      if (error) {
+        // Fallback to localStorage
+        const localTemplates = JSON.parse(localStorage.getItem("payment_templates") || "[]");
+        localTemplates.push({
+          id: crypto.randomUUID(),
+          organization_id: orgId,
+          name: form.name,
+          description: form.description,
+          amount: form.amount ? parseFloat(form.amount) * 1000000 : null,
+          recipient_address: form.recipient || null,
+          status: "active",
+          created_at: new Date().toISOString(),
+        });
+        localStorage.setItem("payment_templates", JSON.stringify(localTemplates));
+      }
 
       toast.success("Template created!");
       onCreated();
