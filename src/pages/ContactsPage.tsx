@@ -1,20 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserPlus, Search, Trash2, Send, Star, StarOff, Mail } from "lucide-react";
+import { UserPlus, Search, Trash2, Send, Star, StarOff, Mail, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { MOCK_CONTACTS, type Contact } from "@/data/contacts";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Contact {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  favorite: boolean;
+  total_sent: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function ContactsPage() {
   const { isLoggedIn, login } = useApp();
-  const [contacts, setContacts] = useState<Contact[]>(MOCK_CONTACTS);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchContacts();
+    }
+  }, [isLoggedIn]);
+
+  const fetchContacts = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching contacts:", error);
+        // Fallback to empty array if table doesn't exist yet
+        setContacts([]);
+      } else {
+        setContacts(data || []);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setContacts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isLoggedIn) {
     return (
@@ -44,32 +90,88 @@ export default function ContactsPage() {
   const favorites = filtered.filter((c) => c.favorite);
   const others = filtered.filter((c) => !c.favorite);
 
-  const addContact = () => {
+  const addContact = async () => {
     if (!newName || !newEmail) { toast.error("Name and email are required"); return; }
-    setContacts((prev) => [
-      { id: `c${Date.now()}`, name: newName, email: newEmail, favorite: false, totalSent: 0 },
-      ...prev,
-    ]);
-    setNewName("");
-    setNewEmail("");
-    setShowAdd(false);
-    toast.success("Contact added! 📇");
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert({
+          user_id: user.id,
+          name: newName,
+          email: newEmail,
+          favorite: false,
+          total_sent: 0,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding contact:", error);
+        toast.error("Failed to add contact");
+        return;
+      }
+
+      setContacts((prev) => [data, ...prev]);
+      setNewName("");
+      setNewEmail("");
+      setShowAdd(false);
+      toast.success("Contact added! 📇");
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Failed to add contact");
+    }
   };
 
-  const toggleFavorite = (id: string) => {
-    setContacts((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c))
-    );
+  const toggleFavorite = async (id: string) => {
+    const contact = contacts.find((c) => c.id === id);
+    if (!contact) return;
+
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .update({ favorite: !contact.favorite })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error updating contact:", error);
+        return;
+      }
+
+      setContacts((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c))
+      );
+    } catch (err) {
+      console.error("Error:", err);
+    }
   };
 
-  const deleteContact = (id: string) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
-    toast("Contact removed");
+  const deleteContact = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting contact:", error);
+        return;
+      }
+
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      toast("Contact removed");
+    } catch (err) {
+      console.error("Error:", err);
+    }
   };
 
-  const formatDate = (d?: Date) => {
-    if (!d) return "Never";
-    const diff = Date.now() - d.getTime();
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "Never";
+    const date = new Date(dateStr);
+    const diff = Date.now() - date.getTime();
     const hours = Math.floor(diff / 3600000);
     if (hours < 1) return "Just now";
     if (hours < 24) return `${hours}h ago`;
@@ -84,7 +186,9 @@ export default function ContactsPage() {
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="font-display text-2xl text-foreground sm:text-3xl">Contacts</h1>
-              <p className="mt-1 text-sm text-muted-foreground">{contacts.length} saved recipients</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {loading ? "Loading..." : `${contacts.length} saved recipients`}
+              </p>
             </div>
             <button
               onClick={() => setShowAdd(!showAdd)}
@@ -126,34 +230,42 @@ export default function ContactsPage() {
           />
         </div>
 
-        {/* Favorites */}
-        {favorites.length > 0 && (
-          <div className="mb-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Favorites</p>
-            <div className="space-y-2">
-              {favorites.map((c, i) => (
-                <ContactRow key={c.id} contact={c} index={i} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
-              ))}
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        )}
+        ) : (
+          <>
+            {/* Favorites */}
+            {favorites.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Favorites</p>
+                <div className="space-y-2">
+                  {favorites.map((c, i) => (
+                    <ContactRow key={c.id} contact={c} index={i} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* All contacts */}
-        {others.length > 0 && (
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">All Contacts</p>
-            <div className="space-y-2">
-              {others.map((c, i) => (
-                <ContactRow key={c.id} contact={c} index={i + favorites.length} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
-              ))}
-            </div>
-          </div>
-        )}
+            {/* All contacts */}
+            {others.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">All Contacts</p>
+                <div className="space-y-2">
+                  {others.map((c, i) => (
+                    <ContactRow key={c.id} contact={c} index={i + favorites.length} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {filtered.length === 0 && (
-          <div className="rounded-xl border border-border bg-card p-8 text-center">
-            <p className="text-sm text-muted-foreground">No contacts found.</p>
-          </div>
+            {filtered.length === 0 && (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <p className="text-sm text-muted-foreground">No contacts found.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
       <Footer />
@@ -172,7 +284,7 @@ function ContactRow({
   index: number;
   onToggleFav: (id: string) => void;
   onDelete: (id: string) => void;
-  formatDate: (d?: Date) => string;
+  formatDate: (dateStr?: string) => string;
 }) {
   return (
     <motion.div
@@ -189,8 +301,8 @@ function ContactRow({
         <p className="truncate text-xs text-muted-foreground">{contact.email}</p>
       </div>
       <div className="hidden text-right sm:block">
-        <p className="text-xs text-muted-foreground">Sent: ${contact.totalSent}</p>
-        <p className="text-xs text-muted-foreground">Last: {formatDate(contact.lastSent)}</p>
+        <p className="text-xs text-muted-foreground">Sent: ${contact.total_sent}</p>
+        <p className="text-xs text-muted-foreground">Last: {formatDate(contact.updated_at)}</p>
       </div>
       <div className="flex items-center gap-1">
         <button onClick={() => onToggleFav(contact.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
