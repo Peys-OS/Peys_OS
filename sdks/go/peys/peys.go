@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultBaseURL = "https://api.peydot.io"
+	DefaultBaseURL = "https://api.peys.io"
 	APIVersion     = "v1"
 )
 

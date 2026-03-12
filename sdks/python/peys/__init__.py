@@ -78,13 +78,13 @@ class Account:
 class Peys:
     """Peys API client."""
 
-    def __init__(self, api_key: str, base_url: str = "https://api.peydot.io"):
+    def __init__(self, api_key: str, base_url: str = "https://api.peys.io"):
         """
         Initialize the Peys client.
 
         Args:
             api_key: Your Peys API key
-            base_url: API base URL (default: https://api.peydot.io)
+            base_url: API base URL (default: https://api.peys.io)
         """
         self.api_key = api_key
         self.base_url = base_url

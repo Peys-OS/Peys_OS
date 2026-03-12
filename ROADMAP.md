@@ -1,4 +1,4 @@
-# PeyDot - Stablecoin Payment Platform Roadmap
+# Peys - Stablecoin Payment Platform Roadmap
 
 > **Vision**: Become the dominant stablecoin payment infrastructure for Africa, empowering individuals, organizations, and developers to send/receive USD-pegged digital currency seamlessly.
 
@@ -160,10 +160,10 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      PeyDot Platform                         │
+│                      Peys Platform                         │
 ├─────────────────────────────────────────────────────────────┤
 │  Frontend (React + Vite)                                   │
-│  ├── Web App (peydot.io)                                   │
+│  ├── Web App (peys.io)                                   │
 │  ├── Mobile App (React Native)                              │
 │  └── Admin Dashboard                                        │
 ├─────────────────────────────────────────────────────────────┤

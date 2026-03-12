@@ -8,7 +8,7 @@ const features = [
   {
     icon: Send,
     title: "Chat to Pay",
-    description: "Simply message @PeyDot to send USDC to any phone number. No app switches or QR codes needed."
+    description: "Simply message @Peys to send USDC to any phone number. No app switches or QR codes needed."
   },
   {
     icon: Wallet,
@@ -28,7 +28,7 @@ const features = [
 ];
 
 const steps = [
-  { num: "01", text: "Open WhatsApp and start a chat with @PeyDot" },
+  { num: "01", text: "Open WhatsApp and start a chat with @Peys" },
   { num: "02", text: "Enter the recipient's phone number and amount" },
   { num: "03", text: "Confirm with your PIN — funds arrive instantly" }
 ];
@@ -83,12 +83,12 @@ export default function WhatsAppPage() {
               className="mt-16 lg:mt-24 mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6 sm:p-8"
             >
               <div className="rounded-xl bg-secondary/30 p-4 font-mono text-sm text-muted-foreground">
-                <span className="text-primary">@PeyDot</span>: Hi! How can I help you send money today?<br /><br />
+                <span className="text-primary">@Peys</span>: Hi! How can I help you send money today?<br /><br />
                 <span className="text-foreground">You</span>: Send 25 USDC to +1 555-123-4567<br /><br />
-                <span className="text-primary">@PeyDot</span>: Sending 25 USDC to +1 555-123-4567.<br />
+                <span className="text-primary">@Peys</span>: Sending 25 USDC to +1 555-123-4567.<br />
                 Enter your PIN to confirm.<br /><br />
                 <span className="text-foreground">You</span>: ****<br /><br />
-                <span className="text-primary">@PeyDot</span>: ✅ Sent! 25 USDC to +1 555-123-4567.<br />
+                <span className="text-primary">@Peys</span>: ✅ Sent! 25 USDC to +1 555-123-4567.<br />
                 Transaction: 0x3f2a...8b1c
               </div>
             </motion.div>

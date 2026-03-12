@@ -1,6 +1,6 @@
 # Support
 
-Getting help with PeyDot is easy! Here are the resources available to you:
+Getting help with Peys is easy! Here are the resources available to you:
 
 ## 📚 Documentation
 
@@ -50,4 +50,4 @@ For security vulnerabilities, please DO NOT open a public issue. Instead:
 
 ---
 
-Thank you for using PeyDot! 🙏
+Thank you for using Peys! 🙏

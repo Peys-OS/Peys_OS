@@ -83,8 +83,8 @@ export default function QuickStartPage() {
 
 const peys = new Peys({
   apiKey: process.env.PEYS_API_KEY || 'pk_xxxxxxxxxxxxx',
-  // Optional: specify base URL (defaults to https://api.peydot.io)
-  // baseUrl: 'https://api.peydot.io',
+  // Optional: specify base URL (defaults to https://api.peys.io)
+  // baseUrl: 'https://api.peys.io',
 });`}
             />
           </div>
@@ -185,7 +185,7 @@ if (payment.status === 'completed') {
             <CodeBlock
               lang="bash"
               code={`# Create a payment using REST API
-curl -X POST https://api.peydot.io/v1/payments \\
+curl -X POST https://api.peys.io/v1/payments \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: pk_xxxxxxxxxxxxx" \\
   -d '{

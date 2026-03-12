@@ -114,7 +114,7 @@ export class Peys {
 
   constructor(config: PeysConfig) {
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://api.peydot.io';
+    this.baseUrl = config.baseUrl || 'https://api.peys.io';
   }
 
   private async request<T>(

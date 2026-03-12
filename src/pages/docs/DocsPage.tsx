@@ -76,7 +76,7 @@ export default function DocsPage() {
           <Link to="/developers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
             <ArrowRight className="h-4 w-4 rotate-180" /> Back to Developers
           </Link>
-          <h1 className="text-4xl font-bold text-foreground">PeyDot Developer Documentation</h1>
+          <h1 className="text-4xl font-bold text-foreground">Peys Developer Documentation</h1>
           <p className="mt-4 text-xl text-muted-foreground">
             Integrate stablecoin payments into your applications. Build Magic Claim Links, 
             accept crypto, and manage transactions with our comprehensive APIs and SDKs.
@@ -176,7 +176,7 @@ export default function DocsPage() {
         <section id="networks" className="mt-16">
           <h2 className="text-2xl font-bold text-foreground mb-6">Supported Networks</h2>
           <p className="text-muted-foreground mb-6">
-            PeyDot supports multiple blockchain networks. Start with testnets, then go to mainnet.
+            Peys supports multiple blockchain networks. Start with testnets, then go to mainnet.
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
@@ -208,7 +208,7 @@ export default function DocsPage() {
         <section className="mt-16 rounded-xl border border-dashed border-border bg-secondary/30 p-6">
           <h2 className="text-xl font-bold text-foreground">Not a developer?</h2>
           <p className="mt-2 text-muted-foreground">
-            You can use PeyDot without writing code. Send and receive payments directly from our web app.
+            You can use Peys without writing code. Send and receive payments directly from our web app.
           </p>
           <div className="mt-4 flex gap-4">
             <Link

@@ -26,7 +26,7 @@ function generateEmailHTML(params: {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>You've received ${formattedAmount} ${token} on PeyDot!</title>
+  <title>You've received ${formattedAmount} ${token} on Peys!</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
     .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
@@ -53,7 +53,7 @@ function generateEmailHTML(params: {
     <div class="header">
       <div class="logo">💰</div>
       <h1>You've received money!</h1>
-      <p>Someone sent you crypto on PeyDot Magic Links</p>
+      <p>Someone sent you crypto on Peys Magic Links</p>
     </div>
     <div class="content">
       <div class="amount-display">
@@ -100,7 +100,7 @@ function generateEmailHTML(params: {
       </p>
     </div>
     <div class="footer">
-      <p><strong>PeyDot Magic Links</strong> - Send crypto to anyone via email</p>
+      <p><strong>Peys Magic Links</strong> - Send crypto to anyone via email</p>
       <p>Powered by Polkadot, Celo, and Base blockchains</p>
       <p style="margin-top: 15px;">
         <a href="${appUrl}">Visit App</a> · 
@@ -124,7 +124,7 @@ function generateEmailText(params: {
 }): string {
   const { senderEmail, amount, token, memo, claimLink } = params;
   return `
-You've received ${amount.toFixed(2)} ${token} on PeyDot Magic Links!
+You've received ${amount.toFixed(2)} ${token} on Peys Magic Links!
 
 From: ${senderEmail}
 Amount: ${amount.toFixed(2)} ${token}
@@ -138,7 +138,7 @@ If you don't have an account yet, you can create one instantly using the same em
 This payment expires in 7 days.
 
 ---
-PeyDot Magic Links
+Peys Magic Links
 Powered by Polkadot, Celo, and Base blockchains
   `.trim();
 }
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { recipientEmail, senderEmail, amount, token, memo, claimLink, appUrl = "https://peydot.io" } =
+    const { recipientEmail, senderEmail, amount, token, memo, claimLink, appUrl = "https://peys.io" } =
       await req.json();
 
     if (!recipientEmail || !senderEmail || !amount || !token || !claimLink) {
@@ -197,9 +197,9 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "PeyDot <peys.xyz@gmail.com>",
+            from: "Peys <peys.xyz@gmail.com>",
             to: [recipientEmail],
-            subject: `You've received ${amount.toFixed(2)} ${token} on PeyDot!`,
+            subject: `You've received ${amount.toFixed(2)} ${token} on Peys!`,
             html: htmlContent,
             text: textContent,
           }),
