@@ -301,6 +301,429 @@ export type Database = {
         }
         Relationships: []
       }
+      organizations: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          owner_id: string | null
+          logo_url: string | null
+          description: string | null
+          website: string | null
+          settings: Json
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          owner_id?: string | null
+          logo_url?: string | null
+          description?: string | null
+          website?: string | null
+          settings?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          owner_id?: string | null
+          logo_url?: string | null
+          description?: string | null
+          website?: string | null
+          settings?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          id: string
+          organization_id: string | null
+          user_id: string | null
+          email: string
+          role: string
+          status: string
+          invited_by: string | null
+          invited_at: string | null
+          accepted_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+          email: string
+          role: string
+          status?: string
+          invited_by?: string | null
+          invited_at?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          user_id?: string | null
+          email?: string
+          role?: string
+          status?: string
+          invited_by?: string | null
+          invited_at?: string | null
+          accepted_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_approvals: {
+        Row: {
+          id: string
+          organization_id: string | null
+          payment_id: string
+          payment_type: string
+          amount: number
+          amount_usd: number | null
+          token: string
+          currency: string
+          description: string | null
+          status: string
+          requested_by: string | null
+          approved_by: string | null
+          rejected_by: string | null
+          approvers: Json
+          required_approvals: number
+          metadata: Json
+          created_at: string
+          approved_at: string | null
+          rejected_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          payment_id: string
+          payment_type: string
+          amount: number
+          amount_usd?: number | null
+          token?: string
+          currency?: string
+          description?: string | null
+          status?: string
+          requested_by?: string | null
+          approved_by?: string | null
+          rejected_by?: string | null
+          approvers?: Json
+          required_approvals?: number
+          metadata?: Json
+          created_at?: string
+          approved_at?: string | null
+          rejected_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          payment_id?: string
+          payment_type?: string
+          amount?: number
+          amount_usd?: number | null
+          token?: string
+          currency?: string
+          description?: string | null
+          status?: string
+          requested_by?: string | null
+          approved_by?: string | null
+          rejected_by?: string | null
+          approvers?: Json
+          required_approvals?: number
+          metadata?: Json
+          created_at?: string
+          approved_at?: string | null
+          rejected_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      merchant_stores: {
+        Row: {
+          id: string
+          organization_id: string | null
+          name: string
+          slug: string
+          description: string | null
+          logo_url: string | null
+          website: string | null
+          checkout_settings: Json
+          notification_settings: Json
+          metadata: Json
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          name: string
+          slug: string
+          description?: string | null
+          logo_url?: string | null
+          website?: string | null
+          checkout_settings?: Json
+          notification_settings?: Json
+          metadata?: Json
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          name?: string
+          slug?: string
+          description?: string | null
+          logo_url?: string | null
+          website?: string | null
+          checkout_settings?: Json
+          notification_settings?: Json
+          metadata?: Json
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_links: {
+        Row: {
+          id: string
+          organization_id: string | null
+          store_id: string | null
+          title: string
+          description: string | null
+          amount: number | null
+          amount_type: string
+          min_amount: number | null
+          max_amount: number | null
+          token: string
+          currency: string
+          slug: string
+          redirect_url: string | null
+          customer_fields: Json
+          expires_at: string | null
+          max_uses: number | null
+          use_count: number
+          status: string
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          store_id?: string | null
+          title: string
+          description?: string | null
+          amount?: number | null
+          amount_type?: string
+          min_amount?: number | null
+          max_amount?: number | null
+          token?: string
+          currency?: string
+          slug: string
+          redirect_url?: string | null
+          customer_fields?: Json
+          expires_at?: string | null
+          max_uses?: number | null
+          use_count?: number
+          status?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          store_id?: string | null
+          title?: string
+          description?: string | null
+          amount?: number | null
+          amount_type?: string
+          min_amount?: number | null
+          max_amount?: number | null
+          token?: string
+          currency?: string
+          slug?: string
+          redirect_url?: string | null
+          customer_fields?: Json
+          expires_at?: string | null
+          max_uses?: number | null
+          use_count?: number
+          status?: string
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contractors: {
+        Row: {
+          id: string
+          organization_id: string | null
+          email: string
+          name: string
+          wallet_address: string | null
+          phone: string | null
+          country: string | null
+          currency: string
+          rate_amount: number | null
+          rate_type: string
+          payment_method: string
+          bank_details: Json
+          status: string
+          notes: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          email: string
+          name: string
+          wallet_address?: string | null
+          phone?: string | null
+          country?: string | null
+          currency?: string
+          rate_amount?: number | null
+          rate_type?: string
+          payment_method?: string
+          bank_details?: Json
+          status?: string
+          notes?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          email?: string
+          name?: string
+          wallet_address?: string | null
+          phone?: string | null
+          country?: string | null
+          currency?: string
+          rate_amount?: number | null
+          rate_type?: string
+          payment_method?: string
+          bank_details?: Json
+          status?: string
+          notes?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_templates: {
+        Row: {
+          id: string
+          organization_id: string | null
+          name: string
+          description: string | null
+          token: string
+          amount: number | null
+          recipient_address: string | null
+          recipient_email: string | null
+          schedule: Json
+          metadata: Json
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          name: string
+          description?: string | null
+          token?: string
+          amount?: number | null
+          recipient_address?: string | null
+          recipient_email?: string | null
+          schedule?: Json
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          name?: string
+          description?: string | null
+          token?: string
+          amount?: number | null
+          recipient_address?: string | null
+          recipient_email?: string | null
+          schedule?: Json
+          metadata?: Json
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      approval_thresholds: {
+        Row: {
+          id: string
+          organization_id: string | null
+          name: string
+          min_amount: number
+          max_amount: number | null
+          required_approvals: number
+          approver_roles: Json
+          conditions: Json
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string | null
+          name: string
+          min_amount: number
+          max_amount?: number | null
+          required_approvals?: number
+          approver_roles?: Json
+          conditions?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string | null
+          name?: string
+          min_amount?: number
+          max_amount?: number | null
+          required_approvals?: number
+          approver_roles?: Json
+          conditions?: Json
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
