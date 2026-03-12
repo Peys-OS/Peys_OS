@@ -18,6 +18,7 @@ import AssetsPage from "./pages/AssetsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import StreamingPage from "./pages/StreamingPage";
 import BatchPage from "./pages/BatchPage";
+import OrganizationsPage from "./pages/OrganizationsPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -50,6 +51,7 @@ const App = () => (
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/whatsapp" element={<WhatsAppPage />} />
                   <Route path="/developers" element={<DevelopersPage />} />
+                  <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
