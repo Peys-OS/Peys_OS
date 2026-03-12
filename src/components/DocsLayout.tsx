@@ -208,23 +208,24 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
 
         {/* Left Sidebar - Page Navigation */}
         <AnimatePresence>
-          {(sidebarOpen || location.pathname.startsWith("/docs")) && (
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: sidebarOpen ? 0 : -300 }}
-              exit={{ x: -300 }}
-              transition={{ duration: 0.2 }}
-              className="fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-border bg-card/50 backdrop-blur-sm lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)] lg:w-72 lg:-translate-x-0"
-            >
-              <nav className="p-4 space-y-6">
-                <div>
-                  <Link
-                    to="/developers"
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
-                  >
-                    <ArrowLeft className="h-3 w-3" /> Back to Developers
-                  </Link>
-                </div>
+          <motion.aside
+            initial={{ x: -300 }}
+            animate={{ x: sidebarOpen ? 0 : -300 }}
+            exit={{ x: -300 }}
+            transition={{ duration: 0.2 }}
+            className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-border bg-card/95 backdrop-blur-sm lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:w-72 lg:translate-x-0 ${
+              !sidebarOpen && !location.pathname.startsWith("/docs") ? 'hidden lg:block' : 'block'
+            }`}
+          >
+            <nav className="p-4 space-y-6">
+              <div>
+                <Link
+                  to="/developers"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
+                >
+                  <ArrowLeft className="h-3 w-3" /> Back to Developers
+                </Link>
+              </div>
                 {navItems.map((section) => (
                   <div key={section.section}>
                     <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -254,7 +255,6 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                 ))}
               </nav>
             </motion.aside>
-          )}
         </AnimatePresence>
 
         {/* Main content */}
