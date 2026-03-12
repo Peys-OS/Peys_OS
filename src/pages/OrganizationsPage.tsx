@@ -946,9 +946,27 @@ function SettingsTab({ org }: { org: any }) {
       <div className="rounded-xl border border-red-500/20 bg-card p-6">
         <h3 className="font-display text-lg text-foreground mb-2">Danger Zone</h3>
         <p className="text-sm text-muted-foreground mb-4">Once you delete an organization, there is no going back.</p>
-        <button className="rounded-lg border border-red-500 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10">
-          Delete Organization
-        </button>
+        
+        <div className="space-y-3">
+          <button 
+            onClick={() => {
+              if (confirm("This will clear all stores, links, contractors, and templates for this organization. Continue?")) {
+                localStorage.removeItem("merchant_stores");
+                localStorage.removeItem("payment_links");
+                localStorage.removeItem("contractors");
+                localStorage.removeItem("payment_templates");
+                toast.success("All organization data cleared!");
+                window.location.reload();
+              }
+            }}
+            className="rounded-lg border border-yellow-500 px-4 py-2 text-sm font-medium text-yellow-500 hover:bg-yellow-500/10 mr-2"
+          >
+            Clear All Data
+          </button>
+          <button className="rounded-lg border border-red-500 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10">
+            Delete Organization
+          </button>
+        </div>
       </div>
     </motion.div>
   );

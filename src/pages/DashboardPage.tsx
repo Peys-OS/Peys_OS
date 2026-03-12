@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle, Wallet, Plus } from "lucide-react";
 import WalletReceiveCard from "@/components/WalletReceiveCard";
 import { useApp } from "@/contexts/AppContext";
 import type { Transaction } from "@/hooks/useMockData";
@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import WithdrawModal from "@/components/WithdrawModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
+import ImportWalletModal from "@/components/ImportWalletModal";
 
 function formatTime(date: Date) {
   const diff = Date.now() - date.getTime();
@@ -36,6 +37,15 @@ export default function DashboardPage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [showReceive, setShowReceive] = useState(false);
+  const [importWalletOpen, setImportWalletOpen] = useState(false);
+  const [importedWallets, setImportedWallets] = useState<string[]>([]);
+  const [activeWallet, setActiveWallet] = useState<string | null>(null);
+
+  const handleImportWallet = (address: string) => {
+    setImportedWallets([...importedWallets, address]);
+    setActiveWallet(address);
+    toast.success(`Wallet ${address.slice(0, 6)}...${address.slice(-4)} imported`);
+  };
 
   // Refresh transactions when dashboard becomes visible
   useEffect(() => {
@@ -165,6 +175,30 @@ export default function DashboardPage() {
             >
               <ExternalLink className="h-4 w-4" /> Withdraw
             </button>
+          </div>
+
+          {/* Imported Wallets Section */}
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setImportWalletOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary whitespace-nowrap"
+            >
+              <Plus className="h-3 w-3" /> Import Wallet
+            </button>
+            {importedWallets.map((addr) => (
+              <button
+                key={addr}
+                onClick={() => setActiveWallet(addr)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
+                  activeWallet === addr 
+                    ? "bg-primary text-primary-foreground" 
+                    : "border border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Wallet className="h-3 w-3" />
+                {addr.slice(0, 6)}...{addr.slice(-4)}
+              </button>
+            ))}
           </div>
         </motion.div>
 
@@ -305,6 +339,7 @@ export default function DashboardPage() {
       <Footer />
       <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} balanceUSDC={wallet.balanceUSDC} balanceUSDT={wallet.balanceUSDT} />
       <TransactionDetailModal transaction={selectedTx} open={!!selectedTx} onClose={() => setSelectedTx(null)} />
+      <ImportWalletModal open={importWalletOpen} onClose={() => setImportWalletOpen(false)} onImport={handleImportWallet} />
     </div>
   );
 }
