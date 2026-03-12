@@ -28,6 +28,7 @@ export default function AppHeader() {
     { to: "/streaming", label: "Streaming", desc: "Stream payments", icon: Zap },
     { to: "/analytics", label: "Analytics", desc: "Track & report", icon: BarChart3 },
     { to: "/dashboard", label: "Dashboard", desc: "Overview", icon: Building2 },
+    { to: "/organizations", label: "Organizations", desc: "Team & business", icon: Building2 },
   ];
 
   const devItems = [
