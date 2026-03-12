@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Github, Twitter, MessageCircle, Code } from "lucide-react";
+import { Github, X, MessageCircle, Code } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -16,8 +16,8 @@ export default function Footer() {
               Built on Polkadot Asset Hub.
             </p>
             <div className="mt-4 flex gap-3">
-              <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
-                <Twitter className="h-3.5 w-3.5" />
+              <a href="https://x.com/Peys_io" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
+                <X className="h-3.5 w-3.5" />
               </a>
               <a href="#" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">
                 <Github className="h-3.5 w-3.5" />
