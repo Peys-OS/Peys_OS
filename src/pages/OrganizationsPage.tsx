@@ -8,6 +8,7 @@ import {
   AlertCircle, UserPlus, Wallet, Calendar, TrendingUp
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
+import { usePrivyAuth } from "@/contexts/PrivyContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ const statusColors: Record<string, string> = {
 
 export default function OrganizationsPage() {
   const { isLoggedIn, login } = useApp();
+  const { walletAddress, user: privyUser } = usePrivyAuth();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
@@ -47,18 +49,37 @@ export default function OrganizationsPage() {
     if (isLoggedIn) {
       fetchOrganizations();
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, walletAddress]);
 
   const fetchOrganizations = async () => {
     try {
       setLoading(true);
+      // Try Supabase auth first, fallback to wallet address
+      let userId = null;
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (user) {
+        userId = user.id;
+      } else if (walletAddress) {
+        // Use wallet address as fallback identifier
+        userId = walletAddress;
+      }
+      
+      if (!userId) {
+        // Try localStorage fallback for logged in users
+        const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
+        const userOrgs = localOrgs.filter((o: any) => o.owner_id === walletAddress || o.owner_id === privyUser?.id);
+        setOrganizations(userOrgs);
+        if (userOrgs.length > 0 && !currentOrg) {
+          setCurrentOrg(userOrgs[0]);
+        }
+        setLoading(false);
+        return;
+      }
 
       const { data: memberData, error: memberError } = await db
         .from("organization_members")
         .select("organization_id, organizations(*)")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("status", "active");
 
       if (memberError || !memberData) {
@@ -887,13 +908,21 @@ function SettingsTab({ org }: { org: any }) {
 function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: () => void; onCreated: (org: any) => void }) {
   const [form, setForm] = useState({ name: "", description: "", website: "" });
   const [loading, setLoading] = useState(false);
+  const { walletAddress, user: privyUser } = usePrivyAuth();
 
   const handleCreate = async () => {
     if (!form.name) return;
     try {
       setLoading(true);
+      // Try Supabase auth first, fallback to wallet address
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      let ownerId = user?.id;
+      
+      if (!ownerId && walletAddress) {
+        ownerId = walletAddress;
+      }
+
+      if (!ownerId && !privyUser?.id) {
         toast.error("Please sign in first");
         return;
       }
@@ -905,7 +934,7 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         slug,
         description: form.description,
         website: form.website,
-        owner_id: user.id,
+        owner_id: ownerId || privyUser?.id,
         created_at: new Date().toISOString(),
       };
 
