@@ -205,7 +205,7 @@ export default function BatchPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      <div className="container mx-auto max-w-4xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="font-display text-2xl text-foreground sm:text-3xl">Batch Payments</h1>
           <p className="mt-1 text-sm text-muted-foreground">Send to multiple recipients via CSV</p>
