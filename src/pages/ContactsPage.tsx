@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserPlus, Search, Trash2, Send, Star, StarOff, Mail, Loader2 } from "lucide-react";
+import { UserPlus, Search, Trash2, Send, Mail, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
@@ -10,12 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Contact {
   id: string;
-  user_id: string;
+  user_id: string | null;
   name: string;
-  email: string;
+  email: string | null;
+  wallet_address: string | null;
   phone: string | null;
-  favorite: boolean;
-  total_sent: number;
   created_at: string;
   updated_at: string;
 }
@@ -84,99 +83,8 @@ export default function ContactsPage() {
   const filtered = contacts.filter((c) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q);
+    return c.name.toLowerCase().includes(q) || (c.email && c.email.toLowerCase().includes(q)) || (c.wallet_address && c.wallet_address.toLowerCase().includes(q));
   });
-
-  const favorites = filtered.filter((c) => c.favorite);
-  const others = filtered.filter((c) => !c.favorite);
-
-  const addContact = async () => {
-    if (!newName || !newEmail) { toast.error("Name and email are required"); return; }
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("contacts")
-        .insert({
-          user_id: user.id,
-          name: newName,
-          email: newEmail,
-          favorite: false,
-          total_sent: 0,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error adding contact:", error);
-        toast.error("Failed to add contact");
-        return;
-      }
-
-      setContacts((prev) => [data, ...prev]);
-      setNewName("");
-      setNewEmail("");
-      setShowAdd(false);
-      toast.success("Contact added! 📇");
-    } catch (err) {
-      console.error("Error:", err);
-      toast.error("Failed to add contact");
-    }
-  };
-
-  const toggleFavorite = async (id: string) => {
-    const contact = contacts.find((c) => c.id === id);
-    if (!contact) return;
-
-    try {
-      const { error } = await supabase
-        .from("contacts")
-        .update({ favorite: !contact.favorite })
-        .eq("id", id);
-
-      if (error) {
-        console.error("Error updating contact:", error);
-        return;
-      }
-
-      setContacts((prev) =>
-        prev.map((c) => (c.id === id ? { ...c, favorite: !c.favorite } : c))
-      );
-    } catch (err) {
-      console.error("Error:", err);
-    }
-  };
-
-  const deleteContact = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from("contacts")
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        console.error("Error deleting contact:", error);
-        return;
-      }
-
-      setContacts((prev) => prev.filter((c) => c.id !== id));
-      toast("Contact removed");
-    } catch (err) {
-      console.error("Error:", err);
-    }
-  };
-
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "Never";
-    const date = new Date(dateStr);
-    const diff = Date.now() - date.getTime();
-    const hours = Math.floor(diff / 3600000);
-    if (hours < 1) return "Just now";
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -236,31 +144,14 @@ export default function ContactsPage() {
           </div>
         ) : (
           <>
-            {/* Favorites */}
-            {favorites.length > 0 && (
-              <div className="mb-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Favorites</p>
-                <div className="space-y-2">
-                  {favorites.map((c, i) => (
-                    <ContactRow key={c.id} contact={c} index={i} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* All contacts */}
-            {others.length > 0 && (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">All Contacts</p>
-                <div className="space-y-2">
-                  {others.map((c, i) => (
-                    <ContactRow key={c.id} contact={c} index={i + favorites.length} onToggleFav={toggleFavorite} onDelete={deleteContact} formatDate={formatDate} />
-                  ))}
-                </div>
+            {filtered.length > 0 ? (
+              <div className="space-y-2">
+                {filtered.map((c, i) => (
+                  <ContactRow key={c.id} contact={c} index={i} onDelete={deleteContact} formatDate={formatDate} />
+                ))}
               </div>
-            )}
-
-            {filtered.length === 0 && (
+            ) : (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-sm text-muted-foreground">No contacts found.</p>
               </div>
@@ -276,13 +167,11 @@ export default function ContactsPage() {
 function ContactRow({
   contact,
   index,
-  onToggleFav,
   onDelete,
   formatDate,
 }: {
   contact: Contact;
   index: number;
-  onToggleFav: (id: string) => void;
   onDelete: (id: string) => void;
   formatDate: (dateStr?: string) => string;
 }) {
@@ -298,17 +187,13 @@ function ContactRow({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground">{contact.name}</p>
-        <p className="truncate text-xs text-muted-foreground">{contact.email}</p>
+        <p className="truncate text-xs text-muted-foreground">{contact.email || contact.wallet_address || "No email"}</p>
       </div>
       <div className="hidden text-right sm:block">
-        <p className="text-xs text-muted-foreground">Sent: ${contact.total_sent}</p>
-        <p className="text-xs text-muted-foreground">Last: {formatDate(contact.updated_at)}</p>
+        <p className="text-xs text-muted-foreground">Added: {formatDate(contact.created_at)}</p>
       </div>
       <div className="flex items-center gap-1">
-        <button onClick={() => onToggleFav(contact.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
-          {contact.favorite ? <Star className="h-4 w-4 fill-primary text-primary" /> : <StarOff className="h-4 w-4" />}
-        </button>
-        <Link to={`/send?recipient=${encodeURIComponent(contact.email)}`} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
+        <Link to={`/send?recipient=${encodeURIComponent(contact.email || contact.wallet_address || "")}`} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary">
           <Send className="h-4 w-4" />
         </Link>
         <button onClick={() => onDelete(contact.id)} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-destructive">

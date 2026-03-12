@@ -12,16 +12,19 @@ const db = supabase as any;
 
 interface PaymentRequest {
   id: string;
-  user_id: string;
-  from_email: string;
+  user_id: string | null;
+  wallet_address: string | null;
+  requester_email: string | null;
+  payer_email: string | null;
   amount: number;
   token: string;
   memo: string | null;
   status: string;
-  link: string;
-  created_at: string;
-  expires_at: string;
+  request_link: string;
   paid_at: string | null;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const statusStyles: Record<string, string> = {

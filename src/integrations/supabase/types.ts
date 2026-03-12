@@ -124,34 +124,31 @@ export type Database = {
       contacts: {
         Row: {
           id: string
-          user_id: string
+          user_id: string | null
           name: string
-          email: string
+          email: string | null
+          wallet_address: string | null
           phone: string | null
-          favorite: boolean
-          total_sent: number
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
           name: string
-          email: string
+          email?: string | null
+          wallet_address?: string | null
           phone?: string | null
-          favorite?: boolean
-          total_sent?: number
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          user_id?: string | null
           name?: string
-          email?: string
+          email?: string | null
+          wallet_address?: string | null
           phone?: string | null
-          favorite?: boolean
-          total_sent?: number
           created_at?: string
           updated_at?: string
         }
@@ -160,87 +157,108 @@ export type Database = {
       payment_requests: {
         Row: {
           id: string
-          user_id: string
-          from_email: string
+          user_id: string | null
+          wallet_address: string | null
+          requester_email: string | null
+          payer_email: string | null
           amount: number
           token: string
           memo: string | null
           status: string
-          link: string
-          created_at: string
-          expires_at: string
+          request_link: string
           paid_at: string | null
+          expires_at: string
+          created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
-          user_id: string
-          from_email: string
+          user_id?: string | null
+          wallet_address?: string | null
+          requester_email?: string | null
+          payer_email?: string | null
           amount: number
           token: string
           memo?: string | null
           status?: string
-          link: string
-          created_at?: string
-          expires_at: string
+          request_link: string
           paid_at?: string | null
+          expires_at: string
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
-          from_email?: string
+          user_id?: string | null
+          wallet_address?: string | null
+          requester_email?: string | null
+          payer_email?: string | null
           amount?: number
           token?: string
           memo?: string | null
           status?: string
-          link?: string
-          created_at?: string
-          expires_at?: string
+          request_link?: string
           paid_at?: string | null
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
-      streams: {
+      payment_streams: {
         Row: {
           id: string
-          user_id: string
-          recipient_email: string
+          user_id: string | null
+          wallet_address: string | null
+          recipient_address: string
+          recipient_email: string | null
+          token: string
           total_amount: number
           streamed_amount: number
-          token: string
-          interval: string
-          rate_per_interval: number
+          rate_per_second: number
           status: string
           started_at: string
+          ends_at: string
+          cancelled_at: string | null
           memo: string | null
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
-          user_id: string
-          recipient_email: string
+          user_id?: string | null
+          wallet_address?: string | null
+          recipient_address: string
+          recipient_email?: string | null
+          token: string
           total_amount: number
           streamed_amount?: number
-          token: string
-          interval: string
-          rate_per_interval: number
+          rate_per_second: number
           status?: string
-          started_at: string
+          started_at?: string
+          ends_at: string
+          cancelled_at?: string | null
           memo?: string | null
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
-          recipient_email?: string
+          user_id?: string | null
+          wallet_address?: string | null
+          recipient_address?: string
+          recipient_email?: string | null
+          token?: string
           total_amount?: number
           streamed_amount?: number
-          token?: string
-          interval?: string
-          rate_per_interval?: number
+          rate_per_second?: number
           status?: string
           started_at?: string
+          ends_at?: string
+          cancelled_at?: string | null
           memo?: string | null
           created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }
