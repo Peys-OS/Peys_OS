@@ -89,7 +89,7 @@ export default function ContactsPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-4xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      <div className="container mx-auto max-w-5xl lg:max-w-6xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16 lg:pt-24 lg:pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -110,8 +110,8 @@ export default function ContactsPage() {
         {/* Add contact form */}
         <AnimatePresence>
           {showAdd && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-4 overflow-hidden">
-              <div className="rounded-xl border border-border bg-card p-4 shadow-card">
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mb-6 overflow-hidden">
+              <div className="rounded-xl border border-border bg-card p-4 lg:p-6 shadow-card">
                 <div className="space-y-3">
                   <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Name"
                     className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring" />
@@ -128,7 +128,7 @@ export default function ContactsPage() {
         </AnimatePresence>
 
         {/* Search */}
-        <div className="relative mb-4">
+        <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
@@ -146,7 +146,7 @@ export default function ContactsPage() {
           <>
             {/* All contacts */}
             {filtered.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-3 lg:space-y-4">
                 {filtered.map((c, i) => (
                   <ContactRow key={c.id} contact={c} index={i} onDelete={deleteContact} formatDate={formatDate} />
                 ))}
@@ -180,7 +180,7 @@ function ContactRow({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-secondary/20 sm:p-4"
+      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-secondary/20 sm:p-4 lg:p-5"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
         {contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
