@@ -70,11 +70,30 @@ export function useEscrow() {
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
     const { escrowContract, usdcAddress } = getContractAddresses();
 
-    console.log("createPayment called", { tokenAddress, amount, escrowContract, usdcAddress });
+    console.log("createPayment called", { tokenAddress, amount, escrowContract, usdcAddress, chainId: chain?.id });
+
+    // Validate wallet is connected
+    if (!address) {
+      console.error("No wallet address found");
+      throw new Error("No wallet connected. Please connect your wallet first.");
+    }
+
+    // Validate chain is supported
+    if (!chain) {
+      console.error("No chain connected");
+      throw new Error("No blockchain network detected. Please switch to a supported network in your wallet.");
+    }
+
+    // Check if we're on a supported network
+    const supportedChainIds = [84532, 44787, 420420421]; // Base Sepolia, Celo Alfajores, Polkadot
+    if (!supportedChainIds.includes(chain.id)) {
+      console.error("Unsupported chain:", chain.id);
+      throw new Error(`Unsupported network. Please switch to Base Sepolia, Celo Alfajores, or Polkadot testnet. Current: ${chain.name} (${chain.id})`);
+    }
 
     if (!writeContract) {
       console.error("writeContract is not available - wallet may not be connected");
-      throw new Error("Wallet not connected. Please connect your wallet and try again.");
+      throw new Error("Wallet not ready. Please make sure your wallet is connected and unlocked.");
     }
 
     // Check if we have sufficient allowance (non-blocking, best-effort)
@@ -96,23 +115,28 @@ export function useEscrow() {
       
       // Send approval transaction
       try {
-        approvalHash = await writeContract({
+        const result = await writeContract({
           address: usdcAddress,
           abi: ERC20_ABI,
           functionName: 'approve',
           args: [escrowContract, amount],
         } as any);
+        approvalHash = result as Hex | undefined;
         
         console.log("Approval tx hash:", approvalHash);
       } catch (approveError: any) {
         console.error("Approval error:", approveError);
+        console.error("Approval error message:", approveError?.message);
+        
         // If user rejected, that's okay - they might have already approved
-        if (approveError.code === 4001 || approveError.message?.includes('user rejected')) {
-          console.log("Approval rejected by user");
+        if (approveError.code === 4001 || approveError.message?.includes('user rejected') || approveError.message?.includes('cancelled')) {
+          console.log("Approval rejected by user - continuing anyway");
           // Continue anyway - maybe allowance was already set
+        } else if (approveError.name === 'UserRejectedRequestError') {
+          console.log("Approval rejected by user (UserRejectedRequestError)");
         } else {
           console.warn("Approval transaction failed:", approveError);
-          throw new Error(`Approval failed: ${approveError.message || 'Unknown error'}`);
+          // Don't throw - continue and try anyway in case approval already happened
         }
       }
 
@@ -153,16 +177,22 @@ export function useEscrow() {
         args: [tokenAddress, amount, claimHash, expiry, memo],
       } as any);
       
-      console.log("CreatePayment result:", result);
+      console.log("CreatePayment result:", result, "type:", typeof result);
       tx = result;
     } catch (createError: any) {
       console.error("Create payment error:", createError);
       console.error("Error code:", createError?.code);
       console.error("Error message:", createError?.message);
+      console.error("Error name:", createError?.name);
       
       // If user rejected or transaction was cancelled
       if (createError.code === 4001 || createError.message?.includes('user rejected') || createError.message?.includes('cancelled')) {
         throw new Error("Transaction was cancelled. Please try again.");
+      }
+      
+      // If user rejected via wallet UI
+      if (createError.name === 'UserRejectedRequestError' || createError.message?.includes('User rejected')) {
+        throw new Error("Transaction was rejected. Please try again and confirm the transaction in your wallet.");
       }
       
       // If it's a contract revert error
@@ -170,12 +200,18 @@ export function useEscrow() {
         throw new Error(`Transaction failed on-chain. The contract may have rejected it. Please check: ${createError.message?.slice(0, 100)}`);
       }
       
+      // If it's a chain mismatch error
+      if (createError.message?.includes('chain') || createError.message?.includes('network')) {
+        throw new Error("Network mismatch. Please switch to the correct network in your wallet and try again.");
+      }
+      
       throw new Error(`Failed to create payment: ${createError.message || 'Unknown error'}`);
     }
 
-    // Check if tx is undefined - this happens when user rejects the transaction
+    // Check if tx is undefined - this happens when user rejects the transaction or wallet error
     if (!tx) {
-      throw new Error("Transaction was not submitted. You may have cancelled the transaction in your wallet, or the wallet encountered an error. Please try again.");
+      console.error("Transaction returned undefined - user may have rejected");
+      throw new Error("Transaction was not submitted. This usually means the transaction was cancelled or rejected in your wallet. Please try again and confirm the transaction.");
     }
 
     return tx as unknown as Hex | undefined;
