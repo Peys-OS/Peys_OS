@@ -121,6 +121,129 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          email: string
+          phone: string | null
+          favorite: boolean
+          total_sent: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          email: string
+          phone?: string | null
+          favorite?: boolean
+          total_sent?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          email?: string
+          phone?: string | null
+          favorite?: boolean
+          total_sent?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_requests: {
+        Row: {
+          id: string
+          user_id: string
+          from_email: string
+          amount: number
+          token: string
+          memo: string | null
+          status: string
+          link: string
+          created_at: string
+          expires_at: string
+          paid_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          from_email: string
+          amount: number
+          token: string
+          memo?: string | null
+          status?: string
+          link: string
+          created_at?: string
+          expires_at: string
+          paid_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          from_email?: string
+          amount?: number
+          token?: string
+          memo?: string | null
+          status?: string
+          link?: string
+          created_at?: string
+          expires_at?: string
+          paid_at?: string | null
+        }
+        Relationships: []
+      }
+      streams: {
+        Row: {
+          id: string
+          user_id: string
+          recipient_email: string
+          total_amount: number
+          streamed_amount: number
+          token: string
+          interval: string
+          rate_per_interval: number
+          status: string
+          started_at: string
+          memo: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          recipient_email: string
+          total_amount: number
+          streamed_amount?: number
+          token: string
+          interval: string
+          rate_per_interval: number
+          status?: string
+          started_at: string
+          memo?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          recipient_email?: string
+          total_amount?: number
+          streamed_amount?: number
+          token?: string
+          interval?: string
+          rate_per_interval?: number
+          status?: string
+          started_at?: string
+          memo?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null

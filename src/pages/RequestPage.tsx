@@ -1,35 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plus, Copy, Check, Clock, DollarSign, ExternalLink, Share2 } from "lucide-react";
+import { FileText, Plus, Copy, Check, Clock, DollarSign, ExternalLink, Share2, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+// Workaround: cast to any to bypass type checking until tables are created in DB
+const db = supabase as any;
 
 interface PaymentRequest {
   id: string;
-  from: string;
+  user_id: string;
+  from_email: string;
   amount: number;
-  token: "USDC" | "USDT";
-  memo?: string;
-  status: "open" | "paid" | "expired";
-  createdAt: Date;
+  token: string;
+  memo: string | null;
+  status: string;
   link: string;
+  created_at: string;
+  expires_at: string;
+  paid_at: string | null;
 }
 
-const MOCK_REQUESTS: PaymentRequest[] = [
-  { id: "r1", from: "bob@email.com", amount: 500, token: "USDC", memo: "Website redesign", status: "open", createdAt: new Date(Date.now() - 86400000), link: "peys.app/request/r1" },
-  { id: "r2", from: "alice@email.com", amount: 150, token: "USDT", memo: "Logo design", status: "paid", createdAt: new Date(Date.now() - 172800000), link: "peys.app/request/r2" },
-  { id: "r3", from: "moses@email.com", amount: 1000, token: "USDC", memo: "Q4 Invoice", status: "expired", createdAt: new Date(Date.now() - 604800000), link: "peys.app/request/r3" },
-];
-
-const statusStyles = {
+const statusStyles: Record<string, string> = {
   open: "bg-primary/10 text-primary",
   paid: "bg-primary/10 text-primary",
   expired: "bg-muted text-muted-foreground",
 };
 
-const statusIcons = {
+const statusIcons: Record<string, any> = {
   open: Clock,
   paid: Check,
   expired: Clock,
@@ -37,7 +38,8 @@ const statusIcons = {
 
 export default function RequestPage() {
   const { isLoggedIn, login } = useApp();
-  const [requests, setRequests] = useState<PaymentRequest[]>(MOCK_REQUESTS);
+  const [requests, setRequests] = useState<PaymentRequest[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [created, setCreated] = useState<PaymentRequest | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -47,6 +49,38 @@ export default function RequestPage() {
     token: "USDC" as "USDC" | "USDT",
     memo: "",
   });
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchRequests();
+    }
+  }, [isLoggedIn]);
+
+  const fetchRequests = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await db
+        .from("payment_requests")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching requests:", error);
+        setRequests([]);
+      } else {
+        setRequests(data || []);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isLoggedIn) {
     return (
@@ -67,24 +101,46 @@ export default function RequestPage() {
     );
   }
 
-  const createRequest = () => {
+  const createRequest = async () => {
     if (!form.amount) { toast.error("Enter an amount"); return; }
-    const id = `r${Date.now()}`;
-    const req: PaymentRequest = {
-      id,
-      from: form.from || "Anyone",
-      amount: Number(form.amount),
-      token: form.token,
-      memo: form.memo || undefined,
-      status: "open",
-      createdAt: new Date(),
-      link: `peys.app/request/${id}`,
-    };
-    setRequests((prev) => [req, ...prev]);
-    setCreated(req);
-    setShowCreate(false);
-    setForm({ from: "", amount: "", token: "USDC", memo: "" });
-    toast.success("Payment request created! 📨");
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const id = `req_${Date.now()}`;
+      const link = `peys.app/request/${id}`;
+
+      const { data, error } = await db
+        .from("payment_requests")
+        .insert({
+          user_id: user.id,
+          from_email: form.from || "Anyone",
+          amount: Number(form.amount),
+          token: form.token,
+          memo: form.memo || null,
+          status: "open",
+          link,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating request:", error);
+        toast.error("Failed to create request");
+        return;
+      }
+
+      setRequests((prev) => [data, ...prev]);
+      setCreated(data);
+      setShowCreate(false);
+      setForm({ from: "", amount: "", token: "USDC", memo: "" });
+      toast.success("Payment request created! 📨");
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Failed to create request");
+    }
   };
 
   const copyLink = (link: string, id: string) => {
@@ -118,7 +174,7 @@ export default function RequestPage() {
             <div>
               <h1 className="font-display text-2xl text-foreground sm:text-3xl">Requests</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {totalOpen > 0 ? `$${totalOpen.toLocaleString()} outstanding` : "No pending requests"}
+                {loading ? "Loading..." : totalOpen > 0 ? `$${totalOpen.toLocaleString()} outstanding` : "No pending requests"}
               </p>
             </div>
             <button
@@ -142,7 +198,7 @@ export default function RequestPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Request created!</p>
-                  <p className="text-xs text-muted-foreground">${created.amount} {created.token} from {created.from}</p>
+                  <p className="text-xs text-muted-foreground">${created.amount} {created.token} from {created.from_email}</p>
                 </div>
                 <button onClick={() => setCreated(null)} className="text-muted-foreground hover:text-foreground text-xs">Dismiss</button>
               </div>
@@ -221,44 +277,55 @@ export default function RequestPage() {
         </AnimatePresence>
 
         {/* Requests List */}
-        <div className="space-y-2">
-          {requests.map((req, i) => {
-            const StatusIcon = statusIcons[req.status];
-            return (
-              <motion.div
-                key={req.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary/20"
-              >
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${statusStyles[req.status]}`}>
-                  <StatusIcon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-medium text-foreground">{req.from}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyles[req.status]}`}>
-                      {req.status}
-                    </span>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {requests.map((req, i) => {
+              const StatusIcon = statusIcons[req.status] || Clock;
+              return (
+                <motion.div
+                  key={req.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary/20"
+                >
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${statusStyles[req.status] || statusStyles.open}`}>
+                    <StatusIcon className="h-4 w-4" />
                   </div>
-                  {req.memo && <p className="truncate text-xs text-muted-foreground">{req.memo}</p>}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">${req.amount} {req.token}</p>
-                </div>
-                {req.status === "open" && (
-                  <button
-                    onClick={() => copyLink(req.link, req.id)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  >
-                    {copiedId === req.id ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
-                  </button>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium text-foreground">{req.from_email}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyles[req.status] || statusStyles.open}`}>
+                        {req.status}
+                      </span>
+                    </div>
+                    {req.memo && <p className="truncate text-xs text-muted-foreground">{req.memo}</p>}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">${req.amount} {req.token}</p>
+                  </div>
+                  {req.status === "open" && (
+                    <button
+                      onClick={() => copyLink(req.link, req.id)}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                      {copiedId === req.id ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })}
+            {requests.length === 0 && (
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
+                <p className="text-sm text-muted-foreground">No payment requests yet.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <Footer />
     </div>
