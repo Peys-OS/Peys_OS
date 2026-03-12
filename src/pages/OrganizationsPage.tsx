@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+const db = supabase as any;
+
 type TabType = "overview" | "team" | "approvals" | "stores" | "links" | "contractors" | "templates" | "settings";
 
 const roleColors: Record<string, string> = {
@@ -52,11 +54,17 @@ export default function OrganizationsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: memberData } = await supabase
+      const { data: memberData, error: memberError } = await db
         .from("organization_members")
         .select("organization_id, organizations(*)")
         .eq("user_id", user.id)
         .eq("status", "active");
+
+      if (memberError) {
+        console.error("Error fetching organizations:", memberError);
+        setOrganizations([]);
+        return;
+      }
 
       if (memberData && memberData.length > 0) {
         const orgs = memberData.map((m: any) => m.organizations).filter(Boolean);
@@ -874,11 +882,14 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error("Please sign in first");
+        return;
+      }
 
       const slug = form.name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
       
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("organizations")
         .insert({
           name: form.name,
@@ -890,9 +901,13 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating organization:", error);
+        toast.error(`Failed to create organization: ${error.message}`);
+        return;
+      }
 
-      await supabase
+      const { error: memberError } = await db
         .from("organization_members")
         .insert({
           organization_id: data.id,
@@ -903,11 +918,16 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
           accepted_at: new Date().toISOString(),
         });
 
+      if (memberError) {
+        console.error("Error adding member:", memberError);
+      }
+
       onCreated(data);
       setForm({ name: "", description: "", website: "" });
-    } catch (err) {
+      toast.success("Organization created!");
+    } catch (err: any) {
       console.error("Error:", err);
-      toast.error("Failed to create organization");
+      toast.error(err?.message || "Failed to create organization");
     } finally {
       setLoading(false);
     }
