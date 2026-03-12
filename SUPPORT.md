@@ -32,8 +32,8 @@ Have a feature idea? We'd love to hear it!
 ## 📧 Email Support
 
 For private inquiries:
-- **General**: support@peydot.io
-- **Business**: business@peydot.io
+- **General**: peys.xyz@gmail.com
+- **Business**: peys.xyz@gmail.com
 
 ## ⏰ Response Times
 
@@ -44,7 +44,7 @@ For private inquiries:
 ## 🚨 Security Issues
 
 For security vulnerabilities, please DO NOT open a public issue. Instead:
-1. Email security@peydot.io directly
+1. Email peys.xyz@gmail.com directly
 2. Include detailed reproduction steps
 3. Our security team will respond within 24 hours
 

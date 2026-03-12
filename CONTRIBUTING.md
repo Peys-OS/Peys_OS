@@ -91,4 +91,4 @@ Contributors will be recognized in our README and on our website.
 
 - Open an issue for bug reports or feature requests
 - Join our Discord for discussions
-- Email support@peydot.io for general questions
+- Email peys.xyz@gmail.com for general questions

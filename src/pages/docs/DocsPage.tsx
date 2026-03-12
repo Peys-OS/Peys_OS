@@ -112,7 +112,7 @@ export default function DocsPage() {
               Quick Start Guide <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="mailto:developers@peys.io"
+              href="mailto:peys.xyz@gmail.com"
               className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 font-semibold text-foreground transition-colors hover:bg-secondary"
             >
               Contact Sales

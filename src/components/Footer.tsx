@@ -52,9 +52,10 @@ export default function Footer() {
               <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Developers</p>
               <div className="space-y-2.5">
                 <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">REST API</Link>
-                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">SDKs</Link>
-                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">Webhooks</Link>
-                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">Widgets</Link>
+                <Link to="/docs/sdks/javascript" className="block text-muted-foreground transition-colors hover:text-foreground">SDKs</Link>
+                <Link to="/docs/sdks/pricing" className="block text-muted-foreground transition-colors hover:text-foreground">SDK Pricing</Link>
+                <Link to="/docs/webhooks" className="block text-muted-foreground transition-colors hover:text-foreground">Webhooks</Link>
+                <Link to="/docs/widgets/overview" className="block text-muted-foreground transition-colors hover:text-foreground">Widgets</Link>
               </div>
             </div>
           </div>

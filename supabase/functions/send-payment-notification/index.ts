@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "PeyDot <notifications@peydot.io>",
+            from: "PeyDot <peys.xyz@gmail.com>",
             to: [recipientEmail],
             subject: `You've received ${amount.toFixed(2)} ${token} on PeyDot!`,
             html: htmlContent,

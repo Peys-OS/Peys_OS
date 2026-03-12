@@ -36,6 +36,7 @@ export default function AppHeader() {
     { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: false },
     { to: "/docs/api/payments", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: false },
     { to: "/docs/sdks/javascript", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: false },
+    { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: false },
   ];
 
   const handleLogin = () => {
