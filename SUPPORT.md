@@ -10,7 +10,7 @@ Getting help with PeyDot is easy! Here are the resources available to you:
 ## 💬 Community
 
 - **Discord**: Join our community server for real-time support and discussions
-- **Twitter**: Follow [@peydot_io](https://twitter.com/peydot_io) for updates
+- **X**: Follow [@Peys_io](https://x.com/Peys_io) for updates
 
 ## 🐛 Bug Reports
 
