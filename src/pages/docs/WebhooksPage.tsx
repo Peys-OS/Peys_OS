@@ -44,14 +44,14 @@ export default function WebhooksPage() {
           Receive real-time notifications when payment events occur.
         </p>
 
-        <section className="mt-12">
+        <section id="overview" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Overview</h2>
           <p className="mt-4 text-muted-foreground">
             Webhooks allow your application to receive real-time notifications when events occur in your Peys account. Instead of polling the API, you can subscribe to events and receive HTTP POST requests when those events happen.
           </p>
         </section>
 
-        <section className="mt-12">
+        <section id="event-types" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Event Types</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -91,7 +91,7 @@ export default function WebhooksPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="setup" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Setting Up Webhooks</h2>
           <p className="mt-4 text-muted-foreground">
             Register a webhook endpoint to start receiving events:
@@ -120,7 +120,7 @@ console.log(webhook);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="verify" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Verifying Webhook Signatures</h2>
           <p className="mt-4 text-muted-foreground">
             Always verify webhook signatures to ensure requests come from Peys:
@@ -161,7 +161,7 @@ app.post('/webhooks/peys', express.raw({type: 'application/json'}),
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="payload" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Webhook Payload</h2>
           <p className="mt-4 text-muted-foreground">
             All webhook payloads follow this structure:
@@ -189,7 +189,7 @@ app.post('/webhooks/peys', express.raw({type: 'application/json'}),
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="retry" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Retry Policy</h2>
           <p className="mt-4 text-muted-foreground">
             If your webhook endpoint returns a non-2xx status code or times out, Peys will retry the webhook:

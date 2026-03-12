@@ -44,7 +44,7 @@ export default function JavaScriptSDKPage() {
           Official Peys SDK for JavaScript and TypeScript applications.
         </p>
 
-        <section className="mt-12">
+        <section id="installation" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Installation</h2>
           <div className="mt-4">
             <CodeBlock
@@ -53,7 +53,7 @@ export default function JavaScriptSDKPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="initialization" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Initialization</h2>
           <div className="mt-4">
             <CodeBlock
@@ -71,7 +71,7 @@ const peys = new Peys({
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="payments-api" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Payments API</h2>
           
           <h3 className="text-xl font-semibold text-foreground mt-6">Create Payment</h3>
@@ -113,7 +113,7 @@ console.log(payment.status);`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="webhooks-api" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Webhooks API</h2>
           
           <h3 className="text-xl font-semibold text-foreground mt-6">Create Webhook</h3>
@@ -138,7 +138,7 @@ console.log(payment.status);`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="typescript" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">TypeScript Types</h2>
           <p className="mt-4 text-muted-foreground">
             The SDK exports all TypeScript types for easy use:
@@ -163,7 +163,7 @@ const params: CreatePaymentParams = {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="error-handling" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Error Handling</h2>
           <div className="mt-4">
             <CodeBlock

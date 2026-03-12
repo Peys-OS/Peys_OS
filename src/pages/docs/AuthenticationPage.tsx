@@ -44,7 +44,7 @@ export default function AuthenticationPage() {
           Learn how to authenticate with the Peys API.
         </p>
 
-        <section className="mt-12">
+        <section id="api-keys" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">API Keys</h2>
           <p className="mt-4 text-muted-foreground">
             The Peys API uses API keys to authenticate requests. You can view and manage your API keys in the developer dashboard.
@@ -72,7 +72,7 @@ export default function AuthenticationPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="using-keys" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Using API Keys</h2>
           <p className="mt-4 text-muted-foreground">
             Pass your API key in the Authorization header:
@@ -99,7 +99,7 @@ const peys = new Peys({
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="key-types" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Key Types</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -126,7 +126,7 @@ const peys = new Peys({
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="security" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Security Best Practices</h2>
           <div className="mt-4 space-y-4">
             <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
@@ -159,7 +159,7 @@ const peys = new Peys({
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="rate-limiting" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Rate Limiting</h2>
           <p className="mt-4 text-muted-foreground">
             API requests are rate limited to ensure fair usage:

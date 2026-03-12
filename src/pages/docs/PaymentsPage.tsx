@@ -44,14 +44,14 @@ export default function PaymentsPage() {
           Learn how to create, manage, and track payments using the Peys SDK.
         </p>
 
-        <section className="mt-12">
+        <section id="overview" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Overview</h2>
           <p className="mt-4 text-muted-foreground">
             Payments are the core resource in Peys. A payment represents a request for money that can be fulfilled via blockchain transactions. Payments can be created with an email address or wallet address as the recipient.
           </p>
         </section>
 
-        <section className="mt-12">
+        <section id="create-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Create a Payment</h2>
           <p className="mt-4 text-muted-foreground">
             To create a payment, use the <code className="text-primary">payments.create()</code> method:
@@ -85,7 +85,7 @@ console.log(payment);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="statuses" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Payment Statuses</h2>
           <p className="mt-4 text-muted-foreground">
             A payment can have one of the following statuses:
@@ -120,7 +120,7 @@ console.log(payment);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="get-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Get Payment Details</h2>
           <p className="mt-4 text-muted-foreground">
             Retrieve a payment by its ID:
@@ -140,7 +140,7 @@ console.log(payment.recipient);   // 'alice@example.com'`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="list-payments" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">List Payments</h2>
           <p className="mt-4 text-muted-foreground">
             List all payments with optional filtering:
@@ -164,7 +164,7 @@ console.log(filteredPayments.hasMore);`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="cancel" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Cancel a Payment</h2>
           <p className="mt-4 text-muted-foreground">
             Cancel a pending payment to prevent it from being claimed:
@@ -184,7 +184,7 @@ console.log(cancelled.status);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="request" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Request Payment</h2>
           <p className="mt-4 text-muted-foreground">
             Request payment from a user (they will receive an email notification):

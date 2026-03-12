@@ -165,13 +165,17 @@ function useActiveHeading(headings: { id: string; label: string }[]) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
+        const intersecting = entries.filter((entry) => entry.isIntersecting);
+        if (intersecting.length > 0) {
+          const sorted = intersecting.sort((a, b) => {
+            const rectA = a.boundingClientRect;
+            const rectB = b.boundingClientRect;
+            return rectA.top - rectB.top;
+          });
+          setActiveId(sorted[0].target.id);
+        }
       },
-      { rootMargin: "-100px 0px -70% 0px" }
+      { rootMargin: "-80px 0px -80% 0px", threshold: 0 }
     );
 
     headings.forEach((heading) => {

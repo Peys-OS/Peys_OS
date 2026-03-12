@@ -44,7 +44,7 @@ export default function GoSDKPage() {
           Official Peys SDK for Go applications.
         </p>
 
-        <section className="mt-12">
+        <section id="installation" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Installation</h2>
           <div className="mt-4">
             <CodeBlock
@@ -53,7 +53,7 @@ export default function GoSDKPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="initialization" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Initialization</h2>
           <div className="mt-4">
             <CodeBlock
@@ -74,7 +74,7 @@ func main() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="usage" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Usage Examples</h2>
           
           <h3 className="text-xl font-semibold text-foreground mt-6">Create Payment</h3>
@@ -145,7 +145,7 @@ case "payment.completed":
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="error-handling" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Error Handling</h2>
           <div className="mt-4">
             <CodeBlock

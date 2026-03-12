@@ -15,14 +15,14 @@ export default function PaymentsAPIPage() {
           Complete reference for the Payments API endpoints.
         </p>
 
-        <section className="mt-12">
+        <section id="base-url" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Base URL</h2>
           <div className="mt-4 rounded-lg border border-border bg-secondary/50 p-4">
             <code className="text-primary">https://api.peys.io/v1</code>
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="create-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Create Payment</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -58,7 +58,7 @@ export default function PaymentsAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="get-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Get Payment</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -87,7 +87,7 @@ export default function PaymentsAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="list-payments" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">List Payments</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -115,7 +115,7 @@ export default function PaymentsAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="cancel-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Cancel Payment</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -130,7 +130,7 @@ export default function PaymentsAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="claim-payment" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Claim Payment</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">

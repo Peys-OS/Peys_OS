@@ -61,6 +61,40 @@ export default function ContactsPage() {
     }
   };
 
+  const addContact = async () => {
+    if (!newName.trim()) {
+      toast.error("Please enter a name");
+      return;
+    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("contacts")
+        .insert({
+          user_id: user.id,
+          name: newName.trim(),
+          email: newEmail.trim() || null,
+        });
+
+      if (error) {
+        console.error("Error adding contact:", error);
+        toast.error("Failed to add contact");
+        return;
+      }
+
+      toast.success("Contact added!");
+      setNewName("");
+      setNewEmail("");
+      setShowAdd(false);
+      fetchContacts();
+    } catch (err: any) {
+      console.error("Error:", err);
+      toast.error(err?.message || "Failed to add contact");
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background">
