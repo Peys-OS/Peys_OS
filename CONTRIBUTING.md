@@ -1,6 +1,6 @@
-# Contributing to PeyDot
+# Contributing to Peys
 
-Thank you for your interest in contributing to PeyDot! We welcome contributions from the community.
+Thank you for your interest in contributing to Peys! We welcome contributions from the community.
 
 ## Code of Conduct
 

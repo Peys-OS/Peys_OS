@@ -121,9 +121,9 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: "Rate limit exceeded", 
-          message: `Monthly API limit of ${keyRecord.monthly_limit} calls reached. Upgrade your plan at https://peydot.io/dashboard`,
+          message: `Monthly API limit of ${keyRecord.monthly_limit} calls reached. Upgrade your plan at https://peys.io/dashboard`,
           tier: "free",
-          upgrade: "https://peydot.io/dashboard"
+          upgrade: "https://peys.io/dashboard"
         }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "3600" } }
       );
@@ -276,7 +276,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, apiKey: Ap
     token: data.token,
     status: data.status,
     expiresAt: data.expires_at,
-    claimLink: `${Deno.env.get("APP_URL") || "https://peydot.io"}/claim/${data.claim_link}`,
+    claimLink: `${Deno.env.get("APP_URL") || "https://peys.io"}/claim/${data.claim_link}`,
     createdAt: data.created_at,
   };
 }

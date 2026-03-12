@@ -17,7 +17,7 @@ const paseoAssetHub = defineChain({
 // Privy App ID — publishable client key, safe in code
 const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'cmlpmbwgn00cb0dicbfwdkz40';
 
-interface PeyDotUser {
+interface PeysUser {
   id: string;
   email?: string;
   phone?: string;
@@ -25,7 +25,7 @@ interface PeyDotUser {
 }
 
 interface PrivyAuthContextType {
-  user: PeyDotUser | null;
+  user: PeysUser | null;
   isLoggedIn: boolean;
   isLoading: boolean;
   ready: boolean;
@@ -80,7 +80,7 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
     }
   }, [privyLogout]);
 
-  const user: PeyDotUser | null = privyUser
+  const user: PeysUser | null = privyUser
     ? {
         id: privyUser.id,
         email: privyUser.email?.address,

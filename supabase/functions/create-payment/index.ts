@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
     });
 
     // Send email notification with claim link
-    const appUrl = Deno.env.get("APP_URL") || "https://peydot.io";
+    const appUrl = Deno.env.get("APP_URL") || "https://peys.io";
     const fullClaimLink = `${appUrl}/claim/${claimLink}`;
 
     try {
