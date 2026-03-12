@@ -39,6 +39,13 @@ const products = [
     category: "Integrations",
   },
   {
+    name: "Smart Contracts",
+    description: "Advanced contracts for streaming, escrow, subscriptions, and DeFi.",
+    icon: FileText,
+    href: "/docs/smart-contracts",
+    category: "Advanced",
+  },
+  {
     name: "Batch Payments",
     description: "Pay multiple recipients in a single transaction. Perfect for payroll.",
     icon: Layers,

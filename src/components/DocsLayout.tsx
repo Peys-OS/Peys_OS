@@ -55,6 +55,7 @@ const navItems = [
     section: "Resources", 
     items: [
       { to: "/docs/sdks/pricing", label: "Pricing", desc: "Plans and billing" },
+      { to: "/docs/smart-contracts", label: "Smart Contracts", desc: "Advanced contracts" },
     ]
   },
 ];

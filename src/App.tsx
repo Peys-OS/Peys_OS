@@ -45,6 +45,7 @@ import PaymentFormPage from "./pages/docs/PaymentFormPage";
 import PricingPage from "./pages/docs/PricingPage";
 import SDKPricingPage from "./pages/docs/SDKPricingPage";
 import ErrorsPage from "./pages/docs/ErrorsPage";
+import SmartContractsPage from "./pages/docs/SmartContractsPage";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => (
                   <Route path="/docs/pricing" element={<PricingPage />} />
                   <Route path="/docs/sdks/pricing" element={<SDKPricingPage />} />
                   <Route path="/docs/api/errors" element={<ErrorsPage />} />
+                  <Route path="/docs/smart-contracts" element={<SmartContractsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <AIChatBubble />
