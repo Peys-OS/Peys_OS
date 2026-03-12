@@ -210,7 +210,7 @@ export default function AssetsPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-3xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      <div className="container mx-auto max-w-5xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
