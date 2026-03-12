@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link2, Shield, Globe, Zap, Users, BarChart3, Wallet, Receipt, CreditCard, FileText, ArrowRight } from "lucide-react";
+import { Link2, Shield, Globe, Zap, Users, BarChart3, Wallet, Receipt, CreditCard, FileText, ArrowRight, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import featureMagicLinks from "@/assets/feature-magic-links.png";
@@ -19,6 +19,13 @@ const individualFeatures = [
     desc: "Send money via a simple link. No wallet needed — recipients sign in with email and funds appear instantly.",
     image: featureMagicLinks,
     link: "/send",
+  },
+  {
+    icon: MessageCircle,
+    title: "WhatsApp Payments",
+    desc: "Send and receive USDC directly through WhatsApp. No app installation needed — just chat and pay.",
+    image: featureMagicLinks,
+    link: "/whatsapp",
   },
   {
     icon: Shield,

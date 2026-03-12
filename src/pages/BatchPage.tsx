@@ -177,9 +177,9 @@ export default function BatchPage() {
             prev.map((r, idx) =>
               idx === i ? { ...r, status: "error" as const, error: "Transaction failed" } : r
             )
+            );
           }
-        }
-      } catch (error: any) {
+        } catch (error: any) {
         console.error("Payment error:", error);
         setRecipients((prev) =>
           prev.map((r, idx) =>

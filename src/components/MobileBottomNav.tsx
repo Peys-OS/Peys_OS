@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Send, LayoutDashboard, Users, BarChart3 } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/send", label: "Send", icon: Send },
+  { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/contacts", label: "Contacts", icon: Users },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
