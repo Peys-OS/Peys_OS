@@ -64,28 +64,24 @@ export default function OrganizationsPage() {
         userId = walletAddress;
       }
       
-      if (!userId) {
-        // Try localStorage fallback for logged in users
-        const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
-        const userOrgs = localOrgs.filter((o: any) => o.owner_id === walletAddress || o.owner_id === privyUser?.id);
-        setOrganizations(userOrgs);
-        if (userOrgs.length > 0 && !currentOrg) {
-          setCurrentOrg(userOrgs[0]);
-        }
-        setLoading(false);
-        return;
-      }
-
-      const { data: memberData, error: memberError } = await db
-        .from("organization_members")
-        .select("organization_id, organizations(*)")
-        .eq("user_id", userId)
-        .eq("status", "active");
+      // Try database first
+      const { data: memberData, error: memberError } = userId 
+        ? await db
+            .from("organization_members")
+            .select("organization_id, organizations(*)")
+            .eq("user_id", userId)
+            .eq("status", "active")
+        : { data: null, error: null };
 
       if (memberError || !memberData) {
         console.log("Database not available, using localStorage fallback");
         const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
-        const userOrgs = localOrgs.filter((o: any) => o.owner_id === user.id);
+        // Filter by wallet address or user id
+        const userOrgs = localOrgs.filter((o: any) => 
+          o.owner_id === walletAddress || 
+          o.owner_id === user?.id ||
+          o.owner_id === privyUser?.id
+        );
         setOrganizations(userOrgs);
         if (userOrgs.length > 0 && !currentOrg) {
           setCurrentOrg(userOrgs[0]);
@@ -103,7 +99,16 @@ export default function OrganizationsPage() {
       }
     } catch (err) {
       console.error("Error:", err);
-      setOrganizations([]);
+      // Fallback to localStorage on error
+      const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
+      const userOrgs = localOrgs.filter((o: any) => 
+        o.owner_id === walletAddress || 
+        o.owner_id === privyUser?.id
+      );
+      setOrganizations(userOrgs);
+      if (userOrgs.length > 0 && !currentOrg) {
+        setCurrentOrg(userOrgs[0]);
+      }
     } finally {
       setLoading(false);
     }
