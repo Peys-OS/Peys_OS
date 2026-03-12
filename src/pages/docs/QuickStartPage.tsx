@@ -51,7 +51,7 @@ export default function QuickStartPage() {
           </p>
         </div>
 
-        <section className="mt-12">
+        <section id="step-1-install" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Step 1: Install the SDK</h2>
           <p className="mt-4 text-muted-foreground">
             Install the Peys SDK using your preferred package manager:
@@ -72,7 +72,7 @@ export default function QuickStartPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="step-2-initialize" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Step 2: Initialize the Client</h2>
           <p className="mt-4 text-muted-foreground">
             Create a Peys client instance with your API key:
@@ -91,7 +91,7 @@ const peys = new Peys({
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="step-3-create" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Step 3: Create a Payment</h2>
           <p className="mt-4 text-muted-foreground">
             Create a payment link that you can share with your user:
@@ -120,7 +120,7 @@ console.log(payment);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="step-4-webhooks" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Step 4: Handle Webhooks</h2>
           <p className="mt-4 text-muted-foreground">
             Subscribe to payment events to know when a payment is completed:
@@ -155,7 +155,7 @@ app.post('/webhooks/peys', express.raw({type: 'application/json'}),
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="step-5-verify" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Step 5: Verify Payment Status</h2>
           <p className="mt-4 text-muted-foreground">
             You can always check the status of a payment:
