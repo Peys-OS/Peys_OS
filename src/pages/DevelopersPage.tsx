@@ -125,7 +125,7 @@ export default function DevelopersPage() {
           </div>
         </section>
 
-        <section className="border-t border-border py-20 lg:py-24">
+        <section id="api" className="border-t border-border py-20 lg:py-24">
           <div className="container mx-auto max-w-6xl px-4 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
