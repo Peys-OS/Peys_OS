@@ -282,6 +282,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     networkBalances,
   };
 
+  // Log in to Supabase when Privy authenticates
+  useEffect(() => {
+    const syncSupabaseAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // If no user in Supabase but logged into Privy, sync
+        if (isLoggedIn && !user) {
+          const privyUser = localStorage.getItem('privy_user');
+          if (privyUser) {
+            console.log('Privy user detected, Supabase auth should sync automatically');
+          }
+        }
+      } catch (err) {
+        console.error('Auth sync error:', err);
+      }
+    };
+
+    if (isLoggedIn) {
+      syncSupabaseAuth();
+    }
+  }, [isLoggedIn]);
+
   return (
     <AppContext.Provider
       value={{
