@@ -236,7 +236,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         <div key={section.section} className="mb-2">
           <button
             onClick={() => toggleSection(section.section)}
-            className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+            className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
           >
             {section.section}
             {expandedSections[section.section] ? (
@@ -247,20 +247,20 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
           </button>
           
           {expandedSections[section.section] && (
-            <ul className="mt-1 space-y-0.5">
+            <ul className="mt-1 space-y-px">
               {section.items.map((item) => (
                 <li key={item.to}>
                   <Link
                     to={item.to}
                     onClick={onClose}
-                    className={`flex flex-col rounded-lg px-3 py-2 text-sm transition-colors ${
+                    className={`flex flex-col rounded-md px-3 py-1.5 text-xs transition-colors ${
                       location.pathname === item.to
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
-                    <span className="font-medium">{item.label}</span>
-                    <span className="text-xs opacity-70">{item.desc}</span>
+                    <span className="font-medium text-[13px]">{item.label}</span>
+                    <span className="text-[11px] opacity-60">{item.desc}</span>
                   </Link>
                 </li>
               ))}
