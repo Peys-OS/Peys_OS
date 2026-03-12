@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Github, Twitter, MessageCircle } from "lucide-react";
+import { Github, Twitter, MessageCircle, Code } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -30,12 +30,13 @@ export default function Footer() {
 
           <div className="grid grid-cols-3 gap-8 text-xs">
             <div>
-              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Individual</p>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Personal</p>
               <div className="space-y-2.5">
                 <Link to="/send" className="block text-muted-foreground transition-colors hover:text-foreground">Send</Link>
                 <Link to="/claim/demo" className="block text-muted-foreground transition-colors hover:text-foreground">Claim</Link>
                 <Link to="/request" className="block text-muted-foreground transition-colors hover:text-foreground">Request</Link>
                 <Link to="/contacts" className="block text-muted-foreground transition-colors hover:text-foreground">Contacts</Link>
+                <Link to="/whatsapp" className="block text-muted-foreground transition-colors hover:text-foreground">WhatsApp</Link>
               </div>
             </div>
             <div>
@@ -48,11 +49,12 @@ export default function Footer() {
               </div>
             </div>
             <div>
-              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Resources</p>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Developers</p>
               <div className="space-y-2.5">
-                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">Docs</a>
-                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">GitHub</a>
-                <a href="#" className="block text-muted-foreground transition-colors hover:text-foreground">Contract</a>
+                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">REST API</Link>
+                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">SDKs</Link>
+                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">Webhooks</Link>
+                <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">Widgets</Link>
               </div>
             </div>
           </div>
