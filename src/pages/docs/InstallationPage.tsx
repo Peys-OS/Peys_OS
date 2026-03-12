@@ -130,15 +130,18 @@ import { Peys } from '@peys/sdk/node';
         <section id="verify" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Verify Installation</h2>
           <p className="mt-4 text-muted-foreground">
-            Verify your installation by checking the SDK version:
+            Test that the SDK is properly installed by initializing the client:
           </p>
           <div className="mt-4">
             <CodeBlock
               lang="typescript"
-              code={`import { Peys, version } from '@peys/sdk';
+              code={`import { Peys } from '@peys/sdk';
 
-console.log('Peys SDK version:', version);
-// Output: Peys SDK version: 1.0.0`}
+const peys = new Peys({
+  apiKey: 'pk_test_xxxxxxxxxxxxx',
+});
+
+console.log('SDK initialized successfully!');`}
             />
           </div>
         </section>
