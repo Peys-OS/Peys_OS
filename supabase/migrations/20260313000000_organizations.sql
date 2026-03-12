@@ -22,20 +22,6 @@ CREATE TABLE IF NOT EXISTS public.organizations (
 
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization owners can manage their organizations"
-  ON public.organizations FOR ALL
-  USING (auth.uid() = owner_id);
-
-CREATE POLICY "Organization members can view their organization"
-  ON public.organizations FOR SELECT
-  USING (
-    id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
 CREATE INDEX idx_organizations_owner ON public.organizations(owner_id);
 CREATE INDEX idx_organizations_slug ON public.organizations(slug);
 
@@ -60,27 +46,6 @@ CREATE TABLE IF NOT EXISTS public.organization_members (
 );
 
 ALTER TABLE public.organization_members ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Organization members can view members"
-  ON public.organization_members FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization admins can manage members"
-  ON public.organization_members FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin')
-    )
-  );
 
 CREATE INDEX idx_org_members_org ON public.organization_members(organization_id);
 CREATE INDEX idx_org_members_user ON public.organization_members(user_id);
@@ -115,41 +80,8 @@ CREATE TABLE IF NOT EXISTS public.payment_approvals (
 
 ALTER TABLE public.payment_approvals ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization members can view approvals"
-  ON public.payment_approvals FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization managers can create approvals"
-  ON public.payment_approvals FOR INSERT
-  WITH CHECK (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin', 'manager')
-    )
-  );
-
-CREATE POLICY "Organization approvers can update approvals"
-  ON public.payment_approvals FOR UPDATE
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin', 'manager')
-    )
-  );
-
 CREATE INDEX idx_payment_approvals_org ON public.payment_approvals(organization_id);
 CREATE INDEX idx_payment_approvals_status ON public.payment_approvals(status);
-CREATE INDEX idx_payment_approvals_requested ON public.payment_approvals(requested_by);
 
 -- ============================================
 -- MERCHANT STORES TABLE
@@ -174,29 +106,7 @@ CREATE TABLE IF NOT EXISTS public.merchant_stores (
 
 ALTER TABLE public.merchant_stores ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization members can view stores"
-  ON public.merchant_stores FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization admins can manage stores"
-  ON public.merchant_stores FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin')
-    )
-  );
-
 CREATE INDEX idx_merchant_stores_org ON public.merchant_stores(organization_id);
-CREATE INDEX idx_merchant_stores_slug ON public.merchant_stores(slug);
 
 -- ============================================
 -- PAYMENT LINKS TABLE
@@ -228,34 +138,7 @@ CREATE TABLE IF NOT EXISTS public.payment_links (
 
 ALTER TABLE public.payment_links ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization members can view payment links"
-  ON public.payment_links FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Anyone can view active payment links"
-  ON public.payment_links FOR SELECT
-  USING (status = 'active');
-
-CREATE POLICY "Organization admins can manage payment links"
-  ON public.payment_links FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin', 'manager')
-    )
-  );
-
 CREATE INDEX idx_payment_links_org ON public.payment_links(organization_id);
-CREATE INDEX idx_payment_links_slug ON public.payment_links(slug);
-CREATE INDEX idx_payment_links_status ON public.payment_links(status);
 
 -- ============================================
 -- CONTRACTORS TABLE
@@ -284,29 +167,7 @@ CREATE TABLE IF NOT EXISTS public.contractors (
 
 ALTER TABLE public.contractors ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization members can view contractors"
-  ON public.contractors FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization admins can manage contractors"
-  ON public.contractors FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin', 'manager')
-    )
-  );
-
 CREATE INDEX idx_contractors_org ON public.contractors(organization_id);
-CREATE INDEX idx_contractors_email ON public.contractors(email);
 
 -- ============================================
 -- PAYMENT TEMPLATES TABLE
@@ -330,27 +191,6 @@ CREATE TABLE IF NOT EXISTS public.payment_templates (
 
 ALTER TABLE public.payment_templates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Organization members can view templates"
-  ON public.payment_templates FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization managers can manage templates"
-  ON public.payment_templates FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin', 'manager')
-    )
-  );
-
 CREATE INDEX idx_payment_templates_org ON public.payment_templates(organization_id);
 
 -- ============================================
@@ -372,27 +212,6 @@ CREATE TABLE IF NOT EXISTS public.approval_thresholds (
 );
 
 ALTER TABLE public.approval_thresholds ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Organization members can view thresholds"
-  ON public.approval_thresholds FOR SELECT
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Organization admins can manage thresholds"
-  ON public.approval_thresholds FOR ALL
-  USING (
-    organization_id IN (
-      SELECT organization_id 
-      FROM public.organization_members 
-      WHERE user_id = auth.uid() 
-      AND role IN ('owner', 'admin')
-    )
-  );
 
 CREATE INDEX idx_approval_thresholds_org ON public.approval_thresholds(organization_id);
 
@@ -503,3 +322,172 @@ DROP TRIGGER IF EXISTS update_approval_thresholds_updated_at ON public.approval_
 CREATE TRIGGER update_approval_thresholds_updated_at
   BEFORE UPDATE ON public.approval_thresholds
   FOR EACH ROW EXECUTE FUNCTION public.update_approval_thresholds_updated_at();
+
+-- ============================================
+-- ORGANIZATION POLICIES (after all tables created)
+-- ============================================
+
+CREATE POLICY "Organization owners can manage their organizations"
+  ON public.organizations FOR ALL
+  USING (auth.uid() = owner_id);
+
+CREATE POLICY "Organization members can view their organization"
+  ON public.organizations FOR SELECT
+  USING (
+    id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization members can view members"
+  ON public.organization_members FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization admins can manage members"
+  ON public.organization_members FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin')
+    )
+  );
+
+CREATE POLICY "Organization members can view approvals"
+  ON public.payment_approvals FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization managers can create approvals"
+  ON public.payment_approvals FOR INSERT
+  WITH CHECK (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Organization members can view stores"
+  ON public.merchant_stores FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization admins can manage stores"
+  ON public.merchant_stores FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin')
+    )
+  );
+
+CREATE POLICY "Organization members can view payment links"
+  ON public.payment_links FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Anyone can view active payment links"
+  ON public.payment_links FOR SELECT
+  USING (status = 'active');
+
+CREATE POLICY "Organization admins can manage payment links"
+  ON public.payment_links FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Organization members can view contractors"
+  ON public.contractors FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization admins can manage contractors"
+  ON public.contractors FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Organization members can view templates"
+  ON public.payment_templates FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization managers can manage templates"
+  ON public.payment_templates FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin', 'manager')
+    )
+  );
+
+CREATE POLICY "Organization members can view thresholds"
+  ON public.approval_thresholds FOR SELECT
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Organization admins can manage thresholds"
+  ON public.approval_thresholds FOR ALL
+  USING (
+    organization_id IN (
+      SELECT organization_id 
+      FROM public.organization_members 
+      WHERE user_id = auth.uid() 
+      AND role IN ('owner', 'admin')
+    )
+  );
