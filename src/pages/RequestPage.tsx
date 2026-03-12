@@ -171,7 +171,7 @@ export default function RequestPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <div className="container mx-auto max-w-4xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+      <div className="container mx-auto max-w-5xl lg:max-w-6xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16 lg:pt-24 lg:pb-20">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -227,7 +227,7 @@ export default function RequestPage() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-6 overflow-hidden"
             >
-              <div className="rounded-xl border border-border bg-card p-4 shadow-card sm:p-6">
+              <div className="rounded-xl border border-border bg-card p-4 shadow-card sm:p-6 lg:p-8">
                 <h3 className="mb-4 font-display text-lg text-foreground">New Request</h3>
                 <div className="space-y-3">
                   <div className="relative">
@@ -285,7 +285,7 @@ export default function RequestPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3 lg:space-y-4">
             {requests.map((req, i) => {
               const StatusIcon = statusIcons[req.status] || Clock;
               return (
@@ -294,7 +294,7 @@ export default function RequestPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-secondary/20"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 lg:p-5 transition-colors hover:bg-secondary/20"
                 >
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${statusStyles[req.status] || statusStyles.open}`}>
                     <StatusIcon className="h-4 w-4" />

@@ -41,11 +41,11 @@ export default function WhatsAppPage() {
       <main>
         <section className="relative overflow-hidden pt-24 pb-20 sm:pt-32 sm:pb-24">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-          <div className="container relative mx-auto px-4">
+          <div className="container relative mx-auto max-w-6xl px-4 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mx-auto max-w-3xl text-center"
+              className="mx-auto max-w-4xl text-center"
             >
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-4 py-1.5 text-sm">
                 <MessageCircle className="h-4 w-4 text-primary" />
@@ -80,7 +80,7 @@ export default function WhatsAppPage() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mt-16 mx-auto max-w-2xl rounded-2xl border border-border bg-card p-6 sm:p-8"
+              className="mt-16 lg:mt-24 mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6 sm:p-8"
             >
               <div className="rounded-xl bg-secondary/30 p-4 font-mono text-sm text-muted-foreground">
                 <span className="text-primary">@PeyDot</span>: Hi! How can I help you send money today?<br /><br />
@@ -95,8 +95,8 @@ export default function WhatsAppPage() {
           </div>
         </section>
 
-        <section className="border-y border-border py-20 sm:py-24">
-          <div className="container mx-auto px-4">
+        <section className="border-y border-border py-20 lg:py-24">
+          <div className="container mx-auto max-w-5xl px-4 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -111,7 +111,7 @@ export default function WhatsAppPage() {
               </p>
             </motion.div>
 
-            <div className="mt-12 mx-auto grid max-w-3xl gap-6">
+            <div className="mt-12 lg:mt-16 mx-auto grid max-w-4xl gap-6 lg:gap-8">
               {steps.map((step, i) => (
                 <motion.div
                   key={step.num}
@@ -119,7 +119,7 @@ export default function WhatsAppPage() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex items-center gap-6 rounded-xl border border-border bg-card p-6"
+                  className="flex items-center gap-6 lg:gap-8 rounded-xl border border-border bg-card p-6 lg:p-8"
                 >
                   <span className="font-mono text-2xl font-bold text-primary">{step.num}</span>
                   <p className="text-foreground">{step.text}</p>
@@ -129,8 +129,8 @@ export default function WhatsAppPage() {
           </div>
         </section>
 
-        <section className="py-20 sm:py-24">
-          <div className="container mx-auto px-4">
+        <section className="py-20 lg:py-24">
+          <div className="container mx-auto max-w-5xl px-4 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -142,7 +142,7 @@ export default function WhatsAppPage() {
               </h2>
             </motion.div>
 
-            <div className="mt-12 mx-auto grid max-w-4xl gap-6 sm:grid-cols-2">
+            <div className="mt-12 lg:mt-16 mx-auto grid max-w-5xl gap-6 lg:gap-8 sm:grid-cols-2">
               {features.map((feature, i) => {
                 const Icon = feature.icon;
                 return (
@@ -152,7 +152,7 @@ export default function WhatsAppPage() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="rounded-xl border border-border bg-card p-6"
+                    className="rounded-xl border border-border bg-card p-6 lg:p-8"
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-secondary text-primary">
                       <Icon className="h-6 w-6" />
@@ -166,8 +166,8 @@ export default function WhatsAppPage() {
           </div>
         </section>
 
-        <section className="border-t border-border bg-secondary/30 py-16 sm:py-20">
-          <div className="container mx-auto px-4 text-center">
+        <section className="border-t border-border bg-secondary/30 py-16 lg:py-20">
+          <div className="container mx-auto max-w-5xl px-4 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -180,7 +180,7 @@ export default function WhatsAppPage() {
               <p className="mt-4 text-muted-foreground">
                 Start sending money through WhatsApp in seconds. No sign-up required for recipients.
               </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div className="mt-8 lg:mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   to="/send"
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
