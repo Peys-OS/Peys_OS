@@ -44,7 +44,7 @@ export default function ClaimsPage() {
           Learn how recipients can claim payments and the claim flow.
         </p>
 
-        <section className="mt-12">
+        <section id="overview" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Overview</h2>
           <p className="mt-4 text-muted-foreground">
             When a payment is created, the recipient receives a payment link. The claim flow allows the recipient to:
@@ -56,7 +56,7 @@ export default function ClaimsPage() {
           </ul>
         </section>
 
-        <section className="mt-12">
+        <section id="claim-flow" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Claim Flow</h2>
           <div className="mt-4 space-y-4">
             <div className="rounded-lg border border-border bg-card p-4">
@@ -86,7 +86,7 @@ export default function ClaimsPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="claim-api" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Claim via API</h2>
           <p className="mt-4 text-muted-foreground">
             You can also programmatically claim payments using the API (requires the recipient's wallet signature):
@@ -110,7 +110,7 @@ console.log(claim);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="check-status" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Check Claim Status</h2>
           <p className="mt-4 text-muted-foreground">
             Track the status of a claim:
@@ -129,7 +129,7 @@ console.log(claim.transactionHash);
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="statuses" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Claim Statuses</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">

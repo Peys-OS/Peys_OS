@@ -44,7 +44,7 @@ export default function PythonSDKPage() {
           Official Peys SDK for Python applications.
         </p>
 
-        <section className="mt-12">
+        <section id="installation" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Installation</h2>
           <div className="mt-4">
             <CodeBlock
@@ -59,7 +59,7 @@ export default function PythonSDKPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="initialization" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Initialization</h2>
           <div className="mt-4">
             <CodeBlock
@@ -73,7 +73,7 @@ peys_client = Peys(
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="usage" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Usage Examples</h2>
           
           <h3 className="text-xl font-semibold text-foreground mt-6">Create Payment</h3>
@@ -126,7 +126,7 @@ if event.type == "payment.completed":
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="async" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Async Support</h2>
           <div className="mt-4">
             <CodeBlock

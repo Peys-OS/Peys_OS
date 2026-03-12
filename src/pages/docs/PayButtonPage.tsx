@@ -44,7 +44,7 @@ export default function PayButtonPage() {
           A simple drop-in button that opens a payment modal.
         </p>
 
-        <section className="mt-12">
+        <section id="quick-start" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Quick Start</h2>
           <div className="mt-4">
             <CodeBlock
@@ -61,7 +61,7 @@ export default function PayButtonPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="attributes" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Attributes</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -108,7 +108,7 @@ export default function PayButtonPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="full-example" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Full Example</h2>
           <div className="mt-4">
             <CodeBlock
@@ -137,7 +137,7 @@ export default function PayButtonPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="callbacks" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Callbacks</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -165,7 +165,7 @@ export default function PayButtonPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="programmatic" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Programmatic Usage</h2>
           <p className="mt-4 text-muted-foreground">
             You can also trigger the payment modal programmatically:

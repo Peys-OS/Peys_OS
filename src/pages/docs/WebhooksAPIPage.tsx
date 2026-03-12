@@ -15,7 +15,7 @@ export default function WebhooksAPIPage() {
           Manage webhook endpoints for receiving event notifications.
         </p>
 
-        <section className="mt-12">
+        <section id="create-webhook" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Create Webhook</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -46,7 +46,7 @@ export default function WebhooksAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="list-webhooks" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">List Webhooks</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -56,7 +56,7 @@ export default function WebhooksAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="get-webhook" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Get Webhook</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -66,7 +66,7 @@ export default function WebhooksAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="update-webhook" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Update Webhook</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -86,7 +86,7 @@ export default function WebhooksAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="delete-webhook" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Delete Webhook</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">
@@ -96,7 +96,7 @@ export default function WebhooksAPIPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="test-webhook" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Test Webhook</h2>
           <div className="mt-4 rounded-lg border border-border bg-card overflow-hidden">
             <div className="flex items-center gap-4 border-b border-border bg-secondary/30 px-4 py-3">

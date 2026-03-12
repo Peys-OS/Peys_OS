@@ -15,7 +15,7 @@ export default function WidgetsOverviewPage() {
           Pre-built UI components to accept payments on your website.
         </p>
 
-        <section className="mt-12">
+        <section id="overview" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Overview</h2>
           <p className="mt-4 text-muted-foreground">
             Peys Widgets are drop-in UI components that make it easy to accept crypto payments on your website. 
@@ -23,7 +23,7 @@ export default function WidgetsOverviewPage() {
           </p>
         </section>
 
-        <section className="mt-12">
+        <section id="available-widgets" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Available Widgets</h2>
           
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -55,7 +55,7 @@ export default function WidgetsOverviewPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="installation" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Installation</h2>
           <p className="mt-4 text-muted-foreground">
             Add the Peys widgets script to your website:
@@ -75,7 +75,7 @@ export default function WidgetsOverviewPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="quick-example" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Quick Example</h2>
           <div className="mt-4 rounded-lg border border-border bg-secondary/50 p-4">
             <pre className="text-sm font-mono text-foreground">
@@ -91,7 +91,7 @@ export default function WidgetsOverviewPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="features" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Features</h2>
           <ul className="mt-4 space-y-3 text-muted-foreground">
             <li className="flex items-start gap-2">
@@ -117,7 +117,7 @@ export default function WidgetsOverviewPage() {
           </ul>
         </section>
 
-        <section className="mt-12">
+        <section id="browser-support" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Browser Support</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">

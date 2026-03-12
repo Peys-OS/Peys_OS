@@ -44,7 +44,7 @@ export default function InstallationPage() {
           Install the Peys SDK in your project using your preferred package manager.
         </p>
 
-        <section className="mt-12">
+        <section id="requirements" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Requirements</h2>
           <ul className="mt-4 space-y-2 text-muted-foreground">
             <li>• Node.js 18.0 or later</li>
@@ -53,7 +53,7 @@ export default function InstallationPage() {
           </ul>
         </section>
 
-        <section className="mt-12">
+        <section id="install-sdk" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Install the SDK</h2>
           <div className="mt-4 space-y-4">
             <div>
@@ -71,7 +71,7 @@ export default function InstallationPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="environment-variables" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Environment Variables</h2>
           <p className="mt-4 text-muted-foreground">
             We recommend storing your API key as an environment variable. Create a <code className="text-primary">.env</code> file in your project root:
@@ -91,7 +91,7 @@ PEYS_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="typescript" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">TypeScript Support</h2>
           <p className="mt-4 text-muted-foreground">
             The SDK is written in TypeScript and provides full type definitions out of the box. No additional @types packages are required.
@@ -108,7 +108,7 @@ const status: PaymentStatus = payment.status;`}
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="browser-vs-node" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Browser vs Node.js</h2>
           <p className="mt-4 text-muted-foreground">
             The SDK works in both browser and Node.js environments:
@@ -127,7 +127,7 @@ import { Peys } from '@peys/sdk/node';
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="verify" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Verify Installation</h2>
           <p className="mt-4 text-muted-foreground">
             Verify your installation by checking the SDK version:

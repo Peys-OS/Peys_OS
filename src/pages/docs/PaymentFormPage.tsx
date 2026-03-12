@@ -44,7 +44,7 @@ export default function PaymentFormPage() {
           An embeddable payment form for custom checkout experiences.
         </p>
 
-        <section className="mt-12">
+        <section id="overview" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Overview</h2>
           <p className="mt-4 text-muted-foreground">
             The Payment Form is a full embeddable component that provides a complete payment experience. 
@@ -52,7 +52,7 @@ export default function PaymentFormPage() {
           </p>
         </section>
 
-        <section className="mt-12">
+        <section id="quick-start" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Quick Start</h2>
           <div className="mt-4">
             <CodeBlock
@@ -69,7 +69,7 @@ export default function PaymentFormPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="attributes" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Attributes</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -116,7 +116,7 @@ export default function PaymentFormPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="full-example" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Full Example</h2>
           <div className="mt-4">
             <CodeBlock
@@ -155,7 +155,7 @@ export default function PaymentFormPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="events" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Events</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
@@ -187,7 +187,7 @@ export default function PaymentFormPage() {
           </div>
         </section>
 
-        <section className="mt-12">
+        <section id="styling" className="mt-12">
           <h2 className="text-2xl font-bold text-foreground">Styling</h2>
           <p className="mt-4 text-muted-foreground">
             Customize the form appearance using CSS variables:
