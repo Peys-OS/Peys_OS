@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link2, Shield, Globe, Zap, Users, BarChart3, Wallet, Receipt, CreditCard, FileText, ArrowRight, MessageCircle } from "lucide-react";
+import { Link2, Shield, Globe, Zap, Users, BarChart3, Wallet, Receipt, CreditCard, FileText, ArrowRight, MessageCircle, Code, Terminal, Box } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import featureMagicLinks from "@/assets/feature-magic-links.png";
@@ -10,7 +10,7 @@ import featureStreaming from "@/assets/feature-streaming.png";
 import featureBatch from "@/assets/feature-batch.png";
 import featureAnalytics from "@/assets/feature-analytics.png";
 
-type Segment = "individual" | "organization";
+type Segment = "individual" | "organization" | "developers";
 
 const individualFeatures = [
   {
@@ -81,9 +81,44 @@ const orgFeatures = [
   },
 ];
 
+const devFeatures = [
+  {
+    icon: Code,
+    title: "REST API",
+    desc: "Full programmatic access to all payment features. Send, receive, and manage payments via simple HTTP requests.",
+    image: featureMagicLinks,
+    link: "/developers",
+    coming: true,
+  },
+  {
+    icon: Terminal,
+    title: "SDKs",
+    desc: "Official SDKs for JavaScript, Python, Go, and more. Integrate payments in minutes, not days.",
+    image: featureEscrow,
+    link: "/developers",
+    coming: true,
+  },
+  {
+    icon: Box,
+    title: "Widgets",
+    desc: "Embed payment buttons and forms directly in your website. Customizable to match your brand.",
+    image: featureGlobal,
+    link: "/developers",
+    coming: true,
+  },
+  {
+    icon: Zap,
+    title: "Webhooks",
+    desc: "Real-time event notifications for payments, claims, and refunds. Stay in sync with your systems.",
+    image: featureStreaming,
+    link: "/developers",
+    coming: true,
+  },
+];
+
 export default function FeaturesSection() {
   const [segment, setSegment] = useState<Segment>("individual");
-  const features = segment === "individual" ? individualFeatures : orgFeatures;
+  const features = segment === "individual" ? individualFeatures : segment === "organization" ? orgFeatures : devFeatures;
 
   return (
     <section className="border-y border-border py-20 sm:py-28">
@@ -124,6 +159,16 @@ export default function FeaturesSection() {
             >
               🏢 Organization
             </button>
+            <button
+              onClick={() => setSegment("developers")}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+                segment === "developers"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              💻 Developers
+            </button>
           </div>
         </motion.div>
 
@@ -137,7 +182,7 @@ export default function FeaturesSection() {
             className="mx-auto mt-14 max-w-5xl sm:mt-20"
           >
             <div className="grid gap-6 sm:grid-cols-2">
-              {features.map((f, i) => {
+              {features.map((f: any, i) => {
                 const Icon = f.icon;
                 return (
                   <motion.div
@@ -146,9 +191,10 @@ export default function FeaturesSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.08 }}
                   >
-                    <Link
-                      to={f.link}
-                      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:border-primary/30 hover:shadow-card"
+                    <div
+                      className={`group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all ${
+                        f.coming ? "opacity-70" : "hover:border-primary/30 hover:shadow-card"
+                      }`}
                     >
                       {/* Image */}
                       <div className="relative flex h-44 items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:h-52">
@@ -157,9 +203,16 @@ export default function FeaturesSection() {
                           alt={f.title}
                           className="h-full w-auto max-w-full object-contain"
                           loading="lazy"
-                          whileHover={{ scale: 1.05 }}
+                          whileHover={f.coming ? {} : { scale: 1.05 }}
                           transition={{ duration: 0.4 }}
                         />
+                        {f.coming && (
+                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                            <span className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                              Coming Soon
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Content */}
@@ -168,14 +221,21 @@ export default function FeaturesSection() {
                           <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary text-primary">
                             <Icon className="h-4 w-4" strokeWidth={1.5} />
                           </div>
-                          <h3 className="font-display text-lg text-foreground">{f.title}</h3>
+                          <h3 className="font-display text-lg text-foreground flex items-center gap-2">
+                            {f.title}
+                            {f.coming && (
+                              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                Soon
+                              </span>
+                            )}
+                          </h3>
                         </div>
                         <p className="text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
                         <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary transition-colors group-hover:text-foreground">
                           Learn more <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   </motion.div>
                 );
               })}

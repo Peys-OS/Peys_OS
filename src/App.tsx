@@ -22,6 +22,7 @@ import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
 import WhatsAppPage from "./pages/WhatsAppPage";
+import DevelopersPage from "./pages/DevelopersPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/whatsapp" element={<WhatsAppPage />} />
+                  <Route path="/developers" element={<DevelopersPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
