@@ -44,10 +44,9 @@ export default function QuickStartPage() {
           Get started with Peys in under 5 minutes. This guide will walk you through your first payment integration.
         </p>
 
-        <div className="mt-8 rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
-          <p className="text-sm text-blue-400">
-            <strong>Note:</strong> The Developer API is currently in preview. Contact us at{" "}
-            <a href="mailto:developers@peys.io" className="underline">developers@peys.io</a> to get your API key.
+        <div className="mt-8 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+          <p className="text-sm text-green-400">
+            <strong>New:</strong> Get your API key from the <Link to="/api-keys" className="underline">API Keys page</Link> and start integrating in minutes!
           </p>
         </div>
 
@@ -83,9 +82,9 @@ export default function QuickStartPage() {
               code={`import { Peys } from '@peys/sdk';
 
 const peys = new Peys({
-  apiKey: process.env.PEYS_API_KEY || 'sk_live_xxxxxxxxxxxxx',
-  // Optional: specify network (default: 'base-sepolia')
-  network: 'base-sepolia',
+  apiKey: process.env.PEYS_API_KEY || 'pk_xxxxxxxxxxxxx',
+  // Optional: specify base URL (defaults to https://api.peydot.io)
+  // baseUrl: 'https://api.peydot.io',
 });`}
             />
           </div>
@@ -175,6 +174,31 @@ if (payment.status === 'completed') {
 }`}
             />
           </div>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold text-foreground">Alternative: Use REST API Directly</h2>
+          <p className="mt-4 text-muted-foreground">
+            You can also use the Peys API directly without the SDK. Here's an example using fetch:
+          </p>
+          <div className="mt-4">
+            <CodeBlock
+              lang="bash"
+              code={`# Create a payment using REST API
+curl -X POST https://api.peydot.io/v1/payments \\
+  -H "Content-Type: application/json" \\
+  -H "X-API-Key: pk_xxxxxxxxxxxxx" \\
+  -d '{
+    "recipient": "alice@example.com",
+    "amount": 100,
+    "token": "USDC",
+    "memo": "Payment for Order #12345"
+  }'`}
+            />
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground">
+            See the <Link to="/docs/api/payments" className="text-primary hover:underline">API Reference</Link> for all available endpoints.
+          </p>
         </section>
 
         <section className="mt-16 rounded-xl border border-green-500/20 bg-green-500/10 p-6">
