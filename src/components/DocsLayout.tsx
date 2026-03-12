@@ -1,36 +1,56 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronRight, ChevronLeft, ArrowLeft, Circle } from "lucide-react";
+import { motion } from "framer-motion";
+import { Menu, X, ChevronRight, ChevronDown, ArrowLeft, Circle } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 
 const navItems = [
-  { section: "Getting Started", items: [
-    { to: "/docs", label: "Introduction", icon: null },
-    { to: "/docs/quickstart", label: "Quick Start", icon: null },
-    { to: "/docs/installation", label: "Installation", icon: null },
-  ]},
-  { section: "Core Concepts", items: [
-    { to: "/docs/payments", label: "Payments", icon: null },
-    { to: "/docs/claims", label: "Payment Claims", icon: null },
-    { to: "/docs/webhooks", label: "Webhooks", icon: null },
-  ]},
-  { section: "API Reference", items: [
-    { to: "/docs/api/authentication", label: "Authentication", icon: null },
-    { to: "/docs/api/payments", label: "Payments API", icon: null },
-    { to: "/docs/api/webhooks-api", label: "Webhooks API", icon: null },
-  ]},
-  { section: "SDKs", items: [
-    { to: "/docs/sdks/javascript", label: "JavaScript", icon: null },
-    { to: "/docs/sdks/python", label: "Python", icon: null },
-    { to: "/docs/sdks/go", label: "Go", icon: null },
-  ]},
-  { section: "Widgets", items: [
-    { to: "/docs/widgets/overview", label: "Overview", icon: null },
-    { to: "/docs/widgets/pay-button", label: "Pay Button", icon: null },
-    { to: "/docs/widgets/payment-form", label: "Payment Form", icon: null },
-  ]},
+  { 
+    section: "Documentation", 
+    items: [
+      { to: "/docs", label: "Full developer docs", desc: "Overview of all features" },
+    ]
+  },
+  { 
+    section: "Getting Started", 
+    items: [
+      { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min" },
+      { to: "/docs/installation", label: "Installation", desc: "Setup the SDK" },
+    ]
+  },
+  { 
+    section: "Core Concepts", 
+    items: [
+      { to: "/docs/payments", label: "Payments", desc: "Create & manage payments" },
+      { to: "/docs/claims", label: "Payment Claims", desc: "Claim flow" },
+      { to: "/docs/webhooks", label: "Webhooks", desc: "Event notifications" },
+    ]
+  },
+  { 
+    section: "API Reference", 
+    items: [
+      { to: "/docs/api/authentication", label: "REST API", desc: "Authentication" },
+      { to: "/docs/api/payments", label: "Payments API", desc: "Endpoints" },
+      { to: "/docs/api/webhooks-api", label: "Webhooks API", desc: "Configure webhooks" },
+    ]
+  },
+  { 
+    section: "SDKs", 
+    items: [
+      { to: "/docs/sdks/javascript", label: "JavaScript SDK", desc: "JS & TypeScript" },
+      { to: "/docs/sdks/python", label: "Python SDK", desc: "Python library" },
+      { to: "/docs/sdks/go", label: "Go SDK", desc: "Go client" },
+    ]
+  },
+  { 
+    section: "Widgets", 
+    items: [
+      { to: "/docs/widgets/overview", label: "Overview", desc: "Embed payments" },
+      { to: "/docs/widgets/pay-button", label: "Pay Button", desc: "Simple button" },
+      { to: "/docs/widgets/payment-form", label: "Payment Form", desc: "Full form" },
+    ]
+  },
 ];
 
 const pageHeadings: Record<string, { id: string; label: string }[]> = {
@@ -138,14 +158,11 @@ const pageHeadings: Record<string, { id: string; label: string }[]> = {
   ],
 };
 
-function generateIds(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-
 function useActiveHeading(headings: { id: string; label: string }[]) {
   const [activeId, setActiveId] = useState<string>("");
 
-  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useState(() => {
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
@@ -165,9 +182,77 @@ function useActiveHeading(headings: { id: string; label: string }[]) {
     });
 
     return () => observer.disconnect();
-  }, [headings]);
+  });
 
   return activeId;
+}
+
+function Sidebar({ onClose }: { onClose?: () => void }) {
+  const location = useLocation();
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    // Expand all sections by default, but collapse based on current page
+    const expanded: Record<string, boolean> = {};
+    navItems.forEach((section) => {
+      const isCurrentSection = section.items.some(item => location.pathname === item.to);
+      expanded[section.section] = !isCurrentSection;
+    });
+    return expanded;
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  return (
+    <nav className="p-4 space-y-1">
+      <Link
+        to="/developers"
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
+      >
+        <ArrowLeft className="h-3 w-3" /> Back to Developers
+      </Link>
+      
+      {navItems.map((section) => (
+        <div key={section.section} className="mb-2">
+          <button
+            onClick={() => toggleSection(section.section)}
+            className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            {section.section}
+            {expandedSections[section.section] ? (
+              <ChevronDown className="h-3 w-3" />
+            ) : (
+              <ChevronRight className="h-3 w-3" />
+            )}
+          </button>
+          
+          {expandedSections[section.section] && (
+            <ul className="mt-1 space-y-0.5">
+              {section.items.map((item) => (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    onClick={onClose}
+                    className={`flex flex-col rounded-lg px-3 py-2 text-sm transition-colors ${
+                      location.pathname === item.to
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-xs opacity-70">{item.desc}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </nav>
+  );
 }
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
@@ -175,6 +260,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   const location = useLocation();
   
   const currentHeadings = pageHeadings[location.pathname] || [];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const activeHeading = useActiveHeading(currentHeadings);
 
   const scrollToHeading = (id: string) => {
@@ -206,56 +292,23 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
-        {/* Left Sidebar - Page Navigation */}
-        <AnimatePresence>
-          <motion.aside
-            initial={{ x: -300 }}
-            animate={{ x: sidebarOpen ? 0 : -300 }}
-            exit={{ x: -300 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-border bg-card/95 backdrop-blur-sm lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:w-72 lg:translate-x-0 ${
-              !sidebarOpen && !location.pathname.startsWith("/docs") ? 'hidden lg:block' : 'block'
-            }`}
-          >
-            <nav className="p-4 space-y-6">
-              <div>
-                <Link
-                  to="/developers"
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
-                >
-                  <ArrowLeft className="h-3 w-3" /> Back to Developers
-                </Link>
-              </div>
-                {navItems.map((section) => (
-                  <div key={section.section}>
-                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {section.section}
-                    </h3>
-                    <ul className="space-y-1">
-                      {section.items.map((item) => (
-                        <li key={item.to}>
-                          <Link
-                            to={item.to}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
-                              location.pathname === item.to
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                            }`}
-                          >
-                            {item.label}
-                            {location.pathname === item.to && (
-                              <ChevronRight className="ml-auto h-4 w-4" />
-                            )}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </nav>
-            </motion.aside>
-        </AnimatePresence>
+        {/* Left Sidebar - Always visible on desktop */}
+        <aside className="hidden lg:block sticky top-16 left-0 z-30 h-[calc(100vh-4rem)] w-72 shrink-0 overflow-y-auto border-r border-border bg-card">
+          <Sidebar />
+        </aside>
+
+        {/* Mobile Sidebar - Overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div 
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <aside className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border shadow-xl">
+              <Sidebar onClose={() => setSidebarOpen(false)} />
+            </aside>
+          </div>
+        )}
 
         {/* Main content */}
         <main className="flex-1 min-w-0">
