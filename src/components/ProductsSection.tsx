@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight, User, Building2, Send, Link2, Globe, Zap, Users, BarChart3, Shield, FileText, CreditCard, Repeat, Wallet, Receipt, MessageCircle } from "lucide-react";
+import { ArrowUpRight, User, Building2, Send, Link2, Globe, Zap, Users, BarChart3, Shield, FileText, CreditCard, Repeat, Wallet, Receipt, MessageCircle, Code } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const products = [
@@ -48,6 +48,22 @@ const products = [
       { icon: Zap, text: "Streaming salaries" },
       { icon: BarChart3, text: "Analytics & reports" },
       { icon: Receipt, text: "Invoice & request" },
+    ],
+  },
+  {
+    id: "developers",
+    label: "Developers",
+    tagline: "Build with Peys",
+    description: "Integrate USDC payments into your apps with powerful APIs, SDKs, and webhooks. Perfect for platforms and marketplaces.",
+    icon: Code,
+    color: "accent",
+    link: "/developers",
+    badge: "Coming Soon",
+    features: [
+      { icon: Globe, text: "REST API" },
+      { icon: Code, text: "SDKs" },
+      { icon: Zap, text: "Webhooks" },
+      { icon: Receipt, text: "Widgets" },
     ],
   },
 ];
