@@ -176,8 +176,8 @@ export default function StreamingPage() {
         </motion.div>
 
         {/* Create Stream Form */}
-        <AnimatePresence>
-          {showCreate && (
+        {showCreate && (
+          <AnimatePresence>
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -239,34 +239,8 @@ export default function StreamingPage() {
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-                      placeholder="Rate per second"
-                      className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                    <select
-                      value={form.duration}
-                      onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                      className="rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      <option value="7">7 days</option>
-                      <option value="30">30 days</option>
-                      <option value="90">90 days</option>
-                    </select>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
-                      Cancel
-                    </button>
-                    <button onClick={createStream} disabled={creating} className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50">
-                      {creating ? "Creating..." : "Create Stream"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
+        )}
 
         {/* Streams List */}
         {loading ? (

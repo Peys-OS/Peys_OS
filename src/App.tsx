@@ -25,6 +25,21 @@ import ProfilePage from "./pages/ProfilePage";
 import WhatsAppPage from "./pages/WhatsAppPage";
 import DevelopersPage from "./pages/DevelopersPage";
 import NotFound from "./pages/NotFound";
+import DocsPage from "./pages/docs/DocsPage";
+import QuickStartPage from "./pages/docs/QuickStartPage";
+import InstallationPage from "./pages/docs/InstallationPage";
+import PaymentsPage from "./pages/docs/PaymentsPage";
+import ClaimsPage from "./pages/docs/ClaimsPage";
+import WebhooksPage from "./pages/docs/WebhooksPage";
+import AuthenticationPage from "./pages/docs/AuthenticationPage";
+import PaymentsAPIPage from "./pages/docs/PaymentsAPIPage";
+import WebhooksAPIPage from "./pages/docs/WebhooksAPIPage";
+import JavaScriptSDKPage from "./pages/docs/JavaScriptSDKPage";
+import PythonSDKPage from "./pages/docs/PythonSDKPage";
+import GoSDKPage from "./pages/docs/GoSDKPage";
+import WidgetsOverviewPage from "./pages/docs/WidgetsOverviewPage";
+import PayButtonPage from "./pages/docs/PayButtonPage";
+import PaymentFormPage from "./pages/docs/PaymentFormPage";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +68,21 @@ const App = () => (
                   <Route path="/developers" element={<DevelopersPage />} />
                   <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/docs" element={<DocsPage />} />
+                  <Route path="/docs/quickstart" element={<QuickStartPage />} />
+                  <Route path="/docs/installation" element={<InstallationPage />} />
+                  <Route path="/docs/payments" element={<PaymentsPage />} />
+                  <Route path="/docs/claims" element={<ClaimsPage />} />
+                  <Route path="/docs/webhooks" element={<WebhooksPage />} />
+                  <Route path="/docs/api/authentication" element={<AuthenticationPage />} />
+                  <Route path="/docs/api/payments" element={<PaymentsAPIPage />} />
+                  <Route path="/docs/api/webhooks-api" element={<WebhooksAPIPage />} />
+                  <Route path="/docs/sdks/javascript" element={<JavaScriptSDKPage />} />
+                  <Route path="/docs/sdks/python" element={<PythonSDKPage />} />
+                  <Route path="/docs/sdks/go" element={<GoSDKPage />} />
+                  <Route path="/docs/widgets/overview" element={<WidgetsOverviewPage />} />
+                  <Route path="/docs/widgets/pay-button" element={<PayButtonPage />} />
+                  <Route path="/docs/widgets/payment-form" element={<PaymentFormPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <AIChatBubble />

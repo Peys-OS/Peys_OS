@@ -32,10 +32,10 @@ export default function AppHeader() {
   ];
 
   const devItems = [
-    { to: "/developers", label: "REST API", desc: "Programmatic access", icon: Globe, coming: true },
-    { to: "/developers", label: "SDKs", desc: "JavaScript, Python, Go", icon: Code, coming: true },
-    { to: "/developers", label: "Webhooks", desc: "Event notifications", icon: Terminal, coming: true },
-    { to: "/developers", label: "Widgets", desc: "Embed payment UI", icon: Box, coming: true },
+    { to: "/docs", label: "Documentation", desc: "Full developer docs", icon: Globe, coming: false },
+    { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: false },
+    { to: "/docs/api/payments", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: false },
+    { to: "/docs/sdks/javascript", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: false },
   ];
 
   const handleLogin = () => {
@@ -220,13 +220,10 @@ export default function AppHeader() {
                     className="absolute left-0 top-full pt-2 z-50"
                   >
                     <div className="w-72 rounded-xl border border-border bg-card p-2 shadow-elevated">
-                      <div className="mb-2 px-3 py-1 flex items-center gap-2">
+                      <div className="mb-2 px-3 py-1">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                           For Developers
                         </p>
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                          Coming Soon
-                        </span>
                       </div>
                       {devItems.map((item) => {
                         const Icon = item.icon;
