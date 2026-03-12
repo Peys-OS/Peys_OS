@@ -25,6 +25,7 @@ import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
 import WhatsAppPage from "./pages/WhatsAppPage";
 import DevelopersPage from "./pages/DevelopersPage";
+import ApiKeysPage from "./pages/ApiKeysPage";
 import NotFound from "./pages/NotFound";
 import DocsPage from "./pages/docs/DocsPage";
 import QuickStartPage from "./pages/docs/QuickStartPage";
@@ -41,6 +42,7 @@ import GoSDKPage from "./pages/docs/GoSDKPage";
 import WidgetsOverviewPage from "./pages/docs/WidgetsOverviewPage";
 import PayButtonPage from "./pages/docs/PayButtonPage";
 import PaymentFormPage from "./pages/docs/PaymentFormPage";
+import PricingPage from "./pages/docs/PricingPage";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +70,7 @@ const App = () => (
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/whatsapp" element={<WhatsAppPage />} />
                   <Route path="/developers" element={<DevelopersPage />} />
+                  <Route path="/api-keys" element={<ApiKeysPage />} />
                   <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/docs" element={<DocsPage />} />
@@ -85,6 +88,7 @@ const App = () => (
                   <Route path="/docs/widgets/overview" element={<WidgetsOverviewPage />} />
                   <Route path="/docs/widgets/pay-button" element={<PayButtonPage />} />
                   <Route path="/docs/widgets/payment-form" element={<PaymentFormPage />} />
+                  <Route path="/docs/pricing" element={<PricingPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <AIChatBubble />
