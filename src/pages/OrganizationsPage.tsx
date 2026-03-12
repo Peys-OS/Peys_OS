@@ -964,16 +964,21 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         localOrgs.push(newOrg);
         localStorage.setItem("organizations", JSON.stringify(localOrgs));
         
-        const { error: memberError } = await db
-          .from("organization_members")
-          .insert({
-            organization_id: newOrg.id,
-            user_id: ownerId,
-            email: ownerEmail || null,
-            role: "owner",
-            status: "active",
-            accepted_at: new Date().toISOString(),
-          }).catch(() => null);
+        // Try to add member, ignore errors
+        try {
+          await db
+            .from("organization_members")
+            .insert({
+              organization_id: newOrg.id,
+              user_id: ownerId,
+              email: ownerEmail || null,
+              role: "owner",
+              status: "active",
+              accepted_at: new Date().toISOString(),
+            });
+        } catch (e) {
+          // Ignore member creation errors in localStorage fallback
+        }
         
         onCreated(newOrg);
         setForm({ name: "", description: "", website: "" });
@@ -986,8 +991,8 @@ function CreateOrgModal({ open, onClose, onCreated }: { open: boolean; onClose: 
         .from("organization_members")
         .insert({
           organization_id: data.id,
-          user_id: user.id,
-          email: user.email,
+          user_id: ownerId,
+          email: ownerEmail || null,
           role: "owner",
           status: "active",
           accepted_at: new Date().toISOString(),
