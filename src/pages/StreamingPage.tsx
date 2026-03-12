@@ -44,6 +44,7 @@ export default function StreamingPage() {
   const { isLoggedIn, login, walletAddress } = useApp();
   const [streams, setStreams] = useState<PaymentStream[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({
     recipient: "",
@@ -78,6 +79,54 @@ export default function StreamingPage() {
       setStreams([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createStream = async () => {
+    if (!form.recipient || !form.amount) {
+      toast.error("Please fill in recipient and amount");
+      return;
+    }
+    try {
+      setCreating(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const totalAmount = Math.round(parseFloat(form.amount) * 1000000);
+      const duration = parseInt(form.duration) * 24 * 60 * 60;
+      const ratePerSecond = Math.round(totalAmount / duration);
+
+      const { error } = await supabase
+        .from("payment_streams")
+        .insert({
+          user_id: user.id,
+          recipient_address: form.recipient.includes('@') ? '' : form.recipient,
+          recipient_email: form.recipient.includes('@') ? form.recipient : null,
+          token: form.token,
+          total_amount: totalAmount,
+          streamed_amount: 0,
+          rate_per_second: ratePerSecond,
+          status: "active",
+          started_at: new Date().toISOString(),
+          ends_at: new Date(Date.now() + duration * 1000).toISOString(),
+          memo: null,
+        });
+
+      if (error) {
+        console.error("Error creating stream:", error);
+        toast.error(`Failed to create stream: ${error.message}`);
+        return;
+      }
+
+      toast.success("Payment stream created!");
+      setShowCreate(false);
+      setForm({ recipient: "", amount: "", token: "USDC", rate: "", duration: "30" });
+      fetchStreams();
+    } catch (err: any) {
+      console.error("Error:", err);
+      toast.error(err?.message || "Failed to create stream");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -183,8 +232,8 @@ export default function StreamingPage() {
                     <button onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
                       Cancel
                     </button>
-                    <button className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-                      Create Stream
+                    <button onClick={createStream} disabled={creating} className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50">
+                      {creating ? "Creating..." : "Create Stream"}
                     </button>
                   </div>
                 </div>
