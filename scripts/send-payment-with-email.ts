@@ -1,14 +1,31 @@
 import { ethers } from "ethers";
 import { createClient } from "@supabase/supabase-js";
 
-const PRIVATE_KEY = "0xcb601f9647fa12dea8081b5bfed574f40f4f41996401ea5901bcb314392e90e9";
-const RPC_URL = "https://base-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt";
-const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-const ESCROW_ADDRESS = "0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c";
+// Environment variables - never commit private keys to source code
+const PRIVATE_KEY = process.env.PRIVATE_KEY || process.env.PLATFORM_PRIVATE_KEY;
+const RPC_URL = process.env.RPC_URL || process.env.VITE_RPC_URL_BASE_SEPOLIA;
+const USDC_ADDRESS = process.env.USDC_ADDRESS || process.env.VITE_USDC_ADDRESS_BASE_SEPOLIA;
+const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS || process.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA;
 
-const SUPABASE_URL = "https://nhxjvhohfgihmrtiytix.supabase.co";
-const SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeGp2aG9oZmdpaG1ydGl5dGl4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzE3NzU4OCwiZXhwIjoyMDg4NzUzNTg4fQ.svLTHBbSBEdzE1GzipSGc14MTucYWZ3ItJaHCwuzG-E";
-const RESEND_API_KEY = "re_XyTJQzBf_MdgcRCDj2o9c4kkCekcAqaoQ";
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+// Validate required environment variables
+if (!PRIVATE_KEY) {
+  console.error("ERROR: PRIVATE_KEY environment variable is required");
+  process.exit(1);
+}
+
+if (!RPC_URL) {
+  console.error("ERROR: RPC_URL environment variable is required");
+  process.exit(1);
+}
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error("ERROR: Supabase environment variables are required");
+  process.exit(1);
+}
 
 const USDC_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)",
@@ -20,7 +37,7 @@ const ESCROW_ABI = [
   "function createPaymentWithDefaultExpiry(address token, uint256 amount, bytes32 claimHash, string calldata memo) external returns (bytes32 paymentId)"
 ];
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
 
 async function main() {
   const RECIPIENT_EMAIL = "moses.main21@gmail.com";
@@ -30,11 +47,11 @@ async function main() {
   console.log(`Recipient: ${RECIPIENT_EMAIL}`);
   console.log(`Amount: ${AMOUNT_USDC} USDC`);
 
-  const provider = new ethers.JsonRpcProvider(RPC_URL);
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  const provider = new ethers.JsonRpcProvider(RPC_URL!);
+  const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
   
-  const usdc = new ethers.Contract(USDC_ADDRESS, USDC_ABI, wallet);
-  const escrow = new ethers.Contract(ESCROW_ADDRESS, ESCROW_ABI, wallet);
+  const usdc = new ethers.Contract(USDC_ADDRESS!, USDC_ABI, wallet);
+  const escrow = new ethers.Contract(ESCROW_ADDRESS!, ESCROW_ABI, wallet);
   
   const amount = ethers.parseUnits(AMOUNT_USDC.toString(), 6);
   
