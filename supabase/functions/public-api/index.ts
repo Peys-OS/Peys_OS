@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function handleCreatePayment(req: Request, supabaseClient: any, apiKey: ApiKey) {
+async function handleCreatePayment(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
   const { recipient, amount, token, memo, expiresIn } = body;
 
@@ -281,7 +281,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, apiKey: Ap
   };
 }
 
-async function handleGetPayment(paymentId: string, supabaseClient: any) {
+async function handleGetPayment(paymentId: string, supabaseClient: unknown) {
   const { data, error } = await supabaseClient
     .from("payments")
     .select("*")
@@ -305,7 +305,7 @@ async function handleGetPayment(paymentId: string, supabaseClient: any) {
   };
 }
 
-async function handleListPayments(req: Request, supabaseClient: any, apiKey: ApiKey) {
+async function handleListPayments(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const url = new URL(req.url);
   const limit = parseInt(url.searchParams.get("limit") || "10");
   const offset = parseInt(url.searchParams.get("offset") || "0");
@@ -344,7 +344,7 @@ async function handleListPayments(req: Request, supabaseClient: any, apiKey: Api
   };
 }
 
-async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: any) {
+async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: unknown) {
   const body = await req.json();
   const { recipientWallet, secret } = body;
 
@@ -386,7 +386,7 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
   };
 }
 
-async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: any) {
+async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: unknown) {
   const { data: payment, error: paymentError } = await supabaseClient
     .from("payments")
     .select("*")
@@ -424,7 +424,7 @@ async function handleRefundPayment(paymentId: string, req: Request, supabaseClie
   };
 }
 
-async function handleCreateWebhook(req: Request, supabaseClient: any, apiKey: ApiKey) {
+async function handleCreateWebhook(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
   const { url, events, secret } = body;
 
@@ -454,7 +454,7 @@ async function handleCreateWebhook(req: Request, supabaseClient: any, apiKey: Ap
   };
 }
 
-async function handleListWebhooks(supabaseClient: any, apiKey: ApiKey) {
+async function handleListWebhooks(supabaseClient: unknown, apiKey: ApiKey) {
   const { data, error } = await supabaseClient
     .from("webhooks")
     .select("*")
@@ -473,7 +473,7 @@ async function handleListWebhooks(supabaseClient: any, apiKey: ApiKey) {
   };
 }
 
-async function handleDeleteWebhook(webhookId: string, supabaseClient: any) {
+async function handleDeleteWebhook(webhookId: string, supabaseClient: unknown) {
   const { error } = await supabaseClient
     .from("webhooks")
     .delete()
@@ -484,7 +484,7 @@ async function handleDeleteWebhook(webhookId: string, supabaseClient: any) {
   return { success: true, message: "Webhook deleted" };
 }
 
-async function handleGetUsage(supabaseClient: any, apiKey: ApiKey, month: string) {
+async function handleGetUsage(supabaseClient: unknown, apiKey: ApiKey, month: string) {
   const { data, error } = await supabaseClient
     .from("api_key_usage")
     .select("*")
@@ -504,7 +504,7 @@ async function handleGetUsage(supabaseClient: any, apiKey: ApiKey, month: string
   };
 }
 
-async function handleGetAccount(supabaseClient: any, apiKey: ApiKey) {
+async function handleGetAccount(supabaseClient: unknown, apiKey: ApiKey) {
   const { data: profile } = await supabaseClient
     .from("profiles")
     .select("*")

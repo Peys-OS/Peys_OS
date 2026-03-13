@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
 });
 
 async function dispatchToWebhook(
-  supabaseClient: any,
+  supabaseClient: unknown,
   webhook: Webhook,
   event: WebhookEvent
 ): Promise<void> {
