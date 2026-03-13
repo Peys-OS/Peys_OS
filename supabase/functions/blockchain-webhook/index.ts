@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function handlePaymentCreated(supabase: any, event: BlockchainEvent) {
+async function handlePaymentCreated(supabase: unknown, event: BlockchainEvent) {
   const { paymentId, transactionHash, data } = event;
 
   // Check if payment already exists
@@ -106,7 +106,7 @@ async function handlePaymentCreated(supabase: any, event: BlockchainEvent) {
   }
 }
 
-async function handlePaymentClaimed(supabase: any, event: BlockchainEvent) {
+async function handlePaymentClaimed(supabase: unknown, event: BlockchainEvent) {
   const { paymentId, transactionHash, data } = event;
 
   console.log('Processing PaymentClaimed event:', paymentId);
@@ -158,7 +158,7 @@ async function handlePaymentClaimed(supabase: any, event: BlockchainEvent) {
   }
 }
 
-async function handlePaymentRefunded(supabase: any, event: BlockchainEvent) {
+async function handlePaymentRefunded(supabase: unknown, event: BlockchainEvent) {
   const { paymentId, transactionHash } = event;
 
   console.log('Processing PaymentRefunded event:', paymentId);
