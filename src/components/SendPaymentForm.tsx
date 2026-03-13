@@ -193,24 +193,20 @@ export default function SendPaymentForm() {
           );
         } catch (txError: unknown) {
           console.error("Transaction error:", txError);
-          console.error("Error type:", typeof txError);
-          console.error("Error constructor:", (txError as Error)?.constructor?.name);
+          const errorMsg = (txError as Error).message || '';
           
-          const errorMsg = (txError as Error).message || (txError as { code?: number }).code?.toString() || '';
-          
-          // Check for user rejection
+          // Check for user rejection - more specific message
           if (errorMsg.includes('user rejected') || 
               errorMsg.includes('cancelled') ||
-              errorMsg.includes('Transaction was cancelled') ||
-              errorMsg.includes('TRANSACTION_REJECTED') ||
-              (txError as { code?: number }).code === 4001 ||
-              (txError as { code?: number }).code === 'ACTION_REJECTED') {
-            throw new Error("Transaction was cancelled. Please try again.");
+              errorMsg.includes('was not confirmed') ||
+              errorMsg.includes('WALLET_REJECTED') ||
+              errorMsg.includes('not submitted')) {
+            throw new Error("Transaction was not confirmed. Please click 'Confirm' in your wallet to sign the transaction.");
           }
           
           // Check for nonce or RPC errors
           if (errorMsg.includes('nonce') || errorMsg.includes('-32000') || errorMsg.includes('-32002') || errorMsg.includes('too many errors')) {
-            throw new Error("Wallet nonce issue detected. Please open your BitGet wallet, go to activity, and cancel or speed up any pending transactions. Then refresh this page and try again.");
+            throw new Error("Wallet nonce issue detected. Please open your wallet, go to activity, and cancel or speed up any pending transactions. Then refresh this page and try again.");
           }
           
           // For other errors, show a generic message but include details
