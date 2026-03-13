@@ -32,7 +32,8 @@ import QuickStartPage from "./pages/docs/QuickStartPage";
 import InstallationPage from "./pages/docs/InstallationPage";
 import PaymentsPage from "./pages/docs/PaymentsPage";
 import ClaimsPage from "./pages/docs/ClaimsPage";
-import WebhooksPage from "./pages/docs/WebhooksPage";
+import WebhooksDocsPage from "./pages/docs/WebhooksPage";
+import WebhooksPage from "./pages/WebhooksPage";
 import AuthenticationPage from "./pages/docs/AuthenticationPage";
 import PaymentsAPIPage from "./pages/docs/PaymentsAPIPage";
 import WebhooksAPIPage from "./pages/docs/WebhooksAPIPage";
@@ -81,7 +82,8 @@ const App = () => (
                   <Route path="/docs/installation" element={<InstallationPage />} />
                   <Route path="/docs/payments" element={<PaymentsPage />} />
                   <Route path="/docs/claims" element={<ClaimsPage />} />
-                  <Route path="/docs/webhooks" element={<WebhooksPage />} />
+                  <Route path="/webhooks" element={<WebhooksPage />} />
+                  <Route path="/docs/webhooks" element={<WebhooksDocsPage />} />
                   <Route path="/docs/api/authentication" element={<AuthenticationPage />} />
                   <Route path="/docs/api/payments" element={<PaymentsAPIPage />} />
                   <Route path="/docs/api/webhooks-api" element={<WebhooksAPIPage />} />
