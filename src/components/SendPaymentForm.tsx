@@ -193,10 +193,18 @@ export default function SendPaymentForm() {
           );
         } catch (txError: unknown) {
           console.error("Transaction error:", txError);
+          console.error("Error type:", typeof txError);
+          console.error("Error constructor:", (txError as Error)?.constructor?.name);
+          
           const errorMsg = (txError as Error).message || (txError as { code?: number }).code?.toString() || '';
           
           // Check for user rejection
-          if (errorMsg.includes('user rejected') || (txError as { code?: number }).code === 4001) {
+          if (errorMsg.includes('user rejected') || 
+              errorMsg.includes('cancelled') ||
+              errorMsg.includes('Transaction was cancelled') ||
+              errorMsg.includes('TRANSACTION_REJECTED') ||
+              (txError as { code?: number }).code === 4001 ||
+              (txError as { code?: number }).code === 'ACTION_REJECTED') {
             throw new Error("Transaction was cancelled. Please try again.");
           }
           

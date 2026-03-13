@@ -115,25 +115,43 @@ export function useEscrow() {
       
       // Send approval transaction
       try {
+        console.log("Sending approval transaction to:", usdcAddress);
         const result = await writeContract({
           address: usdcAddress,
           abi: ERC20_ABI,
           functionName: 'approve',
           args: [escrowContract, amount],
         } as any);
-        approvalHash = result as Hex | undefined;
+        
+        console.log("Approval result:", result, "type:", typeof result);
+        approvalHash = result as unknown as Hex | undefined;
+        
+        if (result === undefined || result === null) {
+          console.log("Approval returned undefined - checking if user rejected");
+          throw new Error("APPROVAL_REJECTED");
+        }
         
         console.log("Approval tx hash:", approvalHash);
       } catch (approveError: any) {
         console.error("Approval error:", approveError);
         console.error("Approval error message:", approveError?.message);
+        console.error("Approval error code:", approveError?.code);
+        console.error("Approval error name:", approveError?.name);
         
         // If user rejected, that's okay - they might have already approved
-        if (approveError.code === 4001 || approveError.message?.includes('user rejected') || approveError.message?.includes('cancelled')) {
+        const isRejected = 
+          approveError?.code === 4001 ||
+          approveError?.code === 'ACTION_REJECTED' ||
+          approveError?.message?.includes('user rejected') ||
+          approveError?.message?.includes('cancelled') ||
+          approveError?.message?.includes('User rejected') ||
+          approveError?.name === 'UserRejectedRequestError' ||
+          approveError?.name === 'UserRejectedRequest' ||
+          approveError?.message?.includes('APPROVAL_REJECTED');
+        
+        if (isRejected) {
           console.log("Approval rejected by user - continuing anyway");
           // Continue anyway - maybe allowance was already set
-        } else if (approveError.name === 'UserRejectedRequestError') {
-          console.log("Approval rejected by user (UserRejectedRequestError)");
         } else {
           console.warn("Approval transaction failed:", approveError);
           // Don't throw - continue and try anyway in case approval already happened
@@ -170,6 +188,12 @@ export function useEscrow() {
     let tx: Hex | undefined;
     
     try {
+      console.log("Calling writeContract with:", {
+        address: escrowContract,
+        functionName: 'createPaymentExternal',
+        args: [tokenAddress, amount, claimHash, expiry, memo]
+      });
+      
       const result = await writeContract({
         address: escrowContract,
         abi: ESCROW_ABI,
@@ -178,21 +202,35 @@ export function useEscrow() {
       } as any);
       
       console.log("CreatePayment result:", result, "type:", typeof result);
-      tx = result;
+      tx = result as unknown as Hex | undefined;
+      
+      // Check if result is undefined or null
+      if (result === undefined || result === null) {
+        console.log("writeContract returned undefined/null - checking wagmi state");
+        throw new Error("TRANSACTION_REJECTED");
+      }
     } catch (createError: any) {
       console.error("Create payment error:", createError);
       console.error("Error code:", createError?.code);
       console.error("Error message:", createError?.message);
       console.error("Error name:", createError?.name);
+      console.error("Error type:", typeof createError);
       
-      // If user rejected or transaction was cancelled
-      if (createError.code === 4001 || createError.message?.includes('user rejected') || createError.message?.includes('cancelled')) {
+      // Check for common wallet rejection patterns
+      const isRejected = 
+        createError?.code === 4001 ||
+        createError?.code === 'ACTION_REJECTED' ||
+        createError?.message?.includes('user rejected') ||
+        createError?.message?.includes('cancelled') ||
+        createError?.message?.includes('Transaction rejected') ||
+        createError?.message?.includes('User rejected') ||
+        createError?.name === 'UserRejectedRequestError' ||
+        createError?.name === 'UserRejectedRequest' ||
+        createError?.message?.includes('TRANSACTION_REJECTED');
+      
+      if (isRejected) {
+        console.log("Transaction rejected by user");
         throw new Error("Transaction was cancelled. Please try again.");
-      }
-      
-      // If user rejected via wallet UI
-      if (createError.name === 'UserRejectedRequestError' || createError.message?.includes('User rejected')) {
-        throw new Error("Transaction was rejected. Please try again and confirm the transaction in your wallet.");
       }
       
       // If it's a contract revert error
@@ -203,6 +241,11 @@ export function useEscrow() {
       // If it's a chain mismatch error
       if (createError.message?.includes('chain') || createError.message?.includes('network')) {
         throw new Error("Network mismatch. Please switch to the correct network in your wallet and try again.");
+      }
+      
+      // If it's a wallet connection issue
+      if (createError.message?.includes('wallet') || createError.message?.includes('connector')) {
+        throw new Error("Wallet connection issue. Please reconnect your wallet and try again.");
       }
       
       throw new Error(`Failed to create payment: ${createError.message || 'Unknown error'}`);
