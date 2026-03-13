@@ -1,8 +1,8 @@
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount, usePublicClient } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
-import { getChainConfig } from '@/lib/chains';
+import { getChainConfig, type ChainConfig } from '@/lib/chains';
 import { useCallback } from 'react';
-import { keccak256, toBytes, Address, Hex } from 'viem';
+import { keccak256, toBytes, Address, Hex, parseUnits, PublicClient } from 'viem';
 
 export interface Payment {
   sender: string;
@@ -14,13 +14,11 @@ export interface Payment {
   memo: string;
 }
 
+export { getChainConfig };
+
 export function useEscrow() {
-  const { data: hash, writeContract, isPending: isWriting } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ 
-    hash 
-  });
   const { chain, address } = useAccount();
-  const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
 
   const getContractAddresses = useCallback(() => {
     const chainId = chain?.id || 84532; // Default to Base Sepolia
@@ -32,19 +30,22 @@ export function useEscrow() {
     };
   }, [chain]);
 
-  const checkAllowance = useCallback(async (tokenAddress: Address, amount: bigint): Promise<boolean> => {
+  const checkAllowance = useCallback(async (
+    publicClient: PublicClient,
+    tokenAddress: Address,
+    amount: bigint
+  ): Promise<boolean> => {
     if (!address || !publicClient) return false;
     
     try {
       const { escrowContract } = getContractAddresses();
       
-      // Read allowance from the contract
       const allowanceData = await publicClient.readContract({
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: 'allowance',
         args: [address as Address, escrowContract as Address],
-      } as any);
+      });
       
       const currentAllowance = allowanceData as bigint;
       console.log(`Current allowance: ${currentAllowance}, Required: ${amount}`);
@@ -52,10 +53,9 @@ export function useEscrow() {
       return currentAllowance >= amount;
     } catch (error) {
       console.warn("Failed to check allowance:", error);
-      // If we can't check allowance, assume we need to approve
       return false;
     }
-  }, [address, publicClient, getContractAddresses]);
+  }, [address, getContractAddresses]);
 
   const createPayment = useCallback(async (
     tokenAddress: Address,
@@ -66,119 +66,100 @@ export function useEscrow() {
     onApprovalRequested?: () => void,
     onCreatingPayment?: () => void
   ): Promise<Hex | undefined> => {
+    if (!walletClient) {
+      throw new Error("Wallet not connected. Please connect your wallet first.");
+    }
+
+    if (!address) {
+      throw new Error("No wallet address found");
+    }
+
     const claimHash = keccak256(toBytes(secret));
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
     const { escrowContract, usdcAddress } = getContractAddresses();
 
     console.log("createPayment called", { tokenAddress, amount, escrowContract, usdcAddress, chainId: chain?.id });
 
-    // Validate wallet is connected
-    if (!address) {
-      console.error("No wallet address found");
-      throw new Error("No wallet connected. Please connect your wallet first.");
-    }
-
     // Validate chain is supported
     if (!chain) {
-      console.error("No chain connected");
       throw new Error("No blockchain network detected. Please switch to a supported network in your wallet.");
     }
 
-    // Check if we're on a supported network
-    const supportedChainIds = [84532, 44787, 420420421]; // Base Sepolia, Celo Alfajores, Polkadot
+    const supportedChainIds = [84532, 44787, 420420421];
     if (!supportedChainIds.includes(chain.id)) {
-      console.error("Unsupported chain:", chain.id);
-      throw new Error(`Unsupported network. Please switch to Base Sepolia, Celo Alfajores, or Polkadot testnet. Current: ${chain.name} (${chain.id})`);
+      throw new Error(`Unsupported network. Please switch to Base Sepolia, Celo Alfajores, or Polkadot testnet.`);
     }
 
-    if (!writeContract) {
-      console.error("writeContract is not available - wallet may not be connected");
-      throw new Error("Wallet not ready. Please make sure your wallet is connected and unlocked.");
-    }
+    const publicClient = walletClient.chain?.id 
+      ? walletClient.chain?.id === chain.id 
+        ? walletClient.extend((client: any) => ({
+            ...client,
+            chain: { ...client.chain, id: chain.id }
+          }))
+        : undefined
+      : undefined;
 
-    // Check if we have sufficient allowance (non-blocking, best-effort)
+    // Get public client from wallet
+    const { publicClient: pc } = walletClient as any;
+    
+    // Check allowance first
     let hasAllowance = false;
     try {
-      hasAllowance = await checkAllowance(tokenAddress, amount);
+      hasAllowance = await checkAllowance(pc, tokenAddress, amount);
     } catch (e) {
-      console.warn("Could not check allowance, will attempt approval:", e);
+      console.warn("Could not check allowance:", e);
     }
     
     if (!hasAllowance) {
-      // Need to approve first
       if (onApprovalRequested) {
         onApprovalRequested();
       }
       
       console.log("Sending approval transaction...");
-      let approvalHash: Hex | undefined;
       
-      // Send approval transaction
       try {
-        console.log("Sending approval transaction to:", usdcAddress);
-        const result = await writeContract({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const simulation = await pc.simulateContract({
           address: usdcAddress,
           abi: ERC20_ABI,
           functionName: 'approve',
-          args: [escrowContract, amount],
-        } as any);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          args: [escrowContract, amount] as any,
+          account: address,
+        });
         
-        console.log("Approval result:", result, "type:", typeof result);
-        approvalHash = result as unknown as Hex | undefined;
-        
-        if (result === undefined || result === null) {
-          console.log("Approval returned undefined - checking if user rejected");
-          throw new Error("APPROVAL_REJECTED");
-        }
-        
+        const approvalHash = await walletClient.writeContract(simulation.request);
         console.log("Approval tx hash:", approvalHash);
+        
+        // Wait for approval receipt
+        await pc.waitForTransactionReceipt({ hash: approvalHash });
+        
+        // Delay to ensure nonce is released
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (approveError: any) {
         console.error("Approval error:", approveError);
-        console.error("Approval error message:", approveError?.message);
-        console.error("Approval error code:", approveError?.code);
-        console.error("Approval error name:", approveError?.name);
         
-        // If user rejected, that's okay - they might have already approved
+        const errorMsg = approveError?.message || '';
         const isRejected = 
-          approveError?.code === 4001 ||
-          approveError?.code === 'ACTION_REJECTED' ||
-          approveError?.message?.includes('user rejected') ||
-          approveError?.message?.includes('cancelled') ||
-          approveError?.message?.includes('User rejected') ||
-          approveError?.name === 'UserRejectedRequestError' ||
-          approveError?.name === 'UserRejectedRequest' ||
-          approveError?.message?.includes('APPROVAL_REJECTED');
+          errorMsg.includes('user rejected') ||
+          errorMsg.includes('cancelled') ||
+          errorMsg.includes('rejected');
         
         if (isRejected) {
-          console.log("Approval rejected by user - continuing anyway");
-          // Continue anyway - maybe allowance was already set
-        } else {
-          console.warn("Approval transaction failed:", approveError);
-          // Don't throw - continue and try anyway in case approval already happened
+          throw new Error("Transaction was cancelled. Please try again.");
         }
-      }
-
-      // Wait for approval to be confirmed if we got a hash
-      if (approvalHash && publicClient) {
-        try {
-          console.log("Waiting for approval receipt...");
-          const receipt = await publicClient.waitForTransactionReceipt({ hash: approvalHash });
-          console.log("Approval receipt:", receipt.status);
-          // Longer delay to ensure nonce is properly released
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } catch (receiptError: any) {
-          console.warn("Failed to wait for approval receipt:", receiptError);
-          // Continue anyway - might have gone through
-        }
+        
+        // Continue anyway - maybe already approved
+        console.log("Continuing despite approval error");
       }
     } else {
       console.log("Already have sufficient allowance, skipping approval");
     }
 
-    // Add a small delay to ensure wallet is ready for next transaction
+    // Add delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Signal that we're now creating the payment
+    // Signal that we're creating the payment
     if (onCreatingPayment) {
       onCreatingPayment();
     }
@@ -186,7 +167,6 @@ export function useEscrow() {
     // Now send the createPayment transaction
     console.log("=== Creating Payment Transaction ===");
     console.log("Sending createPayment transaction...");
-    let tx: Hex | undefined;
     
     try {
       console.log("Calling writeContract with:", {
@@ -195,221 +175,110 @@ export function useEscrow() {
         args: [tokenAddress, amount, claimHash, expiry, memo]
       });
       
-      const result = await writeContract({
+      // Simulate first to check for errors
+      const simulation = await pc.simulateContract({
         address: escrowContract,
         abi: ESCROW_ABI,
         functionName: 'createPaymentExternal',
-        args: [tokenAddress, amount, claimHash, expiry, memo],
-      } as any);
+        args: [tokenAddress, amount, claimHash, expiry, memo] as never,
+        account: address,
+      });
       
-      console.log("=== writeContract Response ===");
-      console.log("CreatePayment result:", result, "type:", typeof result);
+      // Send the transaction
+      const txHash = await walletClient.writeContract(simulation.request) as Hex;
       
-      // If result is undefined, this typically means the wallet rejected the transaction
-      if (result === undefined || result === null) {
-        console.log("writeContract returned undefined - this usually means user rejected in wallet");
-        console.log("Wagmi isPending:", isWriting);
-        throw new Error("WALLET_REJECTED_NO_SIGNATURE");
-      }
+      console.log("=== Payment Transaction Submitted ===");
+      console.log("Transaction hash:", txHash);
       
-      tx = result as unknown as Hex | undefined;
+      return txHash;
       
-    } catch (createError: unknown) {
-      const error = createError as Error;
+    } catch (createError: any) {
       console.error("=== Create Payment Error ===");
-      console.error("Error:", error);
-      console.error("Error message:", error?.message);
-      console.error("Error name:", error?.name);
+      console.error("Error:", createError);
+      console.error("Error message:", createError?.message);
       
-      // Check for specific rejection errors
-      if (error?.message === 'WALLET_REJECTED_NO_SIGNATURE') {
-        throw new Error("Transaction was not confirmed in your wallet. Please click 'Confirm' in your wallet to sign the transaction.");
+      const errorMsg = createError?.message || '';
+      
+      // Check for user rejection
+      if (errorMsg.includes('user rejected') || 
+          errorMsg.includes('cancelled') ||
+          errorMsg.includes('rejected')) {
+        throw new Error("Transaction was cancelled. Please try again.");
       }
       
-      // Check for common wallet rejection patterns
-      const errorMsg = error?.message || '';
-      const isRejected = 
-        error?.message?.includes('user rejected') ||
-        error?.message?.includes('cancelled') ||
-        error?.message?.includes('Transaction rejected') ||
-        error?.message?.includes('User rejected') ||
-        error?.name === 'UserRejectedRequestError' ||
-        error?.name === 'UserRejectedRequest';
-      
-      if (isRejected) {
-        console.log("Transaction rejected by user in wallet");
-        throw new Error("Transaction was cancelled. Please try again and confirm the transaction in your wallet.");
+      // Check for contract revert
+      if (errorMsg.includes('execution reverted')) {
+        throw new Error(`Transaction failed on-chain: ${errorMsg.slice(0, 100)}`);
       }
       
-      // If it's a contract revert error
-      if (errorMsg.includes('execution reverted') || errorMsg.includes('0x')) {
-        throw new Error(`Transaction failed on-chain. The contract may have rejected it. Please check: ${errorMsg.slice(0, 100)}`);
+      // Check for chain mismatch
+      if (errorMsg.includes('chain')) {
+        throw new Error("Network mismatch. Please switch to the correct network.");
       }
       
-      // If it's a chain mismatch error
-      if (errorMsg.includes('chain') || errorMsg.includes('network')) {
-        throw new Error("Network mismatch. Please switch to the correct network in your wallet and try again.");
-      }
-      
-      // If it's a wallet connection issue
-      if (errorMsg.includes('wallet') || errorMsg.includes('connector')) {
-        throw new Error("Wallet connection issue. Please reconnect your wallet and try again.");
-      }
-      
-      // For any other errors, show the actual message
-      throw new Error(`Failed to create payment: ${error?.message || 'Unknown error'}`);
+      throw new Error(`Failed to create payment: ${errorMsg || 'Unknown error'}`);
     }
-
-    // Final check if tx is undefined
-    if (!tx) {
-      console.error("Transaction hash is undefined after successful call");
-      throw new Error("Transaction was not submitted. Please make sure you confirm the transaction in your wallet.");
-    }
-    
-    console.log("=== Payment Transaction Submitted ===");
-    console.log("Transaction hash:", tx);
-
-    return tx as unknown as Hex | undefined;
-  }, [writeContract, publicClient, checkAllowance, getContractAddresses]);
+  }, [walletClient, address, chain, checkAllowance, getContractAddresses]);
 
   const claimPayment = useCallback(async (
     paymentId: Hex,
     secret: string
   ): Promise<Hex | undefined> => {
-    const secretHash = keccak256(toBytes(secret));
-    const { escrowContract } = getContractAddresses();
-
-    if (!writeContract) {
-      console.error("writeContract is not available");
-      return undefined;
+    if (!walletClient) {
+      throw new Error("Wallet not connected");
     }
 
-    const tx = await writeContract({
-      address: escrowContract,
-      abi: ESCROW_ABI,
-      functionName: 'claim',
-      args: [paymentId, secretHash],
-    } as any);
+    const { escrowContract } = getContractAddresses();
+    const secretHash = keccak256(toBytes(secret));
 
-    return tx as unknown as Hex | undefined;
-  }, [writeContract, getContractAddresses]);
+    try {
+      const { publicClient: pc } = walletClient as any;
+      
+      const { request } = await pc.simulateContract({
+        address: escrowContract,
+        abi: ESCROW_ABI,
+        functionName: 'claim',
+        args: [paymentId, secretHash, address as Address],
+        account: address,
+      });
+
+      const txHash = await walletClient.writeContract(request);
+      return txHash;
+    } catch (error: any) {
+      console.error("Claim error:", error);
+      throw new Error(`Failed to claim: ${error.message}`);
+    }
+  }, [walletClient, address, getContractAddresses]);
 
   const refundPayment = useCallback(async (paymentId: Hex): Promise<Hex | undefined> => {
-    const { escrowContract } = getContractAddresses();
-
-    if (!writeContract) {
-      console.error("writeContract is not available");
-      return undefined;
+    if (!walletClient) {
+      throw new Error("Wallet not connected");
     }
 
-    const tx = await writeContract({
-      address: escrowContract,
-      abi: ESCROW_ABI,
-      functionName: 'refundAfterExpiry',
-      args: [paymentId],
-    } as any);
+    const { escrowContract } = getContractAddresses();
 
-    return tx as unknown as Hex | undefined;
-  }, [writeContract, getContractAddresses]);
+    try {
+      const { publicClient: pc } = walletClient as any;
+      
+      const { request } = await pc.simulateContract({
+        address: escrowContract,
+        abi: ESCROW_ABI,
+        functionName: 'refundAfterExpiry',
+        args: [paymentId],
+        account: address,
+      });
+
+      const txHash = await walletClient.writeContract(request);
+      return txHash;
+    } catch (error: any) {
+      console.error("Refund error:", error);
+      throw new Error(`Failed to refund: ${error.message}`);
+    }
+  }, [walletClient, address, getContractAddresses]);
 
   return {
     createPayment,
     claimPayment,
     refundPayment,
-    getContractAddresses,
-    hash,
-    isWriting,
-    isConfirming,
-    isSuccess,
   };
 }
-
-export function usePayment(paymentId: Hex | undefined, chainId?: number) {
-  const { escrowContract } = getChainConfig(chainId || 420420421);
-  
-  const { data } = useReadContract({
-    address: escrowContract,
-    abi: ESCROW_ABI,
-    functionName: 'getPayment',
-    args: paymentId !== undefined ? [paymentId] : undefined,
-    query: {
-      enabled: paymentId !== undefined,
-    },
-  });
-
-  if (!data) return null;
-
-  return {
-    sender: data[0],
-    token: data[1],
-    amount: data[2],
-    expiry: data[3],
-    claimed: data[4],
-    refunded: data[5],
-    memo: data[6],
-  } as unknown as Payment;
-}
-
-export function useTokenBalance(tokenAddress: Address, walletAddress: Address | undefined) {
-  const { data, isError, isLoading, refetch } = useReadContract({
-    address: tokenAddress,
-    abi: ERC20_ABI,
-    functionName: 'balanceOf',
-    args: walletAddress ? [walletAddress] : undefined,
-    query: {
-      enabled: !!walletAddress && !!tokenAddress,
-    },
-  });
-
-  return {
-    balance: data ?? BigInt(0),
-    isLoading,
-    isError,
-    refetch,
-  };
-}
-
-export function useAllowance(tokenAddress: Address, owner: Address | undefined, chainId?: number) {
-  const { escrowContract } = getChainConfig(chainId || 420420421);
-  
-  const { data, isError, isLoading, refetch } = useReadContract({
-    address: tokenAddress,
-    abi: ERC20_ABI,
-    functionName: 'allowance',
-    args: owner ? [owner, escrowContract] : undefined,
-    query: {
-      enabled: !!owner,
-    },
-  });
-
-  return {
-    allowance: data ?? BigInt(0),
-    isLoading,
-    isError,
-    refetch,
-  };
-}
-
-export function useApproveToken(chainId?: number) {
-  const { data: hash, writeContract, isPending: isWriting } = useWriteContract();
-  const { escrowContract } = getChainConfig(chainId || 420420421);
-
-  const approve = useCallback(async (tokenAddress: Address, amount: bigint) => {
-    const tx = await writeContract({
-      address: tokenAddress,
-      abi: ERC20_ABI,
-      functionName: 'approve',
-      args: [escrowContract, amount],
-    } as any);
-
-    return tx;
-  }, [writeContract, escrowContract]);
-
-  return {
-    approve,
-    hash,
-    isWriting,
-  };
-}
-
-export { getChainConfig };
