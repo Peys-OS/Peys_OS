@@ -12,7 +12,16 @@ import featureAnalytics from "@/assets/feature-analytics.png";
 
 type Segment = "individual" | "organization" | "developers";
 
-const individualFeatures = [
+interface Feature {
+  icon: React.ComponentType;
+  title: string;
+  desc: string;
+  image: string;
+  link?: string;
+  coming?: boolean;
+}
+
+const individualFeatures: Feature[] = [
   {
     icon: Link2,
     title: "Magic Claim Links",
@@ -50,7 +59,7 @@ const individualFeatures = [
   },
 ];
 
-const orgFeatures = [
+const orgFeatures: Feature[] = [
   {
     icon: Users,
     title: "Batch Payroll",
@@ -81,7 +90,7 @@ const orgFeatures = [
   },
 ];
 
-const devFeatures = [
+const devFeatures: Feature[] = [
   {
     icon: Code,
     title: "REST API",
@@ -182,7 +191,7 @@ export default function FeaturesSection() {
             className="mx-auto mt-14 max-w-5xl sm:mt-20"
           >
             <div className="grid gap-6 sm:grid-cols-2">
-              {features.map((f: any, i) => {
+              {features.map((f: Feature, i) => {
                 const Icon = f.icon;
                 return (
                   <motion.div
