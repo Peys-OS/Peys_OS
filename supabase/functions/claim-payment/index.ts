@@ -135,6 +135,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Dispatch webhook event for payment.claimed
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && serviceRoleKey) {
+        await fetch(`${supabaseUrl}/functions/v1/webhook-dispatcher`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            event_type: "payment.claimed",
+            payment_id: payment.payment_id,
+            payload: {
+              id: payment.id,
+              payment_id: payment.payment_id,
+              amount: payment.amount,
+              token: payment.token,
+              sender_email: payment.sender_email,
+              claimer_email: claimerProfile?.email || user.email,
+              claimed_at: new Date().toISOString(),
+            },
+          }),
+        });
+      }
+    } catch (webhookError) {
+      console.error("Error dispatching webhook:", webhookError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
