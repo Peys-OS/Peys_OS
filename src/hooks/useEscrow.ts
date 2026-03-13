@@ -184,6 +184,7 @@ export function useEscrow() {
     }
 
     // Now send the createPayment transaction
+    console.log("=== Creating Payment Transaction ===");
     console.log("Sending createPayment transaction...");
     let tx: Hex | undefined;
     
@@ -201,61 +202,72 @@ export function useEscrow() {
         args: [tokenAddress, amount, claimHash, expiry, memo],
       } as any);
       
+      console.log("=== writeContract Response ===");
       console.log("CreatePayment result:", result, "type:", typeof result);
+      
+      // If result is undefined, this typically means the wallet rejected the transaction
+      if (result === undefined || result === null) {
+        console.log("writeContract returned undefined - this usually means user rejected in wallet");
+        console.log("Wagmi isPending:", isWriting);
+        throw new Error("WALLET_REJECTED_NO_SIGNATURE");
+      }
+      
       tx = result as unknown as Hex | undefined;
       
-      // Check if result is undefined or null
-      if (result === undefined || result === null) {
-        console.log("writeContract returned undefined/null - checking wagmi state");
-        throw new Error("TRANSACTION_REJECTED");
+    } catch (createError: unknown) {
+      const error = createError as Error;
+      console.error("=== Create Payment Error ===");
+      console.error("Error:", error);
+      console.error("Error message:", error?.message);
+      console.error("Error name:", error?.name);
+      
+      // Check for specific rejection errors
+      if (error?.message === 'WALLET_REJECTED_NO_SIGNATURE') {
+        throw new Error("Transaction was not confirmed in your wallet. Please click 'Confirm' in your wallet to sign the transaction.");
       }
-    } catch (createError: any) {
-      console.error("Create payment error:", createError);
-      console.error("Error code:", createError?.code);
-      console.error("Error message:", createError?.message);
-      console.error("Error name:", createError?.name);
-      console.error("Error type:", typeof createError);
       
       // Check for common wallet rejection patterns
+      const errorMsg = error?.message || '';
       const isRejected = 
-        createError?.code === 4001 ||
-        createError?.code === 'ACTION_REJECTED' ||
-        createError?.message?.includes('user rejected') ||
-        createError?.message?.includes('cancelled') ||
-        createError?.message?.includes('Transaction rejected') ||
-        createError?.message?.includes('User rejected') ||
-        createError?.name === 'UserRejectedRequestError' ||
-        createError?.name === 'UserRejectedRequest' ||
-        createError?.message?.includes('TRANSACTION_REJECTED');
+        error?.message?.includes('user rejected') ||
+        error?.message?.includes('cancelled') ||
+        error?.message?.includes('Transaction rejected') ||
+        error?.message?.includes('User rejected') ||
+        error?.name === 'UserRejectedRequestError' ||
+        error?.name === 'UserRejectedRequest';
       
       if (isRejected) {
-        console.log("Transaction rejected by user");
-        throw new Error("Transaction was cancelled. Please try again.");
+        console.log("Transaction rejected by user in wallet");
+        throw new Error("Transaction was cancelled. Please try again and confirm the transaction in your wallet.");
       }
       
       // If it's a contract revert error
-      if (createError.message?.includes('execution reverted') || createError.message?.includes('0x')) {
-        throw new Error(`Transaction failed on-chain. The contract may have rejected it. Please check: ${createError.message?.slice(0, 100)}`);
+      if (errorMsg.includes('execution reverted') || errorMsg.includes('0x')) {
+        throw new Error(`Transaction failed on-chain. The contract may have rejected it. Please check: ${errorMsg.slice(0, 100)}`);
       }
       
       // If it's a chain mismatch error
-      if (createError.message?.includes('chain') || createError.message?.includes('network')) {
+      if (errorMsg.includes('chain') || errorMsg.includes('network')) {
         throw new Error("Network mismatch. Please switch to the correct network in your wallet and try again.");
       }
       
       // If it's a wallet connection issue
-      if (createError.message?.includes('wallet') || createError.message?.includes('connector')) {
+      if (errorMsg.includes('wallet') || errorMsg.includes('connector')) {
         throw new Error("Wallet connection issue. Please reconnect your wallet and try again.");
       }
       
-      throw new Error(`Failed to create payment: ${createError.message || 'Unknown error'}`);
+      // For any other errors, show the actual message
+      throw new Error(`Failed to create payment: ${error?.message || 'Unknown error'}`);
     }
 
-    // Check if tx is undefined - this happens when user rejects the transaction or wallet error
+    // Final check if tx is undefined
     if (!tx) {
-      console.error("Transaction returned undefined - user may have rejected");
-      throw new Error("Transaction was not submitted. This usually means the transaction was cancelled or rejected in your wallet. Please try again and confirm the transaction.");
+      console.error("Transaction hash is undefined after successful call");
+      throw new Error("Transaction was not submitted. Please make sure you confirm the transaction in your wallet.");
     }
+    
+    console.log("=== Payment Transaction Submitted ===");
+    console.log("Transaction hash:", tx);
 
     return tx as unknown as Hex | undefined;
   }, [writeContract, publicClient, checkAllowance, getContractAddresses]);
