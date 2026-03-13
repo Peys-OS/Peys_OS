@@ -93,7 +93,7 @@ export default function BatchPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => parseCSV(ev.target?.result as string);
+    reader.onload = (ev) => parseCSV((ev.target?.result as string | undefined) ?? "");
     reader.readAsText(file);
   };
 
@@ -102,7 +102,7 @@ export default function BatchPage() {
     const file = e.dataTransfer.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => parseCSV(ev.target?.result as string);
+    reader.onload = (ev) => parseCSV((ev.target?.result as string | undefined) ?? "");
     reader.readAsText(file);
   };
 
@@ -179,7 +179,8 @@ export default function BatchPage() {
             )
             );
           }
-        } catch (error: any) {
+        } catch (err: unknown) {
+        const error = err as { message?: string };
         console.error("Payment error:", error);
         setRecipients((prev) =>
           prev.map((r, idx) =>
