@@ -157,8 +157,9 @@ export default function AIChatBubble() {
           } catch { /* ignore */ }
         }
       }
-    } catch (e: any) {
-      if (e.name !== "AbortError") {
+    } catch (e: unknown) {
+      const error = e as { name?: string };
+      if (error.name !== "AbortError") {
         console.error("Chat error:", e);
         if (!assistantContent) {
           setMessages((prev) => [...prev, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
