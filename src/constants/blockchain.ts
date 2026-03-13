@@ -5,7 +5,9 @@ import { ESCROW_ABI as CORRECT_ESCROW_ABI, ERC20_ABI } from "@/lib/abis";
 export { ERC20_ABI };
 export const ESCROW_ABI = CORRECT_ESCROW_ABI;
 
-export const ESCROW_CONTRACT_ADDRESS: Address = "***REMOVED***" as Address;
-export const USDC_ADDRESS: Address = "0x5aD4d8d5D8e3b8dA4dC4f4F4f4f4f4f4f4f4f4f4f" as Address;
-export const USDT_ADDRESS: Address = "0x5aD4d8d5D8e3b8dA4dC4f4F4f4f4f4f4f4f4f4f4f" as Address;
-export const RPC_URL = "https://eth-asset-hub-paseo.dotters.network";
+// NOTE: These addresses are now deprecated. Use chain-specific addresses from src/lib/chains.ts instead.
+// These fallback values are kept for backward compatibility but should not be used in new code.
+export const ESCROW_CONTRACT_ADDRESS: Address = (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000001") as Address;
+export const USDC_ADDRESS: Address = (import.meta.env.VITE_USDC_ADDRESS || "0x0000000000000000000000000000000000000001") as Address;
+export const USDT_ADDRESS: Address = (import.meta.env.VITE_USDT_ADDRESS || "0x0000000000000000000000000000000000000001") as Address;
+export const RPC_URL = import.meta.env.VITE_RPC_URL_BASE_SEPOLIA || "https://sepolia.base.org";
