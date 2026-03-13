@@ -450,7 +450,16 @@ export default function SendPaymentForm() {
 
                 {/* Token Selector */}
                 <div className="flex gap-2">
-                  {(["USDC", "USDT"] as Token[]).map((t) => (
+                  {(["USDC", "USDT"] as Token[])
+                    .filter((t) => {
+                      // Filter out USDT if not available on current network
+                      if (t === "USDT") {
+                        const chainConfig = getChainConfig(selectedNetwork);
+                        return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
+                      }
+                      return true;
+                    })
+                    .map((t) => (
                     <button
                       key={t}
                       onClick={() => setToken(t)}

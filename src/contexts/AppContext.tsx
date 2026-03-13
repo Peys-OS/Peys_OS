@@ -92,7 +92,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let totalUSDT = 0;
 
     const readBalance = async (client: typeof publicClients[number], tokenAddr: Address) => {
-      if (tokenAddr === ZERO_ADDRESS) return 0;
+      // Skip if token address is empty, zero address, or placeholder
+      if (!tokenAddr || tokenAddr === ZERO_ADDRESS || tokenAddr.startsWith("0x0000000000000000000000000000000000000000")) {
+        console.log(`Skipping balance check for invalid token address: ${tokenAddr}`);
+        return 0;
+      }
       try {
         const [raw] = await Promise.all([
           (client as any).readContract({
