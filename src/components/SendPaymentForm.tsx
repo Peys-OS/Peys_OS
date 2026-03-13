@@ -191,12 +191,12 @@ export default function SendPaymentForm() {
               setSendingPhase("creating");
             }
           );
-        } catch (txError: any) {
+        } catch (txError: unknown) {
           console.error("Transaction error:", txError);
-          const errorMsg = txError.message || txError.code?.toString() || '';
+          const errorMsg = (txError as Error).message || (txError as { code?: number }).code?.toString() || '';
           
           // Check for user rejection
-          if (errorMsg.includes('user rejected') || txError.code === 4001) {
+          if (errorMsg.includes('user rejected') || (txError as { code?: number }).code === 4001) {
             throw new Error("Transaction was cancelled. Please try again.");
           }
           
@@ -217,7 +217,7 @@ export default function SendPaymentForm() {
         let receipt;
         try {
           receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        } catch (receiptError: any) {
+        } catch (receiptError: unknown) {
           console.error("Failed to get receipt:", receiptError);
           // If the transaction was submitted but we can't get receipt, it might still have gone through
           // Show success with a note
@@ -234,7 +234,7 @@ export default function SendPaymentForm() {
         // Find the PaymentCreated event log
         const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
         
-        const log = receipt?.logs ? (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic) : null;
+        const log = receipt?.logs ? (receipt.logs as Array<{ topics: string[], data: string }>).find(l => l.topics[0] === paymentCreatedTopic) : null;
         
         let blockchainPaymentId: string | null = null;
         
@@ -244,7 +244,7 @@ export default function SendPaymentForm() {
               abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
               data: log.data,
               topics: log.topics,
-            }) as any;
+            }) as { args: { paymentId: string } };
             
             blockchainPaymentId = decoded.args.paymentId;
           } catch (decodeError) {
@@ -302,9 +302,9 @@ export default function SendPaymentForm() {
         setStep("done");
         fireBurst();
         toast.success("Payment created! Share the link to get paid 🎉");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Payment creation failed:", err);
-        const errorMessage = err.message || "Failed to create payment";
+        const errorMessage = (err as Error).message || "Failed to create payment";
         
         // Check for nonce-related errors
         if (errorMessage.includes('nonce') || errorMessage.includes('Nonce too low')) {
@@ -331,7 +331,9 @@ export default function SendPaymentForm() {
       url: fullLink,
     };
     if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
+      try { await navigator.share(shareData); } catch {
+        // Ignore share errors
+      }
     } else {
       copyLink();
     }
