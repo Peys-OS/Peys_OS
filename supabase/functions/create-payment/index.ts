@@ -143,6 +143,41 @@ Deno.serve(async (req) => {
       console.error("Error sending email notification:", emailError);
     }
 
+    // Dispatch webhook event for payment.created
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && serviceRoleKey) {
+        await fetch(`${supabaseUrl}/functions/v1/webhook-dispatcher`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            event_type: "payment.created",
+            payment_id: payment.payment_id,
+            payload: {
+              id: payment.id,
+              payment_id: payment.payment_id,
+              sender_email: senderProfile?.email || user.email || "",
+              sender_wallet: senderWallet,
+              recipient_email: recipientEmail,
+              amount,
+              token,
+              memo,
+              claim_link: fullClaimLink,
+              expires_at: expiresAt.toISOString(),
+              created_at: payment.created_at,
+            },
+          }),
+        });
+      }
+    } catch (webhookError) {
+      console.error("Error dispatching webhook:", webhookError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
