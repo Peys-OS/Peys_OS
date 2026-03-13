@@ -122,9 +122,10 @@ export default function StreamingPage() {
       setShowCreate(false);
       setForm({ recipient: "", amount: "", token: "USDC", rate: "", duration: "30" });
       fetchStreams();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error("Error:", err);
-      toast.error(err?.message || "Failed to create stream");
+      toast.error(error?.message || "Failed to create stream");
     } finally {
       setCreating(false);
     }
