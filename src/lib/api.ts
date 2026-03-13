@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { supabase } from "@/integrations/supabase/client";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const API_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : 'http://localhost:54321/functions/v1';
 
 class ApiClient {
   private baseUrl: string;
@@ -7,13 +10,27 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+    
+    return headers;
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    const headers = await this.getAuthHeaders();
     
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...headers,
         ...options.headers,
       },
     });
@@ -42,7 +59,7 @@ class ApiClient {
       transactionHash: string;
       claimLink: string;
       expiry: string;
-    }>('/escrow/create', {
+    }>('/create-payment', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -58,7 +75,10 @@ class ApiClient {
       memo: string;
       expiry: string;
       status: 'pending' | 'claimed' | 'refunded' | 'expired';
-    }>(`/escrow/${id}`);
+    }>(`/get-payment`, {
+      method: 'POST',
+      body: JSON.stringify({ id }),
+    });
   }
 
   async claimPayment(id: string, data: {
@@ -67,22 +87,31 @@ class ApiClient {
     recipientWallet?: string;
     transactionHash?: string;
   }) {
-    return this.request<{ success: boolean; transactionHash: string }>(`/escrow/${id}/claim`, {
+    return this.request<{ success: boolean; transactionHash: string }>('/claim-payment', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ id, ...data }),
     });
   }
 
   async getUserPayments(walletAddress: string) {
-    return this.request<any[]>(`/escrow/user/${walletAddress}`);
+    return this.request<any[]>('/get-user-payments', {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress }),
+    });
   }
 
-  async getTokenBalance(tokenAddress: string, walletAddress: string) {
-    return this.request<{ balance: string }>(`/escrow/token/${tokenAddress}/balance/${walletAddress}`);
+  async getTokenBalance(tokenAddress: string, walletAddress: string, chainId?: number) {
+    return this.request<{ balance: string }>('/get-token-balance', {
+      method: 'POST',
+      body: JSON.stringify({ tokenAddress, walletAddress, chainId }),
+    });
   }
 
-  async getAllowance(tokenAddress: string, ownerAddress: string) {
-    return this.request<{ allowance: string }>(`/escrow/token/${tokenAddress}/allowance/${ownerAddress}`);
+  async getAllowance(tokenAddress: string, ownerAddress: string, chainId?: number) {
+    return this.request<{ allowance: string }>('/get-token-allowance', {
+      method: 'POST',
+      body: JSON.stringify({ tokenAddress, ownerAddress, chainId }),
+    });
   }
 
   async syncUser(data: {
@@ -98,28 +127,10 @@ class ApiClient {
       id: string;
       email?: string;
       walletAddress?: string;
-    }>('/users/sync', {
+    }>('/sync-user', {
       method: 'POST',
       body: JSON.stringify(data),
     });
-  }
-
-  async getUser(id: string) {
-    return this.request<{
-      id: string;
-      email?: string;
-      name?: string;
-      walletAddress?: string;
-    }>(`/users/${id}`);
-  }
-
-  async getUserByWallet(walletAddress: string) {
-    return this.request<{
-      id: string;
-      email?: string;
-      name?: string;
-      walletAddress?: string;
-    }>(`/users/wallet/${walletAddress}`);
   }
 }
 
