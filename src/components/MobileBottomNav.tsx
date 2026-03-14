@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const primaryItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/pay", label: "Pay", icon: Send },
   { to: "/send", label: "Send", icon: Send },
+  { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
 
 const moreItems = [

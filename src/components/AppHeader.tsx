@@ -17,8 +17,7 @@ export default function AppHeader() {
   const [devOpen, setDevOpen] = useState(false);
 
   const personalItems = [
-    { to: "/pay", label: "Pay Someone", desc: "Pay without account", icon: Send },
-    { to: "/send", label: "Send Money", desc: "Send via link or address", icon: Send },
+    { to: "/send", label: "Send Money", desc: "Send via link, email, phone, or wallet", icon: Send },
     { to: "/request", label: "Request", desc: "Create payment request", icon: FileText },
     { to: "/contacts", label: "Contacts", desc: "Manage recipients", icon: Users },
     { to: "/whatsapp", label: "WhatsApp", desc: "Pay via chat", icon: MessageCircle },

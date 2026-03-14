@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -38,7 +38,7 @@ export default function SendPaymentForm() {
   const [token, setToken] = useState<Token>("USDC");
   const [selectedNetwork, setSelectedNetwork] = useState<number>(84532);
   const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
-  const [recipientType, setRecipientType] = useState<"email" | "phone">("email");
+  const [recipientType, setRecipientType] = useState<"email" | "phone" | "wallet">("email");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
   const [sendingPhase, setSendingPhase] = useState<"approving" | "creating" | "waiting">("waiting");
@@ -103,7 +103,9 @@ export default function SendPaymentForm() {
     if (!isLoggedIn) { login(); return; }
     if (step === "form") {
       if (!recipient) {
-        toast.error(recipientType === "email" ? "Please enter a recipient email" : "Please enter a phone number");
+        if (recipientType === "email") toast.error("Please enter a recipient email");
+        else if (recipientType === "phone") toast.error("Please enter a phone number");
+        else toast.error("Please enter a wallet address");
         return;
       }
       if (recipientType === "email" && !recipient.includes("@")) {
@@ -112,6 +114,10 @@ export default function SendPaymentForm() {
       }
       if (recipientType === "phone" && recipient.replace(/\D/g, "").length < 10) {
         toast.error("Please enter a valid phone number");
+        return;
+      }
+      if (recipientType === "wallet" && (!recipient.startsWith("0x") || recipient.length !== 42)) {
+        toast.error("Please enter a valid Ethereum wallet address (0x...)");
         return;
       }
       if (!amount || Number(amount) <= 0) {
@@ -554,6 +560,18 @@ export default function SendPaymentForm() {
                     <Phone className="h-4 w-4" />
                     Phone
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType("wallet")}
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+                      recipientType === "wallet"
+                        ? "bg-primary text-primary-foreground shadow-glow"
+                        : "border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    Wallet
+                  </button>
                 </div>
                 
                 <div className="relative" ref={recipientRef}>
@@ -562,8 +580,12 @@ export default function SendPaymentForm() {
                       value={recipient}
                       onChange={(e) => { setRecipient(e.target.value); setShowContacts(true); }}
                       onFocus={() => setShowContacts(true)}
-                      placeholder={recipientType === "email" ? "Recipient email address" : "Recipient phone number"}
-                      type={recipientType === "email" ? "email" : "tel"}
+                      placeholder={
+                        recipientType === "email" ? "Recipient email address" : 
+                        recipientType === "phone" ? "Recipient phone number" : 
+                        "0x..."
+                      }
+                      type="text"
                       className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                     />
                     <button
