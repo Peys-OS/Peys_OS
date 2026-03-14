@@ -28,12 +28,15 @@ interface PaymentData {
 
 export default function ClaimPage() {
   const { id } = useParams<{ id: string }>();
-  const { isLoggedIn, login } = useApp();
+  const { isLoggedIn, login, user: appUser } = useApp();
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [error, setError] = useState("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [existingUser, setExistingUser] = useState<boolean | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPayment = async () => {
@@ -56,20 +59,73 @@ export default function ClaimPage() {
       }
 
       setPayment(data as PaymentData);
+      
+      // Check if recipient email already exists in profiles
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, email")
+        .eq("email", (data as PaymentData).recipient_email)
+        .single();
+      
+      setExistingUser(!!profile);
+      setUserEmail((data as PaymentData).recipient_email);
       setLoading(false);
     };
 
     fetchPayment();
   }, [id]);
+  
+  // Auto-check auth state when login completes and attempt to claim
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (isLoggedIn && payment && !claimed && !claiming) {
+      handleClaim();
+    }
+  }, [isLoggedIn]);
 
   const { claimPayment } = useEscrow();
 
-  const handleClaim = async () => {
-    if (!isLoggedIn) {
-      login();
+  const handleLoginAndClaim = async () => {
+    setLoginError(null);
+    
+    // If already logged in, verify email matches before claiming
+    if (isLoggedIn && appUser?.email) {
+      const userEmailLower = appUser.email.toLowerCase();
+      const paymentEmailLower = payment?.recipient_email.toLowerCase() || "";
+      
+      if (userEmailLower !== paymentEmailLower) {
+        setLoginError(`This payment was sent to ${payment?.recipient_email}. Please sign out and sign in with that email.`);
+        return;
+      }
+      
+      // Same email - proceed to claim
+      await handleClaim();
       return;
     }
-
+    
+    // Not logged in - prompt to login
+    login();
+  };
+  
+  // Check login status after login completes
+  useEffect(() => {
+    if (isLoggedIn && payment && !claimed && !claiming) {
+      // Check if logged in user email matches payment recipient
+      if (appUser?.email) {
+        const userEmailLower = appUser.email.toLowerCase();
+        const paymentEmailLower = payment.recipient_email.toLowerCase();
+        
+        if (userEmailLower !== paymentEmailLower) {
+          setLoginError(`This payment was sent to ${payment.recipient_email}. Please sign out and sign in with that email.`);
+          return;
+        }
+      }
+      // Email matches - auto claim
+      handleClaim();
+    }
+  }, [isLoggedIn]);
+  
+  const handleClaim = async () => {
     if (!payment) return;
 
     setClaiming(true);
@@ -77,6 +133,16 @@ export default function ClaimPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please sign in to claim");
+        setClaiming(false);
+        return;
+      }
+
+      // Verify the logged-in user's email matches the payment recipient
+      const userEmail = user.email?.toLowerCase();
+      const paymentEmail = payment.recipient_email.toLowerCase();
+      
+      if (userEmail !== paymentEmail) {
+        toast.error(`Please sign in with ${payment.recipient_email} to claim this payment`);
         setClaiming(false);
         return;
       }
@@ -124,9 +190,10 @@ export default function ClaimPage() {
       setClaimed(true);
       fireBurst();
       toast.success("Payment claimed successfully! 🎉");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Claim failed:", err);
-      toast.error(err.message || "Failed to claim payment");
+      const errorMessage = err instanceof Error ? err.message : "Failed to claim payment";
+      toast.error(errorMessage);
     } finally {
       setClaiming(false);
     }
@@ -230,18 +297,30 @@ export default function ClaimPage() {
                   <p className="text-sm font-medium text-primary">Already claimed</p>
                 </div>
               ) : (
-                <button
-                  onClick={handleClaim}
-                  disabled={claiming}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
-                >
-                  {claiming ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4" />
+                <div className="space-y-4">
+                  {loginError && (
+                    <div className="rounded-lg bg-destructive/10 p-3 text-center">
+                      <p className="text-sm text-destructive">{loginError}</p>
+                    </div>
                   )}
-                  {isLoggedIn ? "Claim Payment" : "Sign In & Claim"}
-                </button>
+                  {existingUser === false && (
+                    <div className="rounded-lg bg-primary/10 p-3 text-center">
+                      <p className="text-sm text-primary">New to Peys? Sign up to claim your {payment?.amount} {payment?.token}</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLoginAndClaim}
+                    disabled={claiming}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {claiming ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowRight className="h-4 w-4" />
+                    )}
+                    {isLoggedIn ? "Claim Payment" : existingUser ? "Sign In & Claim" : "Sign Up & Claim"}
+                  </button>
+                </div>
               )}
             </div>
           </motion.div>
