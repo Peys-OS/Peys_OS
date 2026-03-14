@@ -22,12 +22,13 @@ interface NetworkOption {
   name: string;
   shortName: string;
   color: string;
+  blockExplorer: string;
 }
 
 const networks: NetworkOption[] = [
-  { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF" },
-  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F" },
-  { id: 420420421, name: "Polkadot", shortName: "Polkadot", color: "#E6007A" },
+  { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
+  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
+  { id: 420420421, name: "Polkadot", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.js.org/apps" },
 ];
 
 export default function SendPaymentForm() {
@@ -293,28 +294,75 @@ export default function SendPaymentForm() {
           });
         }
 
-        // 6. Send email notification
+        // 6. Send email notification via Resend API directly
         console.log("=== Sending email notification ===");
         console.log("Recipient:", recipient);
         console.log("Claim link:", link);
-        try {
-          const { data: emailData, error: emailError } = await supabase.functions.invoke("send-payment-notification", {
-            body: {
-              recipientEmail: recipient,
-              senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "",
-              amount: Number(amount),
-              token,
-              memo,
-              claimLink: link,
-              appUrl: window.location.origin,
-            },
-          });
-          console.log("Email response:", emailData);
-          if (emailError) {
-            console.error("Email error:", emailError);
+        
+        const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
+        
+        if (resendApiKey) {
+          try {
+            // Send email directly using Resend API
+            const emailHtml = `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h1 style="color: #667eea;">💰 You've received ${Number(amount).toFixed(2)} ${token}!</h1>
+                <p>Someone sent you crypto on Peys Magic Links.</p>
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                  <p><strong>Amount:</strong> ${Number(amount).toFixed(2)} ${token}</p>
+                  <p><strong>From:</strong> ${walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone"}</p>
+                  ${memo ? `<p><strong>Note:</strong> "${memo}"</p>` : ""}
+                </div>
+                <a href="${link}" style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
+                  Claim Your Funds
+                </a>
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                  This link will expire in 7 days.
+                </p>
+              </div>
+            `;
+            
+            const response = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${resendApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "Peys <onboarding@resend.dev>",
+                to: recipient,
+                subject: `You've received ${Number(amount).toFixed(2)} ${token} on Peys!`,
+                html: emailHtml,
+              }),
+            });
+            
+            const emailResult = await response.json();
+            console.log("Email sent successfully:", emailResult);
+            
+            if (!response.ok) {
+              console.error("Email failed:", emailResult);
+            }
+          } catch (emailErr) {
+            console.error("Email notification failed:", emailErr);
           }
-        } catch (emailErr) {
-          console.error("Email notification failed (non-blocking):", emailErr);
+        } else {
+          console.log("No RESEND_API_KEY found, skipping email");
+          // Fallback to Supabase function
+          try {
+            await supabase.functions.invoke("send-payment-notification", {
+              body: {
+                recipientEmail: recipient,
+                senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone",
+                amount: Number(amount),
+                token,
+                memo,
+                claimLink: link,
+                appUrl: window.location.origin,
+              },
+            });
+          } catch (fallbackErr) {
+            console.warn("Fallback email also failed:", fallbackErr);
+          }
         }
 
         setClaimId(newClaimId);
