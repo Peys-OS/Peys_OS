@@ -46,6 +46,7 @@ export default function SendPaymentForm() {
   const [showContacts, setShowContacts] = useState(false);
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
   const [claimId, setClaimId] = useState("");
+  const [txHash, setTxHash] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [fullLink, setFullLink] = useState("");
   const recipientRef = useRef<HTMLDivElement>(null);
@@ -217,6 +218,7 @@ export default function SendPaymentForm() {
 
         console.log("=== Got Transaction Hash ===");
         console.log("txHash:", txHash);
+        setTxHash(txHash);
 
         // 3. Wait for transaction receipt and extract paymentId from logs
         if (!publicClient) throw new Error("Public client not available - please refresh and try again");
@@ -292,8 +294,11 @@ export default function SendPaymentForm() {
         }
 
         // 6. Send email notification
+        console.log("=== Sending email notification ===");
+        console.log("Recipient:", recipient);
+        console.log("Claim link:", link);
         try {
-          await supabase.functions.invoke("send-payment-notification", {
+          const { data: emailData, error: emailError } = await supabase.functions.invoke("send-payment-notification", {
             body: {
               recipientEmail: recipient,
               senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "",
@@ -301,10 +306,15 @@ export default function SendPaymentForm() {
               token,
               memo,
               claimLink: link,
+              appUrl: window.location.origin,
             },
           });
+          console.log("Email response:", emailData);
+          if (emailError) {
+            console.error("Email error:", emailError);
+          }
         } catch (emailErr) {
-          console.warn("Email notification failed (non-blocking):", emailErr);
+          console.error("Email notification failed (non-blocking):", emailErr);
         }
 
         setClaimId(newClaimId);
@@ -629,6 +639,19 @@ export default function SendPaymentForm() {
                 <p className="text-sm text-muted-foreground">
                   {Number(amount).toFixed(2)} {token} sent on <span className="font-medium text-foreground">{currentNetwork.name}</span>
                 </p>
+                {txHash && (
+                  <div className="flex flex-col items-center gap-1">
+                    <p className="text-xs text-muted-foreground">Transaction Hash:</p>
+                    <a 
+                      href={`${currentNetwork.blockExplorer}/tx/${txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="max-w-[280px] truncate text-xs text-primary hover:underline"
+                    >
+                      {txHash}
+                    </a>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {recipient} will receive a notification. If they're not on Pey yet, they can sign up and claim instantly.
                 </p>
@@ -649,7 +672,7 @@ export default function SendPaymentForm() {
                     <Share2 className="h-5 w-5" />
                     Share
                   </button>
-                  <button onClick={() => { setStep("form"); setAmount(""); setRecipient(""); setMemo(""); }} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                  <button onClick={() => { setStep("form"); setAmount(""); setRecipient(""); setMemo(""); setTxHash(""); }} className="flex flex-col items-center gap-1 rounded-xl border border-border py-3 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                     <Send className="h-5 w-5" />
                     Send Another
                   </button>
