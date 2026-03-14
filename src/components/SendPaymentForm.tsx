@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -38,6 +38,7 @@ export default function SendPaymentForm() {
   const [token, setToken] = useState<Token>("USDC");
   const [selectedNetwork, setSelectedNetwork] = useState<number>(84532);
   const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
+  const [recipientType, setRecipientType] = useState<"email" | "phone">("email");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
   const [sendingPhase, setSendingPhase] = useState<"approving" | "creating" | "waiting">("waiting");
@@ -102,7 +103,15 @@ export default function SendPaymentForm() {
     if (!isLoggedIn) { login(); return; }
     if (step === "form") {
       if (!recipient) {
-        toast.error("Please enter a recipient email");
+        toast.error(recipientType === "email" ? "Please enter a recipient email" : "Please enter a phone number");
+        return;
+      }
+      if (recipientType === "email" && !recipient.includes("@")) {
+        toast.error("Please enter a valid email address");
+        return;
+      }
+      if (recipientType === "phone" && recipient.replace(/\D/g, "").length < 10) {
+        toast.error("Please enter a valid phone number");
         return;
       }
       if (!amount || Number(amount) <= 0) {
@@ -142,10 +151,15 @@ export default function SendPaymentForm() {
         const newClaimId = uuidv4();
         const claimSecret = uuidv4();
         const paymentId = `peys_${newClaimId.replace(/-/g, "").slice(0, 16)}`;
-        const link = `${window.location.origin}/claim/${newClaimId}`;
+        const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+        const link = `${appUrl}/claim/${newClaimId}`;
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
         // 1. Save preliminary payment to database using wallet address as sender identifier
+        const recipientValue = recipientType === "phone" 
+          ? `+${recipient.replace(/\D/g, "")}`  // Normalize phone number
+          : recipient;
+          
         const { data: payment, error } = await supabase
           .from("payments")
           .insert({
@@ -153,7 +167,8 @@ export default function SendPaymentForm() {
             sender_user_id: null, // Using wallet address instead
             sender_email: "", // Could collect email from Privy if available
             sender_wallet: walletAddress,
-            recipient_email: recipient,
+            recipient_email: recipientValue,
+            recipient_phone: recipientType === "phone" ? recipientValue : null,
             amount: Number(amount),
             token,
             memo: memo || null,
@@ -294,42 +309,29 @@ export default function SendPaymentForm() {
           });
         }
 
-        // 6. Send email notification
+        // 6. Send email notification via Supabase Edge Function
         console.log("=== Sending email notification ===");
         console.log("Recipient:", recipient);
         console.log("Claim link:", link);
-        
-        const emailHtml = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #667eea;">💰 You've received ${Number(amount).toFixed(2)} ${token}!</h1>
-            <p>Someone sent you crypto on Peys Magic Links.</p>
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <p><strong>Amount:</strong> ${Number(amount).toFixed(2)} ${token}</p>
-              <p><strong>From:</strong> ${walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone"}</p>
-              ${memo ? `<p><strong>Note:</strong> "${memo}"</p>` : ""}
-            </div>
-            <a href="${link}" style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
-              Claim Your Funds
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">
-              This link will expire in 7 days.
-            </p>
-          </div>
-        `;
-        
-        // Try Supabase Edge Function first
+
         try {
-          const { data, error } = await supabase.functions.invoke("send-email", {
+          console.log("Calling Supabase Edge Function 'send-payment-notification'...");
+          const { data, error } = await supabase.functions.invoke("send-payment-notification", {
             body: {
-              to: recipient,
-              subject: `You've received ${Number(amount).toFixed(2)} ${token} on Peys!`,
-              html: emailHtml,
+              recipientEmail: recipient,
+              senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone",
+              amount: Number(amount),
+              token,
+              memo: memo || null,
+              claimLink: link,
+              appUrl: import.meta.env.VITE_APP_URL || window.location.origin,
             },
           });
           
-          console.log("Email via Edge Function:", data);
           if (error) {
             console.error("Edge Function error:", error);
+          } else {
+            console.log("Email notification result:", data);
           }
         } catch (emailErr) {
           console.error("Email notification failed:", emailErr);
@@ -526,14 +528,42 @@ export default function SendPaymentForm() {
                   />
                 </div>
                 
+                {/* Recipient Type Toggle */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType("email")}
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+                      recipientType === "email"
+                        ? "bg-primary text-primary-foreground shadow-glow"
+                        : "border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    <Mail className="h-4 w-4" />
+                    Email
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType("phone")}
+                    className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+                      recipientType === "phone"
+                        ? "bg-primary text-primary-foreground shadow-glow"
+                        : "border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                  >
+                    <Phone className="h-4 w-4" />
+                    Phone
+                  </button>
+                </div>
+                
                 <div className="relative" ref={recipientRef}>
                   <div className="relative">
                     <input
                       value={recipient}
                       onChange={(e) => { setRecipient(e.target.value); setShowContacts(true); }}
                       onFocus={() => setShowContacts(true)}
-                      placeholder="Recipient email address"
-                      type="email"
+                      placeholder={recipientType === "email" ? "Recipient email address" : "Recipient phone number"}
+                      type={recipientType === "email" ? "email" : "tel"}
                       className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                     />
                     <button
@@ -617,7 +647,7 @@ export default function SendPaymentForm() {
                       <span className="text-foreground">{currentNetwork.name}</span>
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">To</span><span className="text-foreground">{recipient}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">To ({recipientType})</span><span className="text-foreground">{recipient}</span></div>
                   {memo && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Note</span><span className="text-foreground">{memo}</span></div>}
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expires</span><span className="text-foreground">7 days</span></div>
                   <div className="flex justify-between text-sm"><span className="text-muted-foreground">Network fee</span><span className="font-medium text-primary">~$0.01</span></div>
