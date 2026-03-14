@@ -13,6 +13,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import SendPage from "./pages/SendPage";
+import PublicPaymentPage from "./pages/PublicPaymentPage";
 import ClaimPage from "./pages/ClaimPage";
 import DashboardPage from "./pages/DashboardPage";
 import AssetsPage from "./pages/AssetsPage";
@@ -64,6 +65,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/send" element={<SendPage />} />
+                  <Route path="/pay" element={<PublicPaymentPage />} />
                   <Route path="/claim/:id" element={<ClaimPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/assets" element={<AssetsPage />} />
