@@ -33,6 +33,14 @@ const steps = [
   { num: "03", text: "Confirm with your PIN — funds arrive instantly" }
 ];
 
+const commands = [
+  { cmd: "send <amount> <phone>", desc: "Send USDC to a phone number" },
+  { cmd: "balance", desc: "Check your wallet balance" },
+  { cmd: "history", desc: "View recent transactions" },
+  { cmd: "receive", desc: "Get your payment link" },
+  { cmd: "help", desc: "Show all commands" },
+];
+
 export default function WhatsAppPage() {
   return (
     <div className="min-h-screen bg-background">
@@ -90,6 +98,23 @@ export default function WhatsAppPage() {
                 <span className="text-foreground">You</span>: ****<br /><br />
                 <span className="text-primary">@Peys</span>: ✅ Sent! 25 USDC to +1 555-123-4567.<br />
                 Transaction: 0x3f2a...8b1c
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-8 mx-auto max-w-2xl"
+            >
+              <h3 className="text-lg font-semibold text-foreground mb-4 text-center">Available Commands</h3>
+              <div className="grid gap-2">
+                {commands.map((cmd) => (
+                  <div key={cmd.cmd} className="flex items-center justify-between rounded-lg bg-secondary/30 px-4 py-2">
+                    <code className="text-sm font-mono text-primary">{cmd.cmd}</code>
+                    <span className="text-xs text-muted-foreground">{cmd.desc}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
