@@ -294,75 +294,45 @@ export default function SendPaymentForm() {
           });
         }
 
-        // 6. Send email notification via Resend API directly
+        // 6. Send email notification
         console.log("=== Sending email notification ===");
         console.log("Recipient:", recipient);
         console.log("Claim link:", link);
         
-        const resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
+        const emailHtml = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #667eea;">💰 You've received ${Number(amount).toFixed(2)} ${token}!</h1>
+            <p>Someone sent you crypto on Peys Magic Links.</p>
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p><strong>Amount:</strong> ${Number(amount).toFixed(2)} ${token}</p>
+              <p><strong>From:</strong> ${walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone"}</p>
+              ${memo ? `<p><strong>Note:</strong> "${memo}"</p>` : ""}
+            </div>
+            <a href="${link}" style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
+              Claim Your Funds
+            </a>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+              This link will expire in 7 days.
+            </p>
+          </div>
+        `;
         
-        if (resendApiKey) {
-          try {
-            // Send email directly using Resend API
-            const emailHtml = `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #667eea;">💰 You've received ${Number(amount).toFixed(2)} ${token}!</h1>
-                <p>Someone sent you crypto on Peys Magic Links.</p>
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                  <p><strong>Amount:</strong> ${Number(amount).toFixed(2)} ${token}</p>
-                  <p><strong>From:</strong> ${walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone"}</p>
-                  ${memo ? `<p><strong>Note:</strong> "${memo}"</p>` : ""}
-                </div>
-                <a href="${link}" style="display: inline-block; background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">
-                  Claim Your Funds
-                </a>
-                <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                  This link will expire in 7 days.
-                </p>
-              </div>
-            `;
-            
-            const response = await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${resendApiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                from: "Peys <onboarding@resend.dev>",
-                to: recipient,
-                subject: `You've received ${Number(amount).toFixed(2)} ${token} on Peys!`,
-                html: emailHtml,
-              }),
-            });
-            
-            const emailResult = await response.json();
-            console.log("Email sent successfully:", emailResult);
-            
-            if (!response.ok) {
-              console.error("Email failed:", emailResult);
-            }
-          } catch (emailErr) {
-            console.error("Email notification failed:", emailErr);
+        // Try Supabase Edge Function first
+        try {
+          const { data, error } = await supabase.functions.invoke("send-email", {
+            body: {
+              to: recipient,
+              subject: `You've received ${Number(amount).toFixed(2)} ${token} on Peys!`,
+              html: emailHtml,
+            },
+          });
+          
+          console.log("Email via Edge Function:", data);
+          if (error) {
+            console.error("Edge Function error:", error);
           }
-        } else {
-          console.log("No RESEND_API_KEY found, skipping email");
-          // Fallback to Supabase function
-          try {
-            await supabase.functions.invoke("send-payment-notification", {
-              body: {
-                recipientEmail: recipient,
-                senderEmail: walletAddress ? `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}` : "Someone",
-                amount: Number(amount),
-                token,
-                memo,
-                claimLink: link,
-                appUrl: window.location.origin,
-              },
-            });
-          } catch (fallbackErr) {
-            console.warn("Fallback email also failed:", fallbackErr);
-          }
+        } catch (emailErr) {
+          console.error("Email notification failed:", emailErr);
         }
 
         setClaimId(newClaimId);
