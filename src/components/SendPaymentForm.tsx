@@ -385,7 +385,7 @@ export default function SendPaymentForm() {
     : (token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT);
 
   return (
-    <div className="relative mx-auto max-w-md px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
+    <div className="relative mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
       {/* Login overlay when not signed in */}
       {!isLoggedIn && (
         <motion.div
