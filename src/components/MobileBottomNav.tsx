@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const primaryItems = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/pay", label: "Pay", icon: Send },
   { to: "/send", label: "Send", icon: Send },
-  { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
 
 const moreItems = [
@@ -16,11 +16,20 @@ const moreItems = [
   { to: "/streaming", label: "Stream", icon: Zap },
   { to: "/organizations", label: "Orgs", icon: Building2 },
   { to: "/request", label: "Request", icon: Wallet },
+  { to: "/whatsapp", label: "Chat", icon: MessageCircle },
+];
+
+const devItems = [
+  { to: "/docs", label: "Docs", icon: Globe },
+  { to: "/docs/quickstart", label: "Quick Start", icon: Zap },
+  { to: "/docs/api/payments", label: "API", icon: Code },
+  { to: "/docs/sdks/javascript", label: "SDKs", icon: Code },
 ];
 
 export default function MobileBottomNav() {
   const location = useLocation();
   const [showMore, setShowMore] = useState(false);
+  const [showDev, setShowDev] = useState(false);
 
   return (
     <>
@@ -66,7 +75,7 @@ export default function MobileBottomNav() {
             exit={{ opacity: 0, y: 10 }}
             className="fixed bottom-14 left-0 right-0 z-40 bg-card border-t border-border px-4 py-3 xl:hidden"
           >
-            <div className="flex justify-around">
+            <div className="grid grid-cols-4 gap-2">
               {moreItems.map((item) => {
                 const isActive = location.pathname === item.to;
                 const Icon = item.icon;
@@ -75,7 +84,7 @@ export default function MobileBottomNav() {
                     key={item.to}
                     to={item.to}
                     onClick={() => setShowMore(false)}
-                    className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-medium transition-colors ${
+                    className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
                       isActive
                         ? "text-primary bg-primary/10"
                         : "text-muted-foreground hover:text-foreground"
@@ -86,6 +95,50 @@ export default function MobileBottomNav() {
                   </Link>
                 );
               })}
+            </div>
+            
+            {/* Developers Section */}
+            <div className="mt-3 border-t border-border pt-3">
+              <button
+                onClick={() => setShowDev(!showDev)}
+                className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-xs font-medium text-muted-foreground"
+              >
+                <div className="flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Developers
+                </div>
+                {showDev ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+              <AnimatePresence>
+                {showDev && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="grid grid-cols-4 gap-2 mt-2"
+                  >
+                    {devItems.map((item) => {
+                      const isActive = location.pathname === item.to;
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => { setShowMore(false); setShowDev(false); }}
+                          className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
+                            isActive
+                              ? "text-primary bg-primary/10"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
