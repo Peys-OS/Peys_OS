@@ -387,16 +387,28 @@ export default function AppHeader() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      {personalItems.map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => { setMobileOpen(false); setPersonalOpen(false); }}
-                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
+                      <div className="grid grid-cols-1 gap-1 p-1">
+                        {personalItems.map((item) => (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => { setMobileOpen(false); setPersonalOpen(false); }}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
+                              location.pathname === item.to 
+                                ? "bg-primary/10 text-primary" 
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <item.icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{item.label}</div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -417,16 +429,28 @@ export default function AppHeader() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      {orgItems.map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => { setMobileOpen(false); setOrgOpen(false); }}
-                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
+                      <div className="grid grid-cols-1 gap-1 p-1">
+                        {orgItems.map((item) => (
+                          <Link
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => { setMobileOpen(false); setOrgOpen(false); }}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
+                              location.pathname === item.to 
+                                ? "bg-primary/10 text-primary" 
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <item.icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{item.label}</div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -447,17 +471,33 @@ export default function AppHeader() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      {devItems.map((item) => (
-                        <Link
-                          key={item.to}
-                          to={item.coming ? "#" : item.to}
-                          onClick={() => { setMobileOpen(false); setDevOpen(false); }}
-                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${item.coming ? "text-muted-foreground/50 cursor-not-allowed" : location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                        >
-                          {item.label}
-                          {item.coming && <span className="ml-2 text-xs text-muted-foreground">(Soon)</span>}
-                        </Link>
-                      ))}
+                      <div className="grid grid-cols-1 gap-1 p-1">
+                        {devItems.map((item) => (
+                          <Link
+                            key={item.to}
+                            to={item.coming ? "#" : item.to}
+                            onClick={() => { setMobileOpen(false); setDevOpen(false); }}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
+                              item.coming 
+                                ? "text-muted-foreground/50 cursor-not-allowed" 
+                                : location.pathname === item.to 
+                                  ? "bg-primary/10 text-primary" 
+                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                              <item.icon className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-foreground">{item.label}</span>
+                                {item.coming && <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Soon</span>}
+                              </div>
+                              <div className="text-xs text-muted-foreground">{item.desc}</div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
