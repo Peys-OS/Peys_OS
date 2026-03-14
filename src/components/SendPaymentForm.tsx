@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet, MessageCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -640,6 +640,15 @@ export default function SendPaymentForm() {
                   placeholder="Add a note (optional)"
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                 />
+                
+                <div className="rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 p-3">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-[#25D366]" />
+                    <p className="text-xs text-foreground">
+                      <span className="font-medium">Tip:</span> You can also send directly via WhatsApp. Just message @Peys with "send [amount] to [phone]"
+                    </p>
+                  </div>
+                </div>
                 
                 <button
                   onClick={handleSend}
