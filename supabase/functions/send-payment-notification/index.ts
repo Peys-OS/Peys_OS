@@ -154,10 +154,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { recipientEmail, senderEmail, amount, token, memo, claimLink, appUrl = "https://peys.io" } =
+    const { recipientEmail, senderEmail = "Someone", amount, token, memo, claimLink, appUrl = "https://peys.io" } =
       await req.json();
 
-    if (!recipientEmail || !senderEmail || !amount || !token || !claimLink) {
+    if (!recipientEmail || !amount || !token || !claimLink) {
       return new Response(
         JSON.stringify({ success: false, error: "Missing required fields" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
