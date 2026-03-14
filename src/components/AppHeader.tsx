@@ -17,6 +17,7 @@ export default function AppHeader() {
   const [devOpen, setDevOpen] = useState(false);
 
   const personalItems = [
+    { to: "/pay", label: "Pay Someone", desc: "Pay without account", icon: Send },
     { to: "/send", label: "Send Money", desc: "Send via link or address", icon: Send },
     { to: "/request", label: "Request", desc: "Create payment request", icon: FileText },
     { to: "/contacts", label: "Contacts", desc: "Manage recipients", icon: Users },
@@ -36,7 +37,7 @@ export default function AppHeader() {
     { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: false },
     { to: "/docs/api/payments", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: false },
     { to: "/docs/sdks/javascript", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: false },
-    { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: false },
+    { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: true },
   ];
 
   const handleLogin = () => {
@@ -371,33 +372,96 @@ export default function AppHeader() {
                   Home
                 </Link>
 
-                <p className="mt-3 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                {/* Personal Section - Expandable */}
+                <button
+                  onClick={() => setPersonalOpen(!personalOpen)}
+                  className="mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
                   Personal
-                </p>
-                {personalItems.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                  {personalOpen ? <ChevronDown className="h-4 w-4 rotate-180" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                <AnimatePresence>
+                  {personalOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {personalItems.map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => { setMobileOpen(false); setPersonalOpen(false); }}
+                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                <p className="mt-3 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
+                {/* Organization Section - Expandable */}
+                <button
+                  onClick={() => setOrgOpen(!orgOpen)}
+                  className="mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
                   Organization
-                </p>
-                {orgItems.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                  {orgOpen ? <ChevronDown className="h-4 w-4 rotate-180" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                <AnimatePresence>
+                  {orgOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {orgItems.map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => { setMobileOpen(false); setOrgOpen(false); }}
+                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Developers Section - Expandable */}
+                <button
+                  onClick={() => setDevOpen(!devOpen)}
+                  className="mt-3 flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground"
+                >
+                  Developers
+                  {devOpen ? <ChevronDown className="h-4 w-4 rotate-180" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+                <AnimatePresence>
+                  {devOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {devItems.map((item) => (
+                        <Link
+                          key={item.to}
+                          to={item.coming ? "#" : item.to}
+                          onClick={() => { setMobileOpen(false); setDevOpen(false); }}
+                          className={`rounded-lg px-3 py-2.5 pl-6 text-sm font-medium transition-colors ${item.coming ? "text-muted-foreground/50 cursor-not-allowed" : location.pathname === item.to ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+                        >
+                          {item.label}
+                          {item.coming && <span className="ml-2 text-xs text-muted-foreground">(Soon)</span>}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <Link
                   to="/dashboard"
