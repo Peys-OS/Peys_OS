@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 const primaryItems = [
   { to: "/", label: "Home", icon: Home },
@@ -20,10 +21,10 @@ const moreItems = [
 ];
 
 const devItems = [
-  { to: "/docs", label: "Docs", icon: Globe },
-  { to: "/docs/quickstart", label: "Quick Start", icon: Zap },
-  { to: "/docs/api/payments", label: "API", icon: Code },
-  { to: "/docs/sdks/javascript", label: "SDKs", icon: Code },
+  { to: "#", label: "Docs", icon: Globe, coming: true },
+  { to: "#", label: "Quick Start", icon: Zap, coming: true },
+  { to: "#", label: "API", icon: Code, coming: true },
+  { to: "#", label: "SDKs", icon: Code, coming: true },
 ];
 
 export default function MobileBottomNav() {
@@ -120,15 +121,26 @@ export default function MobileBottomNav() {
                     {devItems.map((item) => {
                       const isActive = location.pathname === item.to;
                       const Icon = item.icon;
+                      const handleClick = (e: React.MouseEvent) => {
+                        if (item.coming) {
+                          e.preventDefault();
+                          toast.info("Coming soon! Developer features will be available soon.");
+                          return;
+                        }
+                        setShowMore(false);
+                        setShowDev(false);
+                      };
                       return (
                         <Link
                           key={item.to}
                           to={item.to}
-                          onClick={() => { setShowMore(false); setShowDev(false); }}
+                          onClick={handleClick}
                           className={`flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[10px] font-medium transition-colors ${
                             isActive
                               ? "text-primary bg-primary/10"
-                              : "text-muted-foreground hover:text-foreground"
+                              : item.coming
+                                ? "text-muted-foreground/50 cursor-not-allowed"
+                                : "text-muted-foreground hover:text-foreground"
                           }`}
                         >
                           <Icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />

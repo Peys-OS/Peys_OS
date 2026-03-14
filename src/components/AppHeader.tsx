@@ -32,11 +32,11 @@ export default function AppHeader() {
   ];
 
   const devItems = [
-    { to: "/docs", label: "Documentation", desc: "Full developer docs", icon: Globe, coming: false },
-    { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: false },
-    { to: "/docs/api/payments", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: false },
-    { to: "/docs/sdks/javascript", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: false },
-    { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: true },
+    { to: "#", label: "Documentation", desc: "Full developer docs", icon: Globe, coming: true },
+    { to: "#", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: true },
+    { to: "#", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: true },
+    { to: "#", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: true },
+    { to: "#", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: true },
   ];
 
   const handleLogin = () => {
@@ -228,10 +228,18 @@ export default function AppHeader() {
                       </div>
                       {devItems.map((item) => {
                         const Icon = item.icon;
+                        const handleClick = (e: React.MouseEvent) => {
+                          if (item.coming) {
+                            e.preventDefault();
+                            toast.info("Coming soon! Developer features will be available soon.");
+                          }
+                          setDevOpen(false);
+                        };
                         return (
                           <Link
                             key={item.to}
-                            to={item.to}
+                            to={item.coming ? "#" : item.to}
+                            onClick={handleClick}
                             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                               item.coming
                                 ? "text-muted-foreground/50 cursor-not-allowed"
@@ -472,31 +480,42 @@ export default function AppHeader() {
                       className="overflow-hidden"
                     >
                       <div className="grid grid-cols-1 gap-1 p-1">
-                        {devItems.map((item) => (
-                          <Link
-                            key={item.to}
-                            to={item.coming ? "#" : item.to}
-                            onClick={() => { setMobileOpen(false); setDevOpen(false); }}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
-                              item.coming 
-                                ? "text-muted-foreground/50 cursor-not-allowed" 
-                                : location.pathname === item.to 
-                                  ? "bg-primary/10 text-primary" 
-                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                            }`}
-                          >
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                              <item.icon className="h-4 w-4" />
-                            </div>
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-foreground">{item.label}</span>
-                                {item.coming && <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Soon</span>}
+                        {devItems.map((item) => {
+                          const handleClick = (e: React.MouseEvent) => {
+                            if (item.coming) {
+                              e.preventDefault();
+                              toast.info("Coming soon! Developer features will be available soon.");
+                              return;
+                            }
+                            setMobileOpen(false);
+                            setDevOpen(false);
+                          };
+                          return (
+                            <Link
+                              key={item.to}
+                              to={item.coming ? "#" : item.to}
+                              onClick={handleClick}
+                              className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors ${
+                                item.coming 
+                                  ? "text-muted-foreground/50 cursor-not-allowed" 
+                                  : location.pathname === item.to 
+                                    ? "bg-primary/10 text-primary" 
+                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              }`}
+                            >
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
+                                <item.icon className="h-4 w-4" />
                               </div>
-                              <div className="text-xs text-muted-foreground">{item.desc}</div>
-                            </div>
-                          </Link>
-                        ))}
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-foreground">{item.label}</span>
+                                  {item.coming && <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Soon</span>}
+                                </div>
+                                <div className="text-xs text-muted-foreground">{item.desc}</div>
+                              </div>
+                            </Link>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   )}
