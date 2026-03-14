@@ -1,8 +1,21 @@
 import { useState } from "react";
-import { Copy, Download, Check } from "lucide-react";
+import { Copy, Download, Check, ChevronDown } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface NetworkInfo {
+  id: number;
+  name: string;
+  shortName: string;
+  color: string;
+  usdcAddress: string;
+}
+
+const NETWORKS: NetworkInfo[] = [
+  { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", usdcAddress: "0x036CbD53842c5426634e7929541eC2318f3dCF7e" },
+  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", usdcAddress: "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B" },
+];
 
 interface WalletReceiveCardProps {
   address: string;
@@ -10,6 +23,8 @@ interface WalletReceiveCardProps {
 
 export default function WalletReceiveCard({ address }: WalletReceiveCardProps) {
   const [copied, setCopied] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<NetworkInfo>(NETWORKS[0]);
+  const [showNetworkDropdown, setShowNetworkDropdown] = useState(false);
 
   const copyAddress = () => {
     navigator.clipboard.writeText(address);
@@ -45,9 +60,52 @@ export default function WalletReceiveCard({ address }: WalletReceiveCardProps) {
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden rounded-xl border border-border bg-card p-4 shadow-card sm:rounded-2xl sm:p-6"
     >
-      <p className="mb-3 text-sm font-medium text-foreground">Receive Deposits</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-medium text-foreground">Receive Deposits</p>
+        <div className="relative">
+          <button
+            onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
+            className="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
+          >
+            <div 
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: selectedNetwork.color }}
+            />
+            {selectedNetwork.name}
+            <ChevronDown className={`h-3 w-3 transition-transform ${showNetworkDropdown ? 'rotate-180' : ''}`} />
+          </button>
+          <AnimatePresence>
+            {showNetworkDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute right-0 top-full mt-1 z-10 w-40 overflow-hidden rounded-lg border border-border bg-card shadow-elevated"
+              >
+                {NETWORKS.map((network) => (
+                  <button
+                    key={network.id}
+                    onClick={() => {
+                      setSelectedNetwork(network);
+                      setShowNetworkDropdown(false);
+                    }}
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-secondary ${selectedNetwork.id === network.id ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
+                  >
+                    <div 
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: network.color }}
+                    />
+                    {network.name}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+      
       <p className="mb-4 text-xs text-muted-foreground">
-        Send USDC or USDT on Paseo Asset Hub to this address.
+        Send {selectedNetwork.shortName} USDC to this address to receive funds in your Peys account.
       </p>
 
       <div className="flex flex-col items-center gap-4 sm:flex-row">
