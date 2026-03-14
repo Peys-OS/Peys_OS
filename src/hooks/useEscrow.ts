@@ -164,6 +164,11 @@ export function useEscrow() {
       
       console.log("=== Payment Transaction Submitted ===");
       console.log("Transaction hash:", txHash);
+      console.log("Transaction hash type:", typeof txHash);
+      
+      if (!txHash) {
+        throw new Error("Transaction was submitted but no hash was returned");
+      }
       
       return txHash;
       

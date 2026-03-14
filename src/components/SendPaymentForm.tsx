@@ -215,12 +215,19 @@ export default function SendPaymentForm() {
 
         if (!txHash) throw new Error("Failed to create transaction - no transaction hash received");
 
+        console.log("=== Got Transaction Hash ===");
+        console.log("txHash:", txHash);
+
         // 3. Wait for transaction receipt and extract paymentId from logs
         if (!publicClient) throw new Error("Public client not available - please refresh and try again");
+        
+        console.log("=== Waiting for transaction receipt ===");
         
         let receipt;
         try {
           receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          console.log("=== Receipt Received ===");
+          console.log("Receipt status:", receipt?.status);
         } catch (receiptError: unknown) {
           console.error("Failed to get receipt:", receiptError);
           // If the transaction was submitted but we can't get receipt, it might still have gone through
