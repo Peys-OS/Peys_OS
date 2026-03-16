@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
   type TEXT NOT NULL CHECK (type IN ('send', 'receive', 'escrow_create', 'escrow_claim', 'escrow_refund', 'deposit', 'withdraw')),
   amount BIGINT NOT NULL,
   amount_usd FLOAT,
-  token TEXT NOT NULL DEFAULT 'USDC' CHECK (token IN ('USDC', 'USDT', 'OTHER')),
+  token TEXT NOT NULL DEFAULT 'USDC' CHECK (token IN ('USDC', 'USDT', 'PASS')),
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'failed', 'cancelled')),
   recipient_phone TEXT,
   recipient_wallet TEXT,
