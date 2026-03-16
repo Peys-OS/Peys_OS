@@ -4,13 +4,14 @@ export interface Transaction {
   id: string;
   type: "sent" | "claimed" | "pending";
   amount: number;
-  token: "USDC" | "USDT";
+  token: "USDC" | "USDT" | "PASS";
   counterparty: string;
   memo?: string;
   timestamp: Date;
   claimLink?: string;
   expiresAt?: Date;
   status?: string;
+  chain?: string;
 }
 
 export interface UserWallet {

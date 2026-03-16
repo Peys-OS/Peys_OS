@@ -16,7 +16,15 @@ const SUGGESTIONS = [
   "How do claim links work?",
 ];
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-assistant`;
+// Use local Ollama in development, Supabase in production
+const IS_DEV = import.meta.env.DEV || import.meta.env.MODE === 'development';
+const CHAT_URL = IS_DEV 
+  ? '/api/ai'  // Proxied to Ollama in dev mode
+  : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/payment-assistant`;
+
+// Ollama model configuration - change this to use different models
+// Available models: qwen2.5-coder:1.5b, llama2, mistral, etc.
+const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || 'qwen2.5-coder:1.5b';
 
 export default function AIChatBubble() {
   const { isLoggedIn, wallet, walletAddress, transactions } = useApp();
@@ -53,6 +61,68 @@ export default function AIChatBubble() {
     })),
   }), [isLoggedIn, walletAddress, wallet, transactions]);
 
+  // Build system prompt for Ollama (dev mode)
+  const buildOllamaSystemPrompt = useCallback((context: ReturnType<typeof buildContext>) => {
+    let prompt = `You are Peys AI, a friendly and helpful payment assistant for the Peys app — a stablecoin payment platform built on Polkadot Asset Hub.
+
+## What Peys Does
+- Users send USDC, USDT, or PASS (Polkadot's native token) to anyone via email using magic claim links
+- Funds are held in an on-chain escrow smart contract until claimed
+- Recipients sign in (email/Google via Privy) and get an auto-created embedded wallet
+- Unclaimed payments auto-refund after 7 days
+- Near-zero fees (~$0.01 per transaction on Polkadot)
+
+## Supported Networks
+- **Polkadot Asset Hub** (Chain ID: 420420417) - Native token PASS, lowest fees
+- **Base Sepolia** (Chain ID: 84532) - USDC available
+- **Celo Alfajores** (Chain ID: 44787) - USDC, USDT available
+
+## Your Capabilities
+1. **Payment Creation** - Parse natural language like "send 10 USDC to john@email.com" and extract: amount, token, recipient
+2. **Chain Recommendations** - Suggest best chain based on: fees, token availability, speed
+3. **Balance Analysis** - Show real balances across all chains
+4. **Transaction History** - Display and explain past transactions
+5. **Crypto Education** - Explain concepts in simple terms
+
+## Guidelines
+- Be concise (2-3 sentences max unless explaining a concept)
+- Use markdown for formatting (bold, lists, tables)
+- Always use real data from context, never make up balances
+- If user is not logged in, encourage them to sign in
+- Be helpful about crypto concepts but keep it simple
+- Use emoji sparingly for personality
+- Recommend Polkadot for new users (lowest fees, PASS token)
+- Always show chain info when discussing payments
+
+## Current User Context:
+`;
+    if (context.isLoggedIn) {
+      prompt += `- **Logged in**: Yes\n`;
+      prompt += `- **Wallet address**: ${context.walletAddress || "Not connected"}\n`;
+      prompt += `- **PASS Balance** (Polkadot): ${context.balancePASS?.toFixed(4) || "0.0000"} PASS\n`;
+      prompt += `- **USDC Balance**: $${context.balanceUSDC?.toFixed(2) || "0.00"}\n`;
+      prompt += `- **USDT Balance**: $${context.balanceUSDT?.toFixed(2) || "0.00"}\n`;
+      
+      const total = ((context.balanceUSDC || 0) + (context.balanceUSDT || 0) + (context.balancePASS || 0));
+      prompt += `- **Total Balance**: $${total.toFixed(2)}\n`;
+      
+      if (context.transactions && context.transactions.length > 0) {
+        prompt += `\n### Recent Transactions:\n`;
+        for (const tx of context.transactions.slice(0, 5)) {
+          const icon = tx.type === "sent" ? "🔴 Sent" : tx.type === "claimed" ? "🟢 Claimed" : "⏳ Pending";
+          prompt += `- ${icon} $${tx.amount} ${tx.token} ${tx.type === "sent" ? "→" : "←"} ${tx.counterparty}\n`;
+        }
+      } else {
+        prompt += `- No transactions yet\n`;
+      }
+    } else {
+      prompt += `- **Logged in**: No (user is not signed in)\n`;
+      prompt += `\nEncourage the user to sign in to send payments and view their balance.`;
+    }
+    
+    return prompt;
+  }, []);
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || isStreaming) return;
@@ -72,16 +142,40 @@ export default function AIChatBubble() {
     let assistantContent = "";
 
     try {
+      // Build context for both dev and prod modes
+      const context = buildContext();
+      
+      // Prepare request body based on mode
+      const requestBody = IS_DEV 
+        ? {
+            model: OLLAMA_MODEL, // Uses VITE_OLLAMA_MODEL env var or defaults to qwen2.5-coder:1.5b
+            messages: [
+              { 
+                role: "system", 
+                content: buildOllamaSystemPrompt(context) 
+              },
+              ...apiMessages,
+            ],
+            stream: true,
+          }
+        : {
+            messages: apiMessages,
+            context: context,
+          };
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      // Only add auth header for production (Supabase)
+      if (!IS_DEV) {
+        headers["Authorization"] = `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`;
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          messages: apiMessages,
-          context: buildContext(),
-        }),
+        headers,
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
@@ -105,44 +199,75 @@ export default function AIChatBubble() {
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
 
-        let newlineIndex: number;
-        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              assistantContent += content;
-              const current = assistantContent;
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                if (last?.role === "assistant" && prev.length > updatedMessages.length) {
-                  return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: current } : m));
-                }
-                return [...prev, { role: "assistant", content: current }];
-              });
+        // Handle Ollama streaming format (JSON lines)
+        if (IS_DEV) {
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || ""; // Keep incomplete line in buffer
+          
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const parsed = JSON.parse(line);
+              const content = parsed.message?.content || parsed.response || "";
+              if (content) {
+                assistantContent += content;
+                const current = assistantContent;
+                setMessages((prev) => {
+                  const last = prev[prev.length - 1];
+                  if (last?.role === "assistant" && prev.length > updatedMessages.length) {
+                    return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: current } : m));
+                  }
+                  return [...prev, { role: "assistant", content: current }];
+                });
+              }
+              if (parsed.done) {
+                streamDone = true;
+              }
+            } catch {
+              // Ignore parse errors for incomplete chunks
             }
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
+          }
+        } else {
+          // Handle OpenAI streaming format (SSE)
+          let newlineIndex: number;
+          while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+            let line = buffer.slice(0, newlineIndex);
+            buffer = buffer.slice(newlineIndex + 1);
+
+            if (line.endsWith("\r")) line = line.slice(0, -1);
+            if (line.startsWith(":") || line.trim() === "") continue;
+            if (!line.startsWith("data: ")) continue;
+
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === "[DONE]") {
+              streamDone = true;
+              break;
+            }
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+              if (content) {
+                assistantContent += content;
+                const current = assistantContent;
+                setMessages((prev) => {
+                  const last = prev[prev.length - 1];
+                  if (last?.role === "assistant" && prev.length > updatedMessages.length) {
+                    return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: current } : m));
+                  }
+                  return [...prev, { role: "assistant", content: current }];
+                });
+              }
+            } catch {
+              buffer = line + "\n" + buffer;
+              break;
+            }
           }
         }
       }
 
-      // Final flush
-      if (buffer.trim()) {
+      // Final flush for OpenAI format
+      if (!IS_DEV && buffer.trim()) {
         for (let raw of buffer.split("\n")) {
           if (!raw) continue;
           if (raw.endsWith("\r")) raw = raw.slice(0, -1);
