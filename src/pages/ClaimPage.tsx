@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Check, Clock, AlertCircle, Loader2, ArrowRight, Gift } from "lucide-react";
+import { Check, Clock, AlertCircle, Loader2, ArrowRight, Gift, LogOut, Mail } from "lucide-react";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { useApp } from "@/contexts/AppContext";
+import { usePrivyAuth } from "@/contexts/PrivyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fireBurst } from "@/utils/confetti";
@@ -28,7 +29,8 @@ interface PaymentData {
 
 export default function ClaimPage() {
   const { id } = useParams<{ id: string }>();
-  const { isLoggedIn, login, user: appUser } = useApp();
+  const { isLoggedIn, login, logout } = useApp();
+  const { user: privyUser } = usePrivyAuth();
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -37,122 +39,109 @@ export default function ClaimPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [existingUser, setExistingUser] = useState<boolean | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPayment = async () => {
-      if (!id) {
-        setError("Invalid claim link");
-        setLoading(false);
-        return;
-      }
-
-      const { data, error: fetchErr } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("claim_link", id)
-        .single();
-
-      if (fetchErr || !data) {
-        setError("Payment not found. The link may be invalid or expired.");
-        setLoading(false);
-        return;
-      }
-
-      setPayment(data as PaymentData);
-      
-      // Check if recipient email already exists in profiles
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .eq("email", (data as PaymentData).recipient_email)
-        .single();
-      
-      setExistingUser(!!profile);
-      setUserEmail((data as PaymentData).recipient_email);
+  const fetchPayment = useCallback(async () => {
+    if (!id) {
+      setError("Invalid claim link");
       setLoading(false);
-    };
+      return;
+    }
 
-    fetchPayment();
+    const { data, error: fetchErr } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("claim_link", id)
+      .single();
+
+    if (fetchErr || !data) {
+      setError("Payment not found. The link may be invalid or expired.");
+      setLoading(false);
+      return;
+    }
+
+    setPayment(data as PaymentData);
+    
+    // Check if recipient email already exists in profiles
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("email", (data as PaymentData).recipient_email)
+      .single();
+    
+    setExistingUser(!!profile);
+    setUserEmail((data as PaymentData).recipient_email);
+    setLoading(false);
   }, [id]);
-  
-  // Auto-check auth state when login completes and attempt to claim
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
-    if (isLoggedIn && payment && !claimed && !claiming) {
+    fetchPayment();
+  }, [fetchPayment]);
+  
+  const { claimPayment } = useEscrow();
+
+  // Check if logged in user's email matches payment email
+  const isEmailMatching = privyUser?.email?.toLowerCase() === payment?.recipient_email?.toLowerCase();
+  const isReadyToClaim = isLoggedIn && isEmailMatching && !claimed && !claiming;
+
+  // Handle claim when user becomes ready
+  useEffect(() => {
+    if (isReadyToClaim) {
       handleClaim();
     }
-  }, [isLoggedIn]);
-
-  const { claimPayment } = useEscrow();
+  }, [isReadyToClaim]);
 
   const handleLoginAndClaim = async () => {
     setLoginError(null);
     
-    // If already logged in, verify email matches before claiming
-    if (isLoggedIn && appUser?.email) {
-      const userEmailLower = appUser.email.toLowerCase();
-      const paymentEmailLower = payment?.recipient_email.toLowerCase() || "";
-      
-      if (userEmailLower !== paymentEmailLower) {
+    if (isLoggedIn) {
+      // Already logged in - verify email
+      if (privyUser?.email?.toLowerCase() !== payment?.recipient_email?.toLowerCase()) {
         setLoginError(`This payment was sent to ${payment?.recipient_email}. Please sign out and sign in with that email.`);
         return;
       }
-      
-      // Same email - proceed to claim
+      // Email matches - proceed to claim
       await handleClaim();
       return;
     }
     
-    // Not logged in - prompt to login
+    // Not logged in - prompt to login via Privy (email/OTP)
     login();
   };
-  
-  // Check login status after login completes
-  useEffect(() => {
-    if (isLoggedIn && payment && !claimed && !claiming) {
-      // Check if logged in user email matches payment recipient
-      if (appUser?.email) {
-        const userEmailLower = appUser.email.toLowerCase();
-        const paymentEmailLower = payment.recipient_email.toLowerCase();
-        
-        if (userEmailLower !== paymentEmailLower) {
-          setLoginError(`This payment was sent to ${payment.recipient_email}. Please sign out and sign in with that email.`);
-          return;
-        }
-      }
-      // Email matches - auto claim
-      handleClaim();
-    }
-  }, [isLoggedIn]);
+
+  const handleSignOutAndClaim = async () => {
+    await logout();
+    setLoginError(null);
+    login(); // Prompt to sign in with correct email
+  };
   
   const handleClaim = async () => {
     if (!payment) return;
 
+    // Final verification before claiming
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in to claim");
+      return;
+    }
+
+    // Verify the logged-in user's email matches the payment recipient
+    const userEmail = user.email?.toLowerCase();
+    const paymentEmail = payment.recipient_email.toLowerCase();
+    
+    if (userEmail !== paymentEmail) {
+      toast.error(`Please sign in with ${payment.recipient_email} to claim this payment`);
+      setLoginError(`This payment was sent to ${payment.recipient_email}. Please sign in with that email.`);
+      return;
+    }
+
     setClaiming(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Please sign in to claim");
-        setClaiming(false);
-        return;
-      }
-
-      // Verify the logged-in user's email matches the payment recipient
-      const userEmail = user.email?.toLowerCase();
-      const paymentEmail = payment.recipient_email.toLowerCase();
-      
-      if (userEmail !== paymentEmail) {
-        toast.error(`Please sign in with ${payment.recipient_email} to claim this payment`);
-        setClaiming(false);
-        return;
-      }
-
       // 1. Call claim on blockchain
       if (!payment.blockchain_payment_id) {
         throw new Error("Payment not found on blockchain");
       }
       
-      // Pass the hex string directly (bytes32)
       const txHash = await claimPayment(payment.blockchain_payment_id as `0x${string}`, payment.claim_secret || "");
       
       if (!txHash) throw new Error("Failed to claim transaction");
@@ -188,6 +177,7 @@ export default function ClaimPage() {
       }
 
       setClaimed(true);
+      setVerifiedEmail(user.email || payment.recipient_email);
       fireBurst();
       toast.success("Payment claimed successfully! 🎉");
     } catch (err: unknown) {
@@ -233,7 +223,7 @@ export default function ClaimPage() {
             <p className="mb-1 text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{payment?.amount} {payment?.token}</span> has been added to your wallet.
             </p>
-            <p className="mb-6 text-xs text-muted-foreground">From {payment?.sender_email}</p>
+            <p className="mb-6 text-xs text-muted-foreground">From {verifiedEmail || payment?.sender_email}</p>
             <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
               View Dashboard <ArrowRight className="h-4 w-4" />
             </Link>
@@ -274,6 +264,10 @@ export default function ClaimPage() {
                   <span className="text-foreground">{payment?.sender_email}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">To</span>
+                  <span className="text-foreground">{payment?.recipient_email}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
                   <span className={`font-medium ${isExpired ? "text-destructive" : isAlreadyClaimed ? "text-primary" : "text-warning"}`}>
                     {isExpired ? "Expired" : isAlreadyClaimed ? "Claimed" : "Pending"}
@@ -298,28 +292,82 @@ export default function ClaimPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Email Verification Status */}
+                  {isLoggedIn && (
+                    <div className={`rounded-lg p-3 text-center ${isEmailMatching ? "bg-primary/10" : "bg-destructive/10"}`}>
+                      <div className="flex items-center justify-center gap-2">
+                        {isEmailMatching ? (
+                          <>
+                            <Check className="h-4 w-4 text-primary" />
+                            <p className="text-sm text-primary">Signed in as {privyUser?.email}</p>
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                            <p className="text-sm text-destructive">
+                              Signed in as {privyUser?.email} (wrong email)
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {loginError && (
                     <div className="rounded-lg bg-destructive/10 p-3 text-center">
                       <p className="text-sm text-destructive">{loginError}</p>
                     </div>
                   )}
-                  {existingUser === false && (
+
+                  {existingUser === false && !isLoggedIn && (
                     <div className="rounded-lg bg-primary/10 p-3 text-center">
-                      <p className="text-sm text-primary">New to Peys? Sign up to claim your {payment?.amount} {payment?.token}</p>
+                      <p className="text-sm text-primary">New to Peys? Create an account to claim your {payment?.amount} {payment?.token}</p>
                     </div>
                   )}
-                  <button
-                    onClick={handleLoginAndClaim}
-                    disabled={claiming}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
-                  >
-                    {claiming ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <ArrowRight className="h-4 w-4" />
-                    )}
-                    {isLoggedIn ? "Claim Payment" : existingUser ? "Sign In & Claim" : "Sign Up & Claim"}
-                  </button>
+
+                  {/* Claim Button */}
+                  {isLoggedIn && !isEmailMatching ? (
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleSignOutAndClaim}
+                        disabled={claiming}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out & Sign In with Correct Email
+                      </button>
+                      <p className="text-center text-xs text-muted-foreground">
+                        Payment sent to: {payment?.recipient_email}
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleLoginAndClaim}
+                      disabled={claiming || (isLoggedIn && !isEmailMatching)}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 disabled:opacity-50"
+                    >
+                      {claiming ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isLoggedIn && isEmailMatching ? (
+                        <>
+                          <ArrowRight className="h-4 w-4" />
+                          Claim Now
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4" />
+                          {existingUser ? "Sign In & Claim" : "Sign Up & Claim"}
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Help text */}
+                  {!isLoggedIn && (
+                    <p className="text-center text-xs text-muted-foreground">
+                      We'll verify your email before claiming. Payment will be sent to: <span className="font-medium">{payment?.recipient_email}</span>
+                    </p>
+                  )}
                 </div>
               )}
             </div>
