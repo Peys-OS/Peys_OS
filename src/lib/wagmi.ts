@@ -14,19 +14,19 @@ const celoRpcs = [
 ];
 
 const polkadotRpcs = [
-  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
-  'https://polkadot-asset-hub-rpc.dotters.cloud',
+  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-rpc-testnet.polkadot.io',
+  'https://eth-asset-hub-paseo.dotters.network',
 ];
 
-// Define Polkadot Asset Hub (EVM compatible)
+// Define Polkadot Asset Hub (Paseo Testnet) - Chain ID 420420417
 export const polkadotAssetHub = {
-  id: 420420421,
-  name: 'Polkadot Asset Hub',
-  network: 'polkadot-asset-hub',
+  id: 420420417,
+  name: 'Polkadot Asset Hub Testnet',
+  network: 'polkadot-asset-hub-testnet',
   nativeCurrency: {
-    name: 'DOT',
-    symbol: 'DOT',
-    decimals: 10,
+    name: 'PAS',
+    symbol: 'PAS',
+    decimals: 18,
   },
   rpcUrls: {
     default: {
@@ -38,10 +38,11 @@ export const polkadotAssetHub = {
   },
   blockExplorers: {
     default: {
-      name: 'Polkadot Asset Hub Explorer',
-      url: 'https://polkadot.js.org/apps',
+      name: 'Polkadot Testnet Explorer',
+      url: 'https://polkadot.testnet.routescan.io',
     },
   },
+  testnet: true,
 } as const;
 
 // Define Celo Alfajores Testnet
