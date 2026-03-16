@@ -47,8 +47,24 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const AppContext = createContext<AppContextType | null>(null);
 
+// Helper function to get RPC URL with fallbacks
+function getPolkadotRpcUrl(): string {
+  const rpcs = [
+    import.meta.env.VITE_RPC_URL_POLKADOT || "https://polkadot-westend.gateway.tatum.io",
+    import.meta.env.VITE_RPC_URL_POLKADOT_1 || "https://eth-asset-hub-paseo.dotters.network",
+    import.meta.env.VITE_RPC_URL_POLKADOT_2 || "https://paseo-rpc.dotters.network",
+    import.meta.env.VITE_RPC_URL_POLKADOT_3 || "https://westend-asset-hub-eth-rpc.polkadot.io",
+  ];
+  return rpcs[0];
+}
+
 // Create public clients for each network
 const publicClients = Object.entries(chainConfigs).reduce((acc, [chainId, config]) => {
+  // Use Tatum RPC for Polkadot (most reliable from testing)
+  const rpcUrl = Number(chainId) === 420420417 || Number(chainId) === 420420421 
+    ? getPolkadotRpcUrl() 
+    : config.rpcUrl;
+  
   acc[Number(chainId)] = createPublicClient({
     chain: {
       id: config.id,
@@ -58,9 +74,9 @@ const publicClients = Object.entries(chainConfigs).reduce((acc, [chainId, config
         symbol: config.name.includes("Polkadot") ? "DOT" : config.name.includes("Celo") ? "CELO" : "ETH",
         decimals: 18 
       },
-      rpcUrls: { default: { http: [config.rpcUrl] } },
+      rpcUrls: { default: { http: [rpcUrl] } },
     },
-    transport: http(config.rpcUrl),
+    transport: http(rpcUrl),
   });
   return acc;
 }, {} as Record<number, ReturnType<typeof createPublicClient>>);
