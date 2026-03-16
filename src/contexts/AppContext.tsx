@@ -58,12 +58,28 @@ function getPolkadotRpcUrl(): string {
   return rpcs[0];
 }
 
+function getCeloRpcUrl(): string {
+  const rpcs = [
+    import.meta.env.VITE_RPC_URL_CELO || "https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt",
+    "https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt",
+    "https://rpc.alfajores.celo.org",
+    "https://alfajores-forno.celo-testnet.org",
+  ];
+  return rpcs[0];
+}
+
 // Create public clients for each network
 const publicClients = Object.entries(chainConfigs).reduce((acc, [chainId, config]) => {
+  let rpcUrl = config.rpcUrl;
+  
   // Use Tatum RPC for Polkadot (most reliable from testing)
-  const rpcUrl = Number(chainId) === 420420417 || Number(chainId) === 420420421 
-    ? getPolkadotRpcUrl() 
-    : config.rpcUrl;
+  if (Number(chainId) === 420420417 || Number(chainId) === 420420421) {
+    rpcUrl = getPolkadotRpcUrl();
+  }
+  // Use Alchemy RPC for Celo
+  else if (Number(chainId) === 44787) {
+    rpcUrl = getCeloRpcUrl();
+  }
   
   acc[Number(chainId)] = createPublicClient({
     chain: {
