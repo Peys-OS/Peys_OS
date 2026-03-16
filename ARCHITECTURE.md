@@ -4,7 +4,99 @@
 
 PeyDot uses a **hybrid architecture** combining Supabase Edge Functions with a dedicated WhatsApp microservice for optimal cost and functionality.
 
-## Architecture Diagram
+## Architecture Diagram (Mermaid)
+
+```mermaid
+flowchart TB
+    subgraph Frontend["Frontend (Vercel/Netlify)"]
+        UI[React/Vite App]
+        Auth[Privy Auth]
+        Wallet[Wagmi/Viem]
+    end
+
+    subgraph Backend["Backend Services"]
+        subgraph Supabase["Supabase (Primary)"]
+            DB[(PostgreSQL)]
+            Auth_Supabase[Auth]
+            EdgeFuncs[Edge Functions]
+            Storage[Storage]
+        end
+        
+        subgraph WhatsApp["WhatsApp Microservice"]
+            QR[QR Generator]
+            WA_Web[WhatsApp Web]
+            Session[Session Mgmt]
+        end
+    end
+
+    subgraph External["External Services"]
+        Email[Resend Email]
+        RPC[Infura/Alchemy]
+        Privy[Privy]
+    end
+
+    subgraph Blockchain["Blockchain Networks"]
+        Base[Base Sepolia]
+        Celo[Celo Alfajores]
+        Polkadot[Polkadot]
+    end
+
+    UI --> Auth
+    UI --> Wallet
+    UI --> EdgeFuncs
+    Auth --> Auth_Supabase
+    Wallet --> RPC
+    Wallet --> Base
+    Wallet --> Celo
+    Wallet --> Polkadot
+    EdgeFuncs --> DB
+    EdgeFuncs --> Storage
+    EdgeFuncs --> Email
+    EdgeFuncs --> WhatsApp
+    QR --> WA_Web
+    WA_Web --> Session
+    Session --> EdgeFuncs
+    Email --> Privy
+```
+
+## Payment Flow (Mermaid)
+
+```mermaid
+sequenceDiagram
+    participant S as Sender
+    participant F as Frontend
+    participant Sup as Supabase
+    participant E as Escrow Contract
+    participant R as Recipient
+    participant Email as Email Service
+
+    S->>F: Create payment (amount, recipient, token)
+    F->>Sup: POST /create-payment
+    Sup->>Sup: Generate claim link & secret
+    Sup->>Sup: Save to database
+    Sup->>Email: Send email notification
+    Email->>R: Claim link email
+    
+    R->>F: Open claim link
+    F->>Sup: Verify payment exists
+    Sup->>F: Payment details
+    R->>F: Sign claim transaction
+    F->>E: claim(paymentId, secretHash)
+    E->>E: Verify & transfer tokens
+    E-->>R: Tokens transferred
+    F->>Sup: Update payment status
+    Sup->>S: Notification: payment claimed
+```
+
+## Contract Addresses
+
+| Network | Chain ID | Escrow Contract | USDC Token |
+|---------|----------|-----------------|-------------|
+| Base Sepolia | 84532 | `0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c` | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Celo Alfajores | 44787 | `0xc880AF5d5aC3ea27c26C47D132661A710C245ea5` | `0x01C5C0122039549AD1493B8220cABEdD739BC44E` |
+| Polkadot (Paseo) | 420420417 | `0x802a6843516f52144b3f1d04e5447a085d34af37` | PASS Token |
+
+## Architecture Diagram (ASCII)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
