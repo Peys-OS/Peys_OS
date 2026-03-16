@@ -38,14 +38,17 @@ export default function AIChatBubble() {
   const buildContext = useCallback(() => ({
     isLoggedIn,
     walletAddress,
+    balancePASS: wallet.balancePASS,
     balanceUSDC: wallet.balanceUSDC,
     balanceUSDT: wallet.balanceUSDT,
+    networkBalances: wallet.networkBalances,
     transactions: transactions.slice(0, 10).map((tx) => ({
       type: tx.type,
       amount: tx.amount,
       token: tx.token,
       counterparty: tx.counterparty,
       memo: tx.memo,
+      chain: tx.chain,
       timestamp: tx.timestamp.toISOString(),
     })),
   }), [isLoggedIn, walletAddress, wallet, transactions]);
