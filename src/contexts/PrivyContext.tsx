@@ -65,12 +65,7 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
   const handleLogin = useCallback(() => {
     if (!ready) return;
     setIsLoading(true);
-    // Pass login options to enable email-only login
-    login({
-      authorization: {
-        showWalletLogin: true,
-      }
-    });
+    login();
     // isLoading will be reset once `authenticated` changes
   }, [login, ready]);
 
@@ -130,7 +125,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
         loginMethods: ['email', 'google', 'apple', 'twitter', 'wallet'],
         embeddedWallets: {
           ethereum: {
-            createOnLogin: 'users-without-wallet',
+            createOnLogin: 'users-without-wallets',  // Fixed: was 'users-without-wallet'
           },
         },
         defaultChain: baseSepolia,
