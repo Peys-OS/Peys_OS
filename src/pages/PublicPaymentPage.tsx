@@ -12,7 +12,7 @@ import { Address, getEventSelector, parseAbiItem, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
 import { usePrivyAuth } from "@/contexts/PrivyContext";
 
-type Token = "USDC" | "USDT";
+type Token = "USDC" | "USDT" | "PASS";
 
 interface NetworkOption {
   id: number;
@@ -23,6 +23,7 @@ interface NetworkOption {
 }
 
 const networks: NetworkOption[] = [
+  { id: 420420417, name: "Polkadot Asset Hub", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.testnet.routescan.io" },
   { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
   { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
 ];
@@ -157,8 +158,19 @@ export default function PublicPaymentPage() {
 
         const chainId = selectedNetwork;
         const chainConfig = getChainConfig(chainId);
-        const tokenAddress = token === "USDC" ? chainConfig.usdcAddress : chainConfig.usdtAddress;
-        const amountBigInt = BigInt(Number(amount) * 1000000);
+        
+        let tokenAddress: string;
+        if (token === "PASS") {
+          tokenAddress = chainConfig.passAddress;
+        } else if (token === "USDC") {
+          tokenAddress = chainConfig.usdcAddress;
+        } else {
+          tokenAddress = chainConfig.usdtAddress;
+        }
+        
+        const amountBigInt = token === "PASS" 
+          ? BigInt(Number(amount) * 1000000000000000000) 
+          : BigInt(Number(amount) * 1000000);
         const expiryDays = 7;
 
         setSendingPhase("approving");
@@ -382,10 +394,13 @@ export default function PublicPaymentPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        {(["USDC", "USDT"] as Token[]).filter((t) => {
+                        {(["USDC", "USDT", "PASS"] as Token[]).filter((t) => {
+                          const chainConfig = getChainConfig(selectedNetwork);
                           if (t === "USDT") {
-                            const chainConfig = getChainConfig(selectedNetwork);
                             return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
+                          }
+                          if (t === "PASS") {
+                            return selectedNetwork === 420420417;
                           }
                           return true;
                         }).map((t) => (

@@ -12,6 +12,7 @@ export interface NetworkBalance {
   networkName: string;
   usdc: number;
   usdt: number;
+  pass: number;
   nativeToken: number;
   nativeSymbol: string;
 }
@@ -20,6 +21,7 @@ interface UserWallet {
   address: string;
   balanceUSDC: number;
   balanceUSDT: number;
+  balancePASS: number;
   totalBalanceUSD: number;
   networkBalances: NetworkBalance[];
 }
@@ -126,25 +128,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await Promise.all(
       Object.entries(chainConfigs).map(async ([chainId, config]) => {
         const client = publicClients[Number(chainId)];
-        const [usdcBalance, usdtBalance, nativeBalance] = await Promise.all([
+        
+        const isPolkadot = config.name.includes("Polkadot");
+        
+        const [usdcBalance, usdtBalance, nativeBalance, passBalance] = await Promise.all([
           readBalance(client, config.usdcAddress),
           readBalance(client, config.usdtAddress),
           readNativeBalance(client, config),
+          isPolkadot && config.passAddress ? readBalance(client, config.passAddress) : Promise.resolve(0),
         ]);
-
-        const nativeSymbol = config.name.includes("Polkadot") 
-          ? "DOT" 
-          : config.name.includes("Celo") 
-            ? "CELO" 
-            : "ETH";
 
         netBalances.push({
           chainId: Number(chainId),
           networkName: config.name,
           usdc: usdcBalance,
           usdt: usdtBalance,
+          pass: passBalance || 0,
           nativeToken: nativeBalance,
-          nativeSymbol,
+          nativeSymbol: config.nativeSymbol || "ETH",
         });
 
         totalUSDC += usdcBalance;
@@ -282,6 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     address: shortAddr,
     balanceUSDC,
     balanceUSDT,
+    balancePASS: networkBalances.find(nb => nb.chainId === 420420417)?.pass || 0,
     totalBalanceUSD,
     networkBalances,
   };
