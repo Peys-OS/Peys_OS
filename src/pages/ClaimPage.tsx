@@ -136,9 +136,16 @@ export default function ClaimPage() {
 
     setClaiming(true);
     try {
+      // Debug: Log the payment details
+      console.log("=== Claim Attempt ===");
+      console.log("Payment ID (blockchain_payment_id):", payment.blockchain_payment_id);
+      console.log("Claim Secret:", payment.claim_secret);
+      console.log("Recipient:", privyUser?.email);
+      console.log("Payment Status:", payment.status);
+
       // 1. Call claim on blockchain
       if (!payment.blockchain_payment_id) {
-        throw new Error("Payment not found on blockchain");
+        throw new Error("Payment not found on blockchain - no blockchain_payment_id");
       }
       
       console.log("Attempting to claim payment...", {
@@ -200,7 +207,11 @@ export default function ClaimPage() {
       const errorMessage = err instanceof Error ? err.message : "Failed to claim payment";
       
       // Provide more helpful error messages for blockchain issues
-      if (errorMessage.includes("403") || errorMessage.includes("403 (Forbidden)")) {
+      if (errorMessage.includes("0x144354df") || errorMessage.includes("PaymentNotFound")) {
+        toast.error("Payment not found or already claimed. Please check with the sender.");
+      } else if (errorMessage.includes("0x") || errorMessage.includes("reverted")) {
+        toast.error("Transaction reverted. The payment may be invalid, already claimed, or expired.");
+      } else if (errorMessage.includes("403") || errorMessage.includes("403 (Forbidden)")) {
         toast.error("Network error. Please check your connection and try again.");
       } else if (errorMessage.includes("429") || errorMessage.includes("Too Many Requests")) {
         toast.error("Rate limited. Please wait a moment and try again.");
