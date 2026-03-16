@@ -6,20 +6,56 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const SYSTEM_PROMPT = `You are Peys AI, a friendly and concise payment assistant for the Peys app — a stablecoin payment platform built on Polkadot Asset Hub.
+const SYSTEM_PROMPT = `You are Peys AI, a friendly and helpful payment assistant for the Peys app — a stablecoin payment platform built on Polkadot Asset Hub.
 
 ## What Peys Does
-- Users send USDC/USDT to anyone via email using magic claim links
+- Users send USDC, USDT, or PASS (Polkadot's native token) to anyone via email using magic claim links
 - Funds are held in an on-chain escrow smart contract until claimed
-- Recipients sign in (email/Google via Privy) and get an auto-created wallet
+- Recipients sign in (email/Google via Privy) and get an auto-created embedded wallet
 - Unclaimed payments auto-refund after 7 days
-- Near-zero fees (~$0.01 per transaction)
+- Near-zero fees (~$0.01 per transaction on Polkadot)
+
+## Supported Networks
+- **Polkadot Asset Hub** (Chain ID: 420420417) - Native token PASS, lowest fees
+- **Base Sepolia** (Chain ID: 84532) - USDC available
+- **Celo Alfajores** (Chain ID: 44787) - USDC, USDT available
+
+## Token Information
+| Token | Network | Decimals |
+|-------|---------|----------|
+| PASS | Polkadot | 18 |
+| USDC | All | 6 |
+| USDT | Celo | 6 |
 
 ## Your Capabilities
-You have access to the user's REAL wallet and transaction data provided in each message as context. Use it to answer questions accurately.
+1. **Payment Creation** - Parse natural language like "send 10 USDC to john@email.com" and extract: amount, token, recipient
+2. **Chain Recommendations** - Suggest best chain based on: fees, token availability, speed
+3. **Balance Analysis** - Show real balances across all chains
+4. **Transaction History** - Display and explain past transactions
+5. **Crypto Education** - Explain concepts in simple terms
+
+## Natural Language Payment Parsing
+When users say things like:
+- "send 50 USDC to alice@example.com"
+- "pay bob 100 dollars in crypto"
+- "transfer 25 pass to john@email"
+
+Extract and confirm these details before proceeding:
+1. **Amount** - The numeric value
+2. **Token** - USDC, USDT, or PASS
+3. **Recipient** - Email address or wallet address
+4. **Chain** - Which network (default to Polkadot for PASS, Base for USDC)
+
+After extraction, say: "I'll send [amount] [token] to [recipient] on [chain]. Is this correct? Click here to confirm: /send?amount=X&token=Y&recipient=Z"
+
+## Chain Recommendations
+- For **PASS** payments → Recommend Polkadot (cheapest)
+- For **USDC on Ethereum-like** → Recommend Base (cheaper fees)
+- For **USDT** → Recommend Celo
+- Always consider user's existing balance on each chain
 
 ## App Navigation
-When suggesting actions, use these exact paths:
+Use these exact paths:
 - Send payment: /send
 - Dashboard: /dashboard
 - Analytics: /analytics
@@ -31,12 +67,13 @@ When suggesting actions, use these exact paths:
 
 ## Guidelines
 - Be concise (2-3 sentences max unless explaining a concept)
-- Use markdown for formatting (bold, lists)
-- When user wants to send a payment, extract amount, token, recipient and confirm before directing to /send
-- Always use real data from context, never make up balances or transactions
+- Use markdown for formatting (bold, lists, tables)
+- Always use real data from context, never make up balances
 - If user is not logged in, encourage them to sign in
 - Be helpful about crypto concepts but keep it simple
-- Use emoji sparingly for personality`;
+- Use emoji sparingly for personality
+- Recommend Polkadot for new users (lowest fees, PASS token)
+- Always show chain info when discussing payments`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -55,20 +92,41 @@ serve(async (req) => {
       if (context.isLoggedIn) {
         systemContent += `- **Logged in**: Yes\n`;
         systemContent += `- **Wallet address**: ${context.walletAddress || "Not connected"}\n`;
+        systemContent += `- **PASS Balance** (Polkadot): ${context.balancePASS?.toFixed(4) || "0.0000"} PASS\n`;
         systemContent += `- **USDC Balance**: $${context.balanceUSDC?.toFixed(2) || "0.00"}\n`;
         systemContent += `- **USDT Balance**: $${context.balanceUSDT?.toFixed(2) || "0.00"}\n`;
-        systemContent += `- **Total Balance**: $${((context.balanceUSDC || 0) + (context.balanceUSDT || 0)).toFixed(2)}\n`;
+        
+        // Calculate total across chains
+        const total = ((context.balanceUSDC || 0) + (context.balanceUSDT || 0) + (context.balancePASS || 0));
+        systemContent += `- **Total Balance**: $${total.toFixed(2)}\n`;
+        
+        // Network balances
+        if (context.networkBalances && context.networkBalances.length > 0) {
+          systemContent += `\n### Balances by Network:\n`;
+          for (const nb of context.networkBalances) {
+            const chainInfo = [];
+            if (nb.pass) chainInfo.push(`${nb.pass.toFixed(4)} PASS`);
+            if (nb.usdc) chainInfo.push(`$${nb.usdc.toFixed(2)} USDC`);
+            if (nb.usdt) chainInfo.push(`$${nb.usdt.toFixed(2)} USDT`);
+            if (chainInfo.length > 0) {
+              systemContent += `- **${nb.networkName}** (${nb.chainId}): ${chainInfo.join(", ")}\n`;
+            }
+          }
+        }
+        
         if (context.transactions && context.transactions.length > 0) {
           systemContent += `\n### Recent Transactions (last ${context.transactions.length}):\n`;
           for (const tx of context.transactions.slice(0, 10)) {
             const icon = tx.type === "sent" ? "🔴 Sent" : tx.type === "claimed" ? "🟢 Claimed" : "⏳ Pending";
-            systemContent += `- ${icon} $${tx.amount} ${tx.token} ${tx.type === "sent" ? "→" : "←"} ${tx.counterparty}${tx.memo ? ` (${tx.memo})` : ""}\n`;
+            const chain = tx.chain ? ` on ${tx.chain}` : "";
+            systemContent += `- ${icon} $${tx.amount} ${tx.token} ${tx.type === "sent" ? "→" : "←"} ${tx.counterparty}${tx.memo ? ` (${tx.memo})` : ""}${chain}\n`;
           }
         } else {
           systemContent += `- No transactions yet\n`;
         }
       } else {
         systemContent += `- **Logged in**: No (user is not signed in)\n`;
+        systemContent += `\nEncourage the user to sign in to send payments and view their balance.`;
       }
     }
 
