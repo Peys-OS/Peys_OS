@@ -29,7 +29,7 @@ CREATE TABLE public.payments (
   sender_wallet TEXT,
   recipient_email TEXT NOT NULL,
   amount NUMERIC NOT NULL CHECK (amount > 0),
-  token TEXT NOT NULL CHECK (token IN ('USDC', 'USDT')),
+  token TEXT NOT NULL CHECK (token IN ('USDC', 'USDT', 'PASS')),
   memo TEXT,
   claim_secret TEXT NOT NULL,
   claim_link TEXT NOT NULL UNIQUE,
