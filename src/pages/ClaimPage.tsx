@@ -118,15 +118,14 @@ export default function ClaimPage() {
   const handleClaim = async () => {
     if (!payment) return;
 
-    // Final verification before claiming
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Check if user is logged in via Privy - use Privy user directly
+    if (!privyUser) {
       toast.error("Please sign in to claim");
       return;
     }
 
     // Verify the logged-in user's email matches the payment recipient
-    const userEmail = user.email?.toLowerCase();
+    const userEmail = privyUser.email?.toLowerCase();
     const paymentEmail = payment.recipient_email.toLowerCase();
     
     if (userEmail !== paymentEmail) {
@@ -142,16 +141,32 @@ export default function ClaimPage() {
         throw new Error("Payment not found on blockchain");
       }
       
+      console.log("Attempting to claim payment...", {
+        paymentId: payment.blockchain_payment_id,
+        secret: payment.claim_secret
+      });
+      
       const txHash = await claimPayment(payment.blockchain_payment_id as `0x${string}`, payment.claim_secret || "");
       
       if (!txHash) throw new Error("Failed to claim transaction");
 
-      // 2. Update database status
+      console.log("Claim successful, tx:", txHash);
+
+      // 2. Find user by email in profiles table
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", payment.recipient_email)
+        .single();
+      
+      const userId = profile?.id;
+
+      // 3. Update database status
       const { error: updateErr } = await supabase
         .from("payments")
         .update({
           status: "claimed",
-          claimed_by_user_id: user.id,
+          claimed_by_user_id: userId,
           claimed_at: new Date().toISOString(),
         })
         .eq("id", payment.id)
@@ -171,19 +186,29 @@ export default function ClaimPage() {
           user_id: senderProfile.user_id,
           type: "payment_claimed",
           title: `✅ Payment of ${payment.amount} ${payment.token} claimed!`,
-          message: `${user.email || "Someone"} claimed your payment of ${payment.amount} ${payment.token}.`,
+          message: `${privyUser?.email || payment.recipient_email} claimed your payment of ${payment.amount} ${payment.token}.`,
           payment_id: payment.id,
         });
       }
 
       setClaimed(true);
-      setVerifiedEmail(user.email || payment.recipient_email);
+      setVerifiedEmail(privyUser?.email || payment.recipient_email);
       fireBurst();
       toast.success("Payment claimed successfully! 🎉");
     } catch (err: unknown) {
       console.error("Claim failed:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to claim payment";
-      toast.error(errorMessage);
+      
+      // Provide more helpful error messages for blockchain issues
+      if (errorMessage.includes("403") || errorMessage.includes("403 (Forbidden)")) {
+        toast.error("Network error. Please check your connection and try again.");
+      } else if (errorMessage.includes("429") || errorMessage.includes("Too Many Requests")) {
+        toast.error("Rate limited. Please wait a moment and try again.");
+      } else if (errorMessage.includes("timeout") || errorMessage.includes("TIMEOUT")) {
+        toast.error("Connection timed out. Please check your internet and try again.");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setClaiming(false);
     }
