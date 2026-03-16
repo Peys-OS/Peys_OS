@@ -35,7 +35,8 @@ interface NetworkOption {
 const networks: NetworkOption[] = [
   { id: 420420417, name: "Polkadot Asset Hub", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.testnet.routescan.io" },
   { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
-  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
+  // Celo coming soon - contract not deployed yet
+  // { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
 ];
 
 export default function SendPaymentForm() {
@@ -68,7 +69,7 @@ export default function SendPaymentForm() {
   const publicClient = usePublicClient();
   const { chain: connectedChain } = useAccount();
   const { switchChain } = useSwitchChain();
-  const chainId = useChainId();
+  const walletChainId = useChainId();
 
   // Auto-detect network from connected wallet
   useEffect(() => {
@@ -177,7 +178,7 @@ export default function SendPaymentForm() {
     setShowNetworkSelector(false);
     
     // Switch wallet to selected network
-    if (switchChain && networkId !== chainId) {
+    if (switchChain && networkId !== walletChainId) {
       try {
         switchChain({ chainId: networkId });
       } catch (err) {
@@ -275,7 +276,14 @@ export default function SendPaymentForm() {
 
         if (error) throw error;
 
-        // 2. Create payment on blockchain
+        // 2. Validate wallet is on correct network before creating payment
+        if (selectedNetwork !== walletChainId) {
+          toast.error(`Please switch your wallet to ${currentNetwork.name} network first.`);
+          setStep("form");
+          return;
+        }
+
+        // 3. Create payment on blockchain
         const chainId = selectedNetwork;
         const chainConfig = getChainConfig(chainId);
         
