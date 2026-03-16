@@ -82,33 +82,13 @@ export function useEscrow() {
     
     // Check allowance
     console.log("Checking allowance for token:", tokenAddress);
-    let hasAllowance = false;
-    try {
-      hasAllowance = await checkAllowance(tokenAddress, amount);
-      console.log("Allowance check result:", hasAllowance);
-    } catch (e) {
-      console.warn("Could not check allowance:", e);
-    }
-
-    if (!chain) {
-      throw new Error("No blockchain network detected. Please switch to a supported network in your wallet.");
-    }
-
-    const supportedChainIds = [84532, 44787, 420420417, 420420421];
-    if (!supportedChainIds.includes(chain.id)) {
-      throw new Error(`Unsupported network. Please switch to Base Sepolia, Celo Alfajores, or Polkadot testnet.`);
-    }
-
-    if (!publicClient) {
-      throw new Error("Public client not available. Please refresh the page.");
-    }
-
     const pc = publicClient;
     
     // Check allowance first
     let hasAllowance = false;
     try {
       hasAllowance = await checkAllowance(tokenAddress, amount);
+      console.log("Allowance check result:", hasAllowance);
     } catch (e) {
       console.warn("Could not check allowance:", e);
     }
