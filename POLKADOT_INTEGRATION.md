@@ -1,29 +1,37 @@
 # Polkadot Stablecoin Integration Guide
 
-## Executive Summary
+## Overview
 
-Your project uses an ERC-20 escrow contract which only supports standard Ethereum-style tokens. However, **Polkadot Asset Hub uses a different asset model** based on Asset IDs rather than contract addresses.
+This guide explains how to integrate stablecoins (USDC, USDT) and native tokens (PASS/DOT) with Polkadot Asset Hub for your Peys hackathon project.
 
-### The Problem
+## Why Polkadot is Different
 
-| Asset Type | Polkadot Asset Hub | Ethereum |
-|------------|-------------------|----------|
-| **Stablecoins (USDC/USDT)** | Asset ID (integer) | ERC-20 contract address |
-| **Native token (PASS/DOT)** | Native (no ERC-20) | WETH/WDOT wrapper |
+Polkadot uses a **different asset model** than Ethereum:
 
-**Your current issue:** `0x00000001000000000000000000000000000007C0` is NOT an ERC-20 contract - it's the Polkadot system assets precompile that doesn't implement `allowance()` or `transferFrom()`.
+| Aspect | Ethereum | Polkadot Asset Hub |
+|--------|----------|-------------------|
+| **Asset ID** | Contract address (0x...) | Integer (e.g., 1337 for USDC) |
+| **Native Token** | ETH (needs WETH wrapper) | DOT/PAS (native, no wrapper needed) |
+| **Stablecoins** | ERC-20 contract | Asset ID + ERC20 precompile |
 
-## Solution Options
+## The Problem You're Facing
 
-### Option 1: Use USDC on Polkadot Asset Hub (Recommended)
+Your PeysEscrow contract uses `IERC20(token).transferFrom()`, but on Polkadot:
 
-**USDC is available on Polkadot Asset Hub with Asset ID 1337**
+1. **PASS is the native token** - NOT an ERC-20 contract
+2. **USDC has Asset ID 1337** - mapped to ERC20 precompile at specific address
+3. **The address `0x00000001000000000000000000000000000007C0` is NOT an ERC-20 contract** - it's the system assets precompile
 
-However, this requires using the **ERC20 Precompile** address format, not a standard contract address.
+## Solution: Use USDC on Polkadot
 
-**Precompile Address Format:**
+USDC is natively available on Polkadot Asset Hub with Asset ID 1337.
+
+### Step 1: Find the Correct USDC Address
+
+On Polkadot Asset Hub, assets are accessed via **ERC20 Precompiles**. The formula is:
+
 ```
-0x0000000000000000000000000000000000000800 + asset_id_padded
+Precompile Address = 0x0000000000000000000000000000000000000800 + asset_id
 ```
 
 For USDC (Asset ID 1337 = 0x539):
@@ -32,87 +40,150 @@ For USDC (Asset ID 1337 = 0x539):
 = 0x0000000000000000000000000000000000000D39
 ```
 
-### Option 2: Use Base Sepolia (Currently Working)
+### Step 2: Update Configuration
 
-Base Sepolia already has USDC deployed and working with your contract.
+Update `.env` file:
 
-**Current USDC on Base Sepolia:**
-- Contract: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
-- Your escrow: `0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c`
-
-### Option 3: Deploy WPASS (Wrapped PASS)
-
-Deploy an ERC-20 wrapper contract for PASS tokens on Polkadot.
-
-## Implementation Steps
-
-### Step 1: Update Configuration
-
-**For USDC on Polkadot Asset Hub:**
-
-Update `.env`:
 ```env
+# Polkadot USDC (Asset ID 1337)
 VITE_USDC_ADDRESS_POLKADOT=0x0000000000000000000000000000000000000D39
+
+# Keep PASS as native token display
+VITE_PASS_ADDRESS_POLKADOT=0x00000001000000000000000000000000000007c0
 ```
 
-**For PAS on Polkadot Asset Hub:**
+### Step 3: Configure Wallet for Polkadot
 
-Update `.env`:
-```env
-VITE_PASS_ADDRESS_POLKADOT=0x0000000000000000000000000000000000000801
+The Privy wallet configuration in `src/contexts/PrivyContext.tsx` already supports Polkadot Asset Hub. The wallet will:
+
+1. Create an embedded wallet on login
+2. Support multiple chains (Polkadot, Base, Celo)
+3. Allow users to switch networks
+
+## Wallet Integration
+
+### How Wallets Work on Polkadot
+
+Polkadot Asset Hub uses **EVM-compatible addresses**:
+- Your wallet address format is the same as Ethereum
+- You can use MetaMask, Coinbase Wallet, or Privy embedded wallets
+- The wallet handles the Polkadot-specific RPC connection
+
+### Supported Wallets
+
+| Wallet | Support | Notes |
+|--------|---------|-------|
+| **Privy Embedded** | ✅ Full | Created automatically on email login |
+| **MetaMask** | ✅ Full | Add Polkadot Asset Hub network |
+| **Coinbase Wallet** | ✅ Full | Built-in support |
+| **Polkadot.js** | ❌ Partial | Not EVM-compatible |
+
+## Network Configuration
+
+### Polkadot Asset Hub (Paseo Testnet)
+
+Add this to MetaMask:
+
+| Field | Value |
+|-------|-------|
+| **Network Name** | Polkadot Asset Hub Testnet |
+| **Chain ID** | 420420417 |
+| **RPC URL** | https://eth-asset-hub-paseo.dotters.network |
+| **Currency Symbol** | PAS |
+| **Block Explorer** | https://polkadot.testnet.routescan.io |
+
+## Smart Contract Considerations
+
+### Current Limitation
+
+Your `PeysEscrow.sol` contract only supports ERC-20 tokens via:
+```solidity
+IERC20(token).transferFrom(msg.sender, address(this), amount);
 ```
-(Using the XC-20 precompile format)
 
-### Step 2: Update chains.ts
+**For Polkadot native tokens (PASS/DOT)**, this won't work because they're not ERC-20 contracts.
 
-Update the Polkadot chain configuration to include the correct USDC address:
+### Recommended Approach for Hackathon
 
-```typescript
-420420417: {
-  // ... existing config
-  usdcAddress: "0x0000000000000000000000000000000000000D39" as Address,
-  passAddress: "0x0000000000000000000000000000000000000801" as Address,
-}
+1. **Use USDC for payments** (works via ERC20 precompile)
+2. **Show PASS balance** for Polkadot native token display
+3. **Document the limitation** in your demo
+
+### Alternative: Multi-Chain Support
+
+Since Polkadot Asset Hub has USDC natively, you can support:
+
+```solidity
+// Polkadot USDC (Asset ID 1337)
+// USDC address: 0x0000000000000000000000000000000000000D39
+
+// Base Sepolia USDC
+// USDC address: 0x036CbD53842c5426634e7929541eC2318f3dCF7e
 ```
 
-### Step 3: Verify Token Availability
+## Testing on Polkadot
 
-Check if USDC has sufficient balance and is approved for your contract.
+### Step 1: Get Test Tokens
 
-## Alternative: Use Base Sepolia (Quick Solution)
+You can get test DOT/PAS from:
 
-Since Base Sepolia is already working and USDC is available there, you can:
+1. **Polkadot Faucet**: https://polkadot.js.org/apps/#/accounts
+2. **Paseo Testnet Faucet**: Join Discord for test tokens
+3. **USDC on Polkadot**: Transfer from Circle or other exchanges (mainnet)
 
-1. **Keep Polkadot for PASS/ DOT**
-2. **Use Base Sepolia for USDC/USDT**
-3. **Use Celo for CELO/USDC**
+### Step 2: Send a Test Transaction
 
-## Recommended Approach for Hackathon
-
-**For immediate testing:**
-1. Use **Base Sepolia** for USDC payments (already working)
-2. **Disable PASS** on Polkadot until WPASS is deployed
-3. Focus on making the core functionality work
-
-**For hackathon judging:**
-1. Demonstrate Base Sepolia USDC transfers
-2. Show Polkadot PASS balance display
-3. Explain the Polkadot asset model in your presentation
-
-## References
-
-- USDC on Polkadot: https://circle.com/blog/usdc-on-polkadot
-- Polkadot Asset Hub Assets: https://docs.polkadot.com/reference/polkadot-hub/assets/
-- ERC20 Precompile: https://docs.polkadot.com/smart-contracts/precompiles/erc20/
-
-## Quick Commands
+Using the updated script:
 
 ```bash
-# Send USDC on Base Sepolia
-node scripts/send-pass-token.cjs moseschizaram8@gmail.com 2
-
-# Check USDC balance on Polkadot
-curl -X POST https://eth-asset-hub-paseo.dotters.network \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_call","params":[{"to":"0x...","data":"0x70a08231..."},"latest"],"id":1}'
+# Send USDC on Polkadot
+node scripts/send-pass-token.cjs recipient@email.com 2
 ```
+
+## Wallet Connection Flow
+
+```mermaid
+graph TD
+    A[User clicks Connect Wallet] --> B[Privy Modal Opens]
+    B --> C{Login Method?}
+    C -->|Email| D[Send Magic Link]
+    C -->|Google/Apple| E[OAuth Authentication]
+    C -->|MetaMask| F[Connect to MetaMask]
+    D --> G[Embedded Wallet Created]
+    E --> G
+    F --> G
+    G --> H[Switch to Polkadot Chain]
+    H --> I[Ready to Transact]
+```
+
+## Debugging Common Issues
+
+### Issue 1: "Address is invalid"
+**Cause**: Using PASS token address instead of USDC
+**Solution**: Use USDC address `0x0000000000000000000000000000000000000D39`
+
+### Issue 2: "Chain not supported"
+**Cause**: Wallet not connected to Polkadot Asset Hub
+**Solution**: Switch wallet network in Privy or MetaMask
+
+### Issue 3: "Insufficient funds"
+**Cause**: No test tokens
+**Solution**: Get test DOT from faucet
+
+## Summary for Hackathon Demo
+
+**What works:**
+- ✅ Sending USDC on Polkadot Asset Hub
+- ✅ Wallet connection via Privy
+- ✅ PASS balance display (native token)
+
+**What's limited:**
+- ❌ PASS transfers (requires different contract)
+- ❌ Gasless claims (need to configure gas sponsorship)
+
+**Demo script:**
+1. Show wallet connection (Privy email login)
+2. Display PASS balance (Polkadot native)
+3. Send USDC payment on Polkadot
+4. Recipient claims via magic link
+
