@@ -312,11 +312,11 @@ export default function AIChatBubble() {
     <>
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-20 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
+        className="fixed bottom-20 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 xl:bottom-6 xl:right-6 xl:h-14 xl:w-14"
         whileTap={{ scale: 0.9 }}
         aria-label="Open AI assistant"
       >
-        {isOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />}
+        {isOpen ? <X className="h-5 w-5 xl:h-6 xl:w-6" /> : <MessageCircle className="h-5 w-5 xl:h-6 xl:w-6" />}
       </motion.button>
 
       <AnimatePresence>
@@ -326,7 +326,7 @@ export default function AIChatBubble() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-36 right-4 z-50 flex h-[28rem] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated sm:bottom-24 sm:right-6 sm:w-96 sm:h-[32rem]"
+            className="fixed bottom-36 right-4 z-50 flex h-[28rem] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated xl:bottom-24 xl:right-6 xl:w-96 xl:h-[32rem]"
           >
             {/* Header */}
             <div className="flex items-center gap-3 border-b border-border px-4 py-3">
