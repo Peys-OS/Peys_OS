@@ -59,13 +59,15 @@ function getPolkadotRpcUrl(): string {
 }
 
 function getCeloRpcUrl(): string {
-  const rpcs = [
-    import.meta.env.VITE_RPC_URL_CELO || "https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt",
-    "https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt",
-    "https://rpc.alfajores.celo.org",
-    "https://alfajores-forno.celo-testnet.org",
+  return import.meta.env.VITE_RPC_URL_CELO || "https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt";
+}
+
+function getCeloFallbackRpcs(): string[] {
+  return [
+    import.meta.env.VITE_RPC_URL_CELO_1 || "https://alfajores-forno.celo-testnet.org",
+    import.meta.env.VITE_RPC_URL_CELO_2 || "https://rpc.alfajores.celo.org",
+    import.meta.env.VITE_RPC_URL_CELO_3 || "https://celo-alfajores-rpc.publicnode.com",
   ];
-  return rpcs[0];
 }
 
 // Create public clients for each network
