@@ -195,6 +195,45 @@ export function useEscrow() {
     }
   }, [walletClient, address, chain, publicClient, checkAllowance, getContractAddresses]);
 
+  const getPayment = useCallback(async (paymentId: Hex): Promise<{
+    sender: string;
+    token: string;
+    amount: bigint;
+    expiry: bigint;
+    claimed: boolean;
+    refunded: boolean;
+    memo: string;
+  } | null> => {
+    if (!publicClient) {
+      console.error("Public client not available");
+      return null;
+    }
+
+    const { escrowContract } = getContractAddresses();
+
+    try {
+      const result = await publicClient.readContract({
+        address: escrowContract,
+        abi: ESCROW_ABI,
+        functionName: 'getPayment',
+        args: [paymentId],
+      });
+      
+      return {
+        sender: result[0],
+        token: result[1],
+        amount: result[2],
+        expiry: result[3],
+        claimed: result[4],
+        refunded: result[5],
+        memo: result[6],
+      };
+    } catch (error) {
+      console.error("Error fetching payment:", error);
+      return null;
+    }
+  }, [publicClient, getContractAddresses]);
+
   const claimPayment = useCallback(async (
     paymentId: Hex,
     secret: string
@@ -261,5 +300,6 @@ export function useEscrow() {
     createPayment,
     claimPayment,
     refundPayment,
+    getPayment,
   };
 }

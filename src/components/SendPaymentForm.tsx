@@ -1,5 +1,5 @@
 // Send Payment Form — wired to Supabase
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet, MessageCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -8,12 +8,19 @@ import { fireBurst } from "@/utils/confetti";
 import { Link, useSearchParams } from "react-router-dom";
 import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";
-import { MOCK_CONTACTS } from "@/data/contacts";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  lastSent?: string;
+  totalSent: number;
+}
 
 type Token = "USDC" | "USDT" | "PASS";
 
@@ -47,6 +54,8 @@ export default function SendPaymentForm() {
   const [showCard, setShowCard] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
+  const [recentRecipients, setRecentRecipients] = useState<Contact[]>([]);
+  const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [claimId, setClaimId] = useState("");
   const [txHash, setTxHash] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
@@ -90,6 +99,75 @@ export default function SendPaymentForm() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Fetch recent recipients from payment history
+  useEffect(() => {
+    const fetchRecentRecipients = async () => {
+      if (!walletAddress) return;
+      
+      setLoadingRecipients(true);
+      try {
+        const { data, error } = await supabase
+          .from("payments")
+          .select("recipient_email, created_at, amount, token")
+          .eq("sender_wallet", walletAddress.toLowerCase())
+          .not("recipient_email", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.warn("Failed to fetch recipients:", error);
+          setLoadingRecipients(false);
+          return;
+        }
+
+        // Group by recipient and aggregate
+        const recipientMap = new Map<string, Contact>();
+        
+        data?.forEach((payment) => {
+          const email = payment.recipient_email;
+          if (!email) return;
+          
+          const existing = recipientMap.get(email);
+          const amount = Number(payment.amount) || 0;
+          
+          if (existing) {
+            existing.totalSent += amount;
+            if (!existing.lastSent || payment.created_at > existing.lastSent) {
+              existing.lastSent = payment.created_at;
+            }
+          } else {
+            recipientMap.set(email, {
+              id: email,
+              name: email.split("@")[0],
+              email: email,
+              lastSent: payment.created_at,
+              totalSent: amount,
+            });
+          }
+        });
+
+        // Convert to array and sort by most recent
+        const sortedRecipients = Array.from(recipientMap.values())
+          .sort((a, b) => {
+            if (!a.lastSent) return 1;
+            if (!b.lastSent) return -1;
+            return new Date(b.lastSent).getTime() - new Date(a.lastSent).getTime();
+          })
+          .slice(0, 10);
+
+        setRecentRecipients(sortedRecipients);
+      } catch (err) {
+        console.warn("Error fetching recipients:", err);
+      } finally {
+        setLoadingRecipients(false);
+      }
+    };
+
+    if (isLoggedIn && walletAddress) {
+      fetchRecentRecipients();
+    }
+  }, [isLoggedIn, walletAddress]);
 
   const currentNetwork = networks.find(n => n.id === selectedNetwork) || networks[0];
   const config = getChainConfig(selectedNetwork);
@@ -629,10 +707,41 @@ export default function SendPaymentForm() {
                   <AnimatePresence>
                     {showContacts && (() => {
                       const q = recipient.toLowerCase();
-                      const filtered = MOCK_CONTACTS.filter(
+                      
+                      if (loadingRecipients) {
+                        return (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
+                          >
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                          </motion.div>
+                        );
+                      }
+                      
+                      const filtered = recentRecipients.filter(
                         (c) => !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
                       );
-                      if (filtered.length === 0) return null;
+                      
+                      if (filtered.length === 0) {
+                        return (
+                          <motion.div
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
+                          >
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              {recentRecipients.length === 0 ? "No recent recipients" : "No matches found"}
+                            </div>
+                          </motion.div>
+                        );
+                      }
+                      
                       return (
                         <motion.div
                           initial={{ opacity: 0, y: -4 }}
@@ -640,7 +749,7 @@ export default function SendPaymentForm() {
                           exit={{ opacity: 0, y: -4 }}
                           className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
                         >
-                          <div className="max-h-48 overflow-y-auto py-1">
+                          <div className="max-h-60 overflow-y-auto py-1">
                             {filtered.map((c) => (
                               <button
                                 key={c.id}
@@ -649,11 +758,15 @@ export default function SendPaymentForm() {
                                 className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-secondary/60"
                               >
                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                                  {c.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                                  {c.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-foreground">{c.name}</p>
-                                  <p className="truncate text-xs text-muted-foreground">{c.email}</p>
+                                  <p className="truncate text-sm font-medium text-foreground">{c.email}</p>
+                                  {c.lastSent && (
+                                    <p className="truncate text-xs text-muted-foreground">
+                                      Last sent: {new Date(c.lastSent).toLocaleDateString()}
+                                    </p>
+                                  )}
                                 </div>
                               </button>
                             ))}
@@ -692,28 +805,56 @@ export default function SendPaymentForm() {
             )}
 
             {step === "confirm" && (
-              <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-3 sm:space-y-4">
-                <div className="space-y-2.5 rounded-xl border border-border bg-secondary/50 p-3 sm:space-y-3 sm:p-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Amount</span>
-                    <span className="font-semibold text-foreground">{Number(amount).toFixed(2)} {token}</span>
+              <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-4 sm:space-y-6">
+                <div className="space-y-3 rounded-xl border border-border bg-secondary/50 p-4 sm:space-y-4 sm:p-5 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground sm:text-base">Amount</span>
+                    <span className="font-bold text-foreground sm:text-lg">{Number(amount).toFixed(2)} {token}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Network</span>
+                  <div className="h-px bg-border" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground sm:text-base">Network</span>
                     <span className="flex items-center gap-2">
                       <div 
-                        className="h-2 w-2 rounded-full"
+                        className="h-2.5 w-2.5 rounded-full"
                         style={{ backgroundColor: currentNetwork.color }}
                       />
-                      <span className="text-foreground">{currentNetwork.name}</span>
+                      <span className="text-foreground font-medium sm:text-base">{currentNetwork.name}</span>
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">To ({recipientType})</span><span className="text-foreground">{recipient}</span></div>
-                  {memo && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Note</span><span className="text-foreground">{memo}</span></div>}
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">Expires</span><span className="text-foreground">7 days</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-muted-foreground">Network fee</span><span className="font-medium text-primary">~$0.01</span></div>
+                  <div className="h-px bg-border" />
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="text-sm text-muted-foreground sm:text-base">To ({recipientType})</span>
+                    <span className="text-foreground font-medium break-all sm:text-base">{recipient}</span>
+                  </div>
+                  {memo && (
+                    <>
+                      <div className="h-px bg-border" />
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm text-muted-foreground sm:text-base">Note</span>
+                        <span className="text-foreground font-medium break-all sm:text-base">{memo}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="h-px bg-border" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground sm:text-base">Expires</span>
+                    <span className="text-foreground font-medium sm:text-base">7 days</span>
+                  </div>
+                  <div className="h-px bg-border" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground sm:text-base">Network fee</span>
+                    <span className="font-medium text-primary sm:text-base">~$0.01</span>
+                  </div>
                 </div>
-                <button onClick={handleSend} className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:py-3.5">
+                
+                <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 sm:p-4">
+                  <p className="text-center text-xs text-muted-foreground sm:text-sm">
+                    Please confirm the details above before sending. Once confirmed, the payment will be created and the recipient will be notified.
+                  </p>
+                </div>
+                
+                <button onClick={handleSend} className="w-full rounded-xl bg-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90 sm:py-4 md:text-lg">
                   Confirm & Send
                 </button>
               </motion.div>
