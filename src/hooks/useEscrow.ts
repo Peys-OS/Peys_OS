@@ -174,8 +174,11 @@ export function useEscrow() {
       
     } catch (createError: any) {
       console.error("=== Create Payment Error ===");
-      console.error("Error:", createError);
+      console.error("Full error object:", createError);
       console.error("Error message:", createError?.message);
+      console.error("Error shortMessage:", createError?.shortMessage);
+      console.error("Error cause:", createError?.cause);
+      console.error("Error details:", createError?.details);
       
       const errorMsg = createError?.message || '';
       
@@ -183,8 +186,10 @@ export function useEscrow() {
         throw new Error("Transaction was cancelled. Please try again.");
       }
       
-      if (errorMsg.includes('execution reverted')) {
-        throw new Error(`Transaction failed on-chain: ${errorMsg.slice(0, 100)}`);
+      if (errorMsg.includes('execution reverted') || errorMsg.includes('reverted')) {
+        // Try to extract the actual revert reason
+        const revertReason = createError?.details || createError?.cause?.message || errorMsg;
+        throw new Error(`Transaction reverted: ${revertReason}`);
       }
       
       if (errorMsg.includes('chain')) {
