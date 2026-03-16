@@ -57,8 +57,8 @@ export const chainConfigs: Record<number, ChainConfig> = {
   84532: {
     id: 84532,
     name: "Base Sepolia Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA || "") as Address,
-    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || "") as Address,
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA || "***REMOVED***") as Address,
+    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || "0x036CbD53842c5426634e7929541eC2318f3dCF7e") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_BASE_SEPOLIA || "") as Address,
     passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_BASE_SEPOLIA || "https://sepolia.base.org",
