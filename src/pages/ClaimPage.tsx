@@ -78,7 +78,7 @@ export default function ClaimPage() {
     fetchPayment();
   }, [fetchPayment]);
   
-  const { claimPayment } = useEscrow();
+  const { claimPayment, getPayment } = useEscrow();
 
   // Check if logged in user's email matches payment email
   const isEmailMatching = privyUser?.email?.toLowerCase() === payment?.recipient_email?.toLowerCase();
@@ -136,18 +136,31 @@ export default function ClaimPage() {
 
     setClaiming(true);
     try {
-      // Debug: Log the payment details
       console.log("=== Claim Attempt ===");
       console.log("Payment ID (blockchain_payment_id):", payment.blockchain_payment_id);
       console.log("Claim Secret:", payment.claim_secret);
       console.log("Recipient:", privyUser?.email);
       console.log("Payment Status:", payment.status);
 
-      // 1. Call claim on blockchain
       if (!payment.blockchain_payment_id) {
         throw new Error("Payment not found on blockchain - no blockchain_payment_id");
       }
-      
+
+      const onChainPayment = await getPayment(payment.blockchain_payment_id as `0x${string}`);
+      console.log("On-chain payment data:", onChainPayment);
+
+      if (!onChainPayment) {
+        throw new Error("Payment not found on blockchain. It may have been created on a different network.");
+      }
+
+      if (onChainPayment.claimed) {
+        throw new Error("This payment has already been claimed.");
+      }
+
+      if (onChainPayment.sender === '0x0000000000000000000000000000000000000000') {
+        throw new Error("Payment not found on blockchain.");
+      }
+
       console.log("Attempting to claim payment...", {
         paymentId: payment.blockchain_payment_id,
         secret: payment.claim_secret
@@ -207,8 +220,9 @@ export default function ClaimPage() {
       const errorMessage = err instanceof Error ? err.message : "Failed to claim payment";
       
       // Provide more helpful error messages for blockchain issues
-      if (errorMessage.includes("0x144354df") || errorMessage.includes("PaymentNotFound")) {
-        toast.error("Payment not found or already claimed. Please check with the sender.");
+      if (errorMessage.includes("0x144354df") || errorMessage.includes("InvalidClaimHash")) {
+        toast.error("Invalid claim. The claim link may be incorrect or the payment may be invalid.");
+      } else if (errorMessage.includes("0xe4cb8f8c") || errorMessage.includes("PaymentNotFound")) {
       } else if (errorMessage.includes("0x") || errorMessage.includes("reverted")) {
         toast.error("Transaction reverted. The payment may be invalid, already claimed, or expired.");
       } else if (errorMessage.includes("403") || errorMessage.includes("403 (Forbidden)")) {
