@@ -15,7 +15,7 @@ import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
 
-type Token = "USDC" | "USDT";
+type Token = "USDC" | "USDT" | "PASS";
 
 interface NetworkOption {
   id: number;
@@ -26,9 +26,9 @@ interface NetworkOption {
 }
 
 const networks: NetworkOption[] = [
+  { id: 420420417, name: "Polkadot Asset Hub", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.testnet.routescan.io" },
   { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
   { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
-  { id: 420420421, name: "Polkadot", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.js.org/apps" },
 ];
 
 export default function SendPaymentForm() {
@@ -191,8 +191,19 @@ export default function SendPaymentForm() {
         // 2. Create payment on blockchain
         const chainId = selectedNetwork;
         const chainConfig = getChainConfig(chainId);
-        const tokenAddress = token === "USDC" ? chainConfig.usdcAddress : chainConfig.usdtAddress;
-        const amountBigInt = BigInt(Number(amount) * 1000000); // USDC has 6 decimals
+        
+        let tokenAddress: string;
+        if (token === "PASS") {
+          tokenAddress = chainConfig.passAddress;
+        } else if (token === "USDC") {
+          tokenAddress = chainConfig.usdcAddress;
+        } else {
+          tokenAddress = chainConfig.usdtAddress;
+        }
+        
+        const amountBigInt = token === "PASS" 
+          ? BigInt(Number(amount) * 1000000000000000000) 
+          : BigInt(Number(amount) * 1000000);
         const expiryDays = 7;
 
         setSendingPhase("approving");
@@ -388,9 +399,16 @@ export default function SendPaymentForm() {
 
   // Get balance for selected network
   const networkBalance = wallet.networkBalances?.find(nb => nb.chainId === selectedNetwork);
-  const balance = networkBalance 
-    ? (token === "USDC" ? networkBalance.usdc : networkBalance.usdt)
-    : (token === "USDC" ? wallet.balanceUSDC : wallet.balanceUSDT);
+  const getBalance = () => {
+    if (token === "PASS") {
+      return networkBalance?.pass || wallet.balancePASS || 0;
+    }
+    if (token === "USDC") {
+      return networkBalance ? networkBalance.usdc : wallet.balanceUSDC;
+    }
+    return networkBalance ? networkBalance.usdt : wallet.balanceUSDT;
+  };
+  const balance = getBalance();
 
   return (
     <div className="relative mx-auto max-w-2xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
@@ -493,12 +511,14 @@ export default function SendPaymentForm() {
 
                 {/* Token Selector */}
                 <div className="flex gap-2">
-                  {(["USDC", "USDT"] as Token[])
+                  {(["USDC", "USDT", "PASS"] as Token[])
                     .filter((t) => {
-                      // Filter out USDT if not available on current network
+                      const chainConfig = getChainConfig(selectedNetwork);
                       if (t === "USDT") {
-                        const chainConfig = getChainConfig(selectedNetwork);
                         return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
+                      }
+                      if (t === "PASS") {
+                        return selectedNetwork === 420420417;
                       }
                       return true;
                     })

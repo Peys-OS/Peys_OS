@@ -4,7 +4,7 @@ interface PaymentCardProps {
   payment?: {
     id: string;
     amount: number;
-    token: "USDC" | "USDT";
+    token: "USDC" | "USDT" | "PASS";
     recipient?: string;
     memo?: string;
     status?: string;
@@ -13,7 +13,7 @@ interface PaymentCardProps {
   };
   sender?: string;
   amount?: number;
-  token?: "USDC" | "USDT";
+  token?: "USDC" | "USDT" | "PASS";
   memo?: string;
   claimId?: string;
   link?: string;

@@ -6,20 +6,36 @@ export interface ChainConfig {
   escrowContract: Address;
   usdcAddress: Address;
   usdtAddress: Address;
+  passAddress: Address;
   rpcUrl: string;
   blockExplorer?: string;
+  nativeSymbol: string;
 }
 
 export const chainConfigs: Record<number, ChainConfig> = {
-  // Polkadot Asset Hub (EVM) - Testnet
+  // Polkadot Asset Hub (Paseo Testnet) - Chain ID 420420417
+  420420417: {
+    id: 420420417,
+    name: "Polkadot Asset Hub Testnet",
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || "***REMOVED***") as Address,
+    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLKADOT || "") as Address,
+    usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLKADOT || "") as Address,
+    passAddress: (import.meta.env.VITE_PASS_ADDRESS_POLKADOT || "0x00000001000000000000000000000000000007C0") as Address,
+    rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-rpc-testnet.polkadot.io",
+    blockExplorer: "https://polkadot.testnet.routescan.io",
+    nativeSymbol: "PAS",
+  },
+  // Legacy chain ID (for backward compatibility)
   420420421: {
     id: 420420421,
     name: "Polkadot Asset Hub Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || "") as Address,
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || "***REMOVED***") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLKADOT || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLKADOT || "") as Address,
-    rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-asset-hub-paseo.dotters.network",
-    blockExplorer: "https://polkadot.js.org/apps",
+    passAddress: (import.meta.env.VITE_PASS_ADDRESS_POLKADOT || "0x00000001000000000000000000000000000007C0") as Address,
+    rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-rpc-testnet.polkadot.io",
+    blockExplorer: "https://polkadot.testnet.routescan.io",
+    nativeSymbol: "PAS",
   },
   // Celo Alfajores (Testnet)
   44787: {
@@ -28,8 +44,10 @@ export const chainConfigs: Record<number, ChainConfig> = {
     escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || "") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_CELO || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_CELO || "") as Address,
+    passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_CELO || "https://alfajores-forno.celo-testnet.org",
     blockExplorer: "https://alfajores-blockscout.celo-testnet.org",
+    nativeSymbol: "CELO",
   },
   // Base Sepolia (Testnet)
   84532: {
@@ -38,35 +56,41 @@ export const chainConfigs: Record<number, ChainConfig> = {
     escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA || "") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_BASE_SEPOLIA || "") as Address,
+    passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_BASE_SEPOLIA || "https://sepolia.base.org",
     blockExplorer: "https://sepolia.basescan.org",
+    nativeSymbol: "ETH",
   },
-  // Celo Mainnet (placeholder)
+  // Celo Mainnet
   42220: {
     id: 42220,
     name: "Celo Mainnet",
     escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || "") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_CELO || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_CELO || "") as Address,
+    passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_CELO || "https://forno.celo.org",
     blockExplorer: "https://explorer.celo.org",
+    nativeSymbol: "CELO",
   },
-  // Base Mainnet (placeholder)
+  // Base Mainnet
   8453: {
     id: 8453,
     name: "Base Mainnet",
     escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE || "") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_BASE || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_BASE || "") as Address,
+    passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_BASE || "https://mainnet.base.org",
     blockExplorer: "https://basescan.org",
+    nativeSymbol: "ETH",
   },
 };
 
 export function getChainConfig(chainId: number): ChainConfig {
-  return chainConfigs[chainId] || chainConfigs[420420421]; // Default to Polkadot Asset Hub
+  return chainConfigs[chainId] || chainConfigs[420420417];
 }
 
 export function getDefaultChainId(): number {
-  return 84532; // Base Sepolia
+  return 420420417; // Polkadot Asset Hub (Paseo)
 }
