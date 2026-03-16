@@ -78,7 +78,17 @@ export function useEscrow() {
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
     const { escrowContract, usdcAddress } = getContractAddresses();
 
-    console.log("createPayment called", { tokenAddress, amount, escrowContract, usdcAddress, chainId: chain?.id });
+    console.log("createPayment called", { tokenAddress, amount, escrowContract, chainId: chain?.id });
+    
+    // Check allowance
+    console.log("Checking allowance for token:", tokenAddress);
+    let hasAllowance = false;
+    try {
+      hasAllowance = await checkAllowance(tokenAddress, amount);
+      console.log("Allowance check result:", hasAllowance);
+    } catch (e) {
+      console.warn("Could not check allowance:", e);
+    }
 
     if (!chain) {
       throw new Error("No blockchain network detected. Please switch to a supported network in your wallet.");
@@ -123,8 +133,12 @@ export function useEscrow() {
         const approvalHash = await walletClient.writeContract(simulation.request);
         console.log("Approval tx hash:", approvalHash);
         
-        await pc.waitForTransactionReceipt({ hash: approvalHash });
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const receipt = await pc.waitForTransactionReceipt({ hash: approvalHash });
+        console.log("Approval receipt:", receipt);
+        
+        if (receipt.status === 'reverted') {
+          throw new Error("Approval transaction was reverted");
+        }
       } catch (approveError: any) {
         console.error("Approval error:", approveError);
         
