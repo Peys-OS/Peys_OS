@@ -35,8 +35,7 @@ interface NetworkOption {
 const networks: NetworkOption[] = [
   { id: 420420417, name: "Polkadot Asset Hub", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.testnet.routescan.io" },
   { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
-  // Celo coming soon - contract not deployed yet
-  // { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
+  { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
 ];
 
 export default function SendPaymentForm() {
