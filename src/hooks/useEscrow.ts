@@ -84,7 +84,7 @@ export function useEscrow() {
       throw new Error("No blockchain network detected. Please switch to a supported network in your wallet.");
     }
 
-    const supportedChainIds = [84532, 44787, 420420421];
+    const supportedChainIds = [84532, 44787, 420420417, 420420421];
     if (!supportedChainIds.includes(chain.id)) {
       throw new Error(`Unsupported network. Please switch to Base Sepolia, Celo Alfajores, or Polkadot testnet.`);
     }
