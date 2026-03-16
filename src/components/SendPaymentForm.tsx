@@ -68,6 +68,15 @@ export default function SendPaymentForm() {
     }
   }, [connectedChain]);
 
+  // Set default token to PASS when on Polkadot
+  useEffect(() => {
+    if (selectedNetwork === 420420417 || selectedNetwork === 420420421) {
+      setToken("PASS");
+    } else {
+      setToken("USDC");
+    }
+  }, [selectedNetwork]);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -511,14 +520,15 @@ export default function SendPaymentForm() {
 
                 {/* Token Selector */}
                 <div className="flex gap-2">
-                  {(["USDC", "USDT", "PASS"] as Token[])
+                  {(["PASS", "USDC", "USDT"] as Token[])
                     .filter((t) => {
                       const chainConfig = getChainConfig(selectedNetwork);
-                      if (t === "USDT") {
-                        return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
-                      }
                       if (t === "PASS") {
-                        return selectedNetwork === 420420417;
+                        return selectedNetwork === 420420417 || selectedNetwork === 420420421;
+                      }
+                      if (t === "USDT") {
+                        // Show USDT for all networks (it may not have balance but should be selectable)
+                        return true;
                       }
                       return true;
                     })
