@@ -162,13 +162,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const client = publicClients[Number(chainId)];
         
         const isPolkadot = config.name.includes("Polkadot");
+        const chainIdNum = Number(chainId);
+        
+        console.log(`Checking balances for chain ${chainIdNum} (${config.name})...`);
+        console.log(`  PASS address: ${config.passAddress}`);
+        console.log(`  RPC URL: ${chainIdNum === 420420421 || chainIdNum === 420420417 ? getPolkadotRpcUrl() : config.rpcUrl}`);
         
         const [usdcBalance, usdtBalance, nativeBalance, passBalance] = await Promise.all([
           readBalance(client, config.usdcAddress),
           readBalance(client, config.usdtAddress),
           readNativeBalance(client, config),
-          isPolkadot && config.passAddress ? readBalance(client, config.passAddress) : Promise.resolve(0),
+          isPolkadot && config.passAddress && !config.passAddress.startsWith("0x0000000000000000000000000000000000000001") 
+            ? readBalance(client, config.passAddress) 
+            : Promise.resolve(0),
         ]);
+
+        console.log(`  Balances - USDC: ${usdcBalance}, USDT: ${usdtBalance}, PASS: ${passBalance}, Native: ${nativeBalance}`);
 
         netBalances.push({
           chainId: Number(chainId),
@@ -315,7 +324,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     address: shortAddr,
     balanceUSDC,
     balanceUSDT,
-    balancePASS: networkBalances.find(nb => nb.chainId === 420420417)?.pass || 0,
+    balancePASS: networkBalances.find(nb => nb.chainId === 420420421)?.pass || networkBalances.find(nb => nb.chainId === 420420417)?.pass || 0,
     totalBalanceUSD,
     networkBalances,
   };
