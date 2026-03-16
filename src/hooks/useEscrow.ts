@@ -146,14 +146,13 @@ export function useEscrow() {
     console.log("Token Address:", tokenAddress);
     console.log("Amount:", amount.toString());
     console.log("Escrow Contract:", escrowContract);
-    console.log("Chain ID:", chain?.id);
+    console.log("Chain:", chain?.id, chain?.name);
+    console.log("Chain from selectedNetwork:", chainId);
     
-    // Check if contract is paused - contract doesn't have paused() function
-    // Skip this check for now
-
+    // Check if contract is paused - skip for now
     // Check token address is valid
     if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
-      throw new Error("Invalid token address. Please select a valid token.");
+      throw new Error(`Invalid token address: ${tokenAddress}. Please select a valid token.`);
     }
     
     try {
