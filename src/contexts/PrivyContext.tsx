@@ -9,7 +9,14 @@ const paseoAssetHub = defineChain({
   name: 'Paseo Asset Hub',
   nativeCurrency: { name: 'Paseo', symbol: 'PAS', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://eth-asset-hub-paseo.dotters.network'] },
+    default: { 
+      http: [
+        import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
+        'https://paseo-rpc.dotters.network',
+        'https://westend-asset-hub-eth-rpc.polkadot.io',
+        'https://polkadot-westend.gateway.tatum.io',
+      ] 
+    },
   },
   testnet: true,
 });

@@ -14,8 +14,11 @@ const celoRpcs = [
 ];
 
 const polkadotRpcs = [
-  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-rpc-testnet.polkadot.io',
+  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
   'https://eth-asset-hub-paseo.dotters.network',
+  'https://paseo-rpc.dotters.network',
+  'https://westend-asset-hub-eth-rpc.polkadot.io',
+  'https://polkadot-westend.gateway.tatum.io',
 ];
 
 // Define Polkadot Asset Hub (Paseo Testnet) - Chain ID 420420417
