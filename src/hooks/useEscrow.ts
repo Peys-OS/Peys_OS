@@ -112,7 +112,7 @@ export function useEscrow() {
       
       try {
         const simulation = await pc.simulateContract({
-          address: usdcAddress,
+          address: tokenAddress,
           abi: ERC20_ABI,
           functionName: 'approve',
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -154,20 +154,8 @@ export function useEscrow() {
     console.log("Escrow Contract:", escrowContract);
     console.log("Chain ID:", chain?.id);
     
-    // Check if contract is paused
-    try {
-      const isPaused = await publicClient.readContract({
-        address: escrowContract,
-        abi: ESCROW_ABI,
-        functionName: 'paused',
-      });
-      console.log("Contract paused:", isPaused);
-      if (isPaused) {
-        throw new Error("The escrow contract is currently paused. Please try again later.");
-      }
-    } catch (pausedError) {
-      console.warn("Could not check paused status:", pausedError);
-    }
+    // Check if contract is paused - contract doesn't have paused() function
+    // Skip this check for now
 
     // Check token address is valid
     if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
