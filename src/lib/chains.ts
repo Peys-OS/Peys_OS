@@ -7,6 +7,8 @@ export interface ChainConfig {
   usdcAddress: Address;
   usdtAddress: Address;
   passAddress: Address;
+  streamingContract?: Address;
+  batchPayrollContract?: Address;
   rpcUrl: string;
   blockExplorer?: string;
   nativeSymbol: string;
@@ -21,6 +23,8 @@ export const chainConfigs: Record<number, ChainConfig> = {
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLKADOT || "") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLKADOT || "") as Address,
     passAddress: (import.meta.env.VITE_PASS_ADDRESS_POLKADOT || "0x00000001000000000000000000000000000007C0") as Address,
+    streamingContract: (import.meta.env.VITE_STREAMING_CONTRACT_ADDRESS_POLKADOT || "0xc9497Ec40951FbB98C02c666b7F9Fa143678E2Be") as Address,
+    batchPayrollContract: (import.meta.env.VITE_BATCH_PAYROLL_CONTRACT_ADDRESS_POLKADOT || "0x802A6843516f52144b3F1D04E5447A085d34aF37") as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-rpc-testnet.polkadot.io",
     blockExplorer: "https://polkadot.testnet.routescan.io",
     nativeSymbol: "PAS",

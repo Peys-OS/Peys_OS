@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title PeyBatchPayroll
@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
  * - Payment approvals and multi-sig support
  */
 contract PeyBatchPayroll is ReentrancyGuard {
-    IERC20 public immutable token;
+    IERC20 public immutable TOKEN;
     
     // Maximum recipients per batch transaction
     uint256 public constant MAX_BATCH_SIZE = 100;
@@ -151,9 +151,9 @@ contract PeyBatchPayroll is ReentrancyGuard {
     
     address public admin;
     
-    constructor(address _token) {
-        if (_token == address(0)) revert InvalidTokenAddress();
-        token = IERC20(_token);
+    constructor(address _TOKEN) {
+        if (_TOKEN == address(0)) revert InvalidTokenAddress();
+        TOKEN = IERC20(_TOKEN);
         admin = msg.sender;
     }
     
@@ -181,9 +181,9 @@ contract PeyBatchPayroll is ReentrancyGuard {
         if (recipients.length > MAX_BATCH_SIZE) revert BatchTooLarge();
         if (totalAmount == 0) revert ZeroAmount();
         
-        // Check token allowance and balance
-        if (token.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
-        if (token.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
+        // Check TOKEN allowance and balance
+        if (TOKEN.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
+        if (TOKEN.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
         
         // Generate batch ID
         bytes32 batchId = keccak256(abi.encodePacked(
@@ -206,8 +206,8 @@ contract PeyBatchPayroll is ReentrancyGuard {
             isCancelled: false
         });
         
-        // Transfer tokens to contract
-        token.transferFrom(msg.sender, address(this), totalAmount);
+        // Transfer TOKENs to contract
+        TOKEN.transferFrom(msg.sender, address(this), totalAmount);
         
         emit BatchPaymentCreated(batchId, msg.sender, totalAmount, recipients.length);
         
@@ -242,7 +242,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         // Execute payments
         for (uint256 i = 0; i < recipients.length; i++) {
             if (amounts[i] > 0) {
-                token.transfer(recipients[i], amounts[i]);
+                TOKEN.transfer(recipients[i], amounts[i]);
             }
         }
         
@@ -274,7 +274,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         bytes32 leaf = keccak256(abi.encodePacked(index, recipient, amount));
         if (!MerkleProof.verify(proof, merkleRoot, leaf)) revert InvalidMerkleProof();
         
-        token.transfer(recipient, amount);
+        TOKEN.transfer(recipient, amount);
         
         return true;
     }
@@ -295,7 +295,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         batch.isCancelled = true;
         
         if (refundAmount > 0) {
-            token.transfer(batch.sender, refundAmount);
+            TOKEN.transfer(batch.sender, refundAmount);
         }
         
         emit BatchPaymentCancelled(batchId, msg.sender);
@@ -326,9 +326,9 @@ contract PeyBatchPayroll is ReentrancyGuard {
         
         uint256 totalAmount = amountPerPeriod * totalPeriods;
         
-        // Check token allowance and balance
-        if (token.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
-        if (token.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
+        // Check TOKEN allowance and balance
+        if (TOKEN.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
+        if (TOKEN.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
         
         // Generate schedule ID
         bytes32 scheduleId = keccak256(abi.encodePacked(
@@ -356,7 +356,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         employerPayrolls[msg.sender].push(scheduleId);
         
         // Transfer total amount to contract
-        token.transferFrom(msg.sender, address(this), totalAmount);
+        TOKEN.transferFrom(msg.sender, address(this), totalAmount);
         
         emit PayrollScheduleCreated(scheduleId, msg.sender, employee, amountPerPeriod, periodDuration);
         
@@ -381,7 +381,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         }
         
         // Pay employee
-        token.transfer(schedule.employee, schedule.amountPerPeriod);
+        TOKEN.transfer(schedule.employee, schedule.amountPerPeriod);
         
         schedule.totalPaid += schedule.amountPerPeriod;
         schedule.nextPaymentTime += schedule.periodDuration;
@@ -412,7 +412,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         schedule.isCancelled = true;
         
         if (refundAmount > 0) {
-            token.transfer(schedule.employer, refundAmount);
+            TOKEN.transfer(schedule.employer, refundAmount);
         }
         
         emit PayrollCancelled(scheduleId, msg.sender);
@@ -441,9 +441,9 @@ contract PeyBatchPayroll is ReentrancyGuard {
         
         uint256 ratePerSecond = totalAmount / duration;
         
-        // Check token allowance and balance
-        if (token.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
-        if (token.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
+        // Check TOKEN allowance and balance
+        if (TOKEN.allowance(msg.sender, address(this)) < totalAmount) revert InsufficientTokenAllowance();
+        if (TOKEN.balanceOf(msg.sender) < totalAmount) revert InsufficientTokenBalance();
         
         // Generate stream ID
         bytes32 streamId = keccak256(abi.encodePacked(
@@ -469,7 +469,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         employeeStreams[employee].push(streamId);
         
         // Transfer total amount to contract
-        token.transferFrom(msg.sender, address(this), totalAmount);
+        TOKEN.transferFrom(msg.sender, address(this), totalAmount);
         
         emit StreamSalaryCreated(streamId, msg.sender, employee, totalAmount, ratePerSecond);
         
@@ -507,7 +507,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
             stream.isActive = false;
         }
         
-        token.transfer(stream.employee, withdrawable);
+        TOKEN.transfer(stream.employee, withdrawable);
         
         emit StreamSalaryWithdrawn(streamId, msg.sender, withdrawable);
         
@@ -532,7 +532,7 @@ contract PeyBatchPayroll is ReentrancyGuard {
         stream.isCancelled = true;
         
         if (remaining > 0) {
-            token.transfer(stream.employer, remaining);
+            TOKEN.transfer(stream.employer, remaining);
         }
         
         emit StreamSalaryCancelled(streamId, msg.sender);

@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract PeyStreaming is ReentrancyGuard {
-    IERC20 public immutable token;
+    IERC20 public immutable TOKEN;
     
     struct Stream {
         address sender;
@@ -42,9 +41,9 @@ contract PeyStreaming is ReentrancyGuard {
         uint256 amount
     );
     
-    constructor(address _token) {
-        require(_token != address(0), "Invalid token address");
-        token = IERC20(_token);
+    constructor(address _TOKEN) {
+        require(_TOKEN != address(0), "Invalid TOKEN address");
+        TOKEN = IERC20(_TOKEN);
     }
     
     function createStream(
@@ -58,9 +57,9 @@ contract PeyStreaming is ReentrancyGuard {
         require(_ratePerSecond > 0, "Rate must be > 0");
         require(_durationSeconds > 0, "Duration must be > 0");
         
-        // Transfer tokens from sender
+        // Transfer TOKENs from sender
         require(
-            token.transferFrom(msg.sender, address(this), _totalAmount),
+            TOKEN.transferFrom(msg.sender, address(this), _totalAmount),
             "Token transfer failed"
         );
         
@@ -111,7 +110,7 @@ contract PeyStreaming is ReentrancyGuard {
         stream.streamedAmount += availableAmount;
         
         require(
-            token.transfer(msg.sender, availableAmount),
+            TOKEN.transfer(msg.sender, availableAmount),
             "Token transfer failed"
         );
         
@@ -155,10 +154,10 @@ contract PeyStreaming is ReentrancyGuard {
         stream.isCancelled = true;
         stream.isActive = false;
         
-        // Refund remaining tokens to sender
+        // Refund remaining TOKENs to sender
         if (refundAmount > 0) {
             require(
-                token.transfer(msg.sender, refundAmount),
+                TOKEN.transfer(msg.sender, refundAmount),
                 "Refund failed"
             );
         }
