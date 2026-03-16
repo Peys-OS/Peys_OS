@@ -147,8 +147,32 @@ export function useEscrow() {
       onCreatingPayment();
     }
 
-    console.log("=== Creating Payment Transaction ===");
-    console.log("Sending createPayment transaction...");
+    // Log all parameters for debugging
+    console.log("=== Create Payment Parameters ===");
+    console.log("Token Address:", tokenAddress);
+    console.log("Amount:", amount.toString());
+    console.log("Escrow Contract:", escrowContract);
+    console.log("Chain ID:", chain?.id);
+    
+    // Check if contract is paused
+    try {
+      const isPaused = await publicClient.readContract({
+        address: escrowContract,
+        abi: ESCROW_ABI,
+        functionName: 'paused',
+      });
+      console.log("Contract paused:", isPaused);
+      if (isPaused) {
+        throw new Error("The escrow contract is currently paused. Please try again later.");
+      }
+    } catch (pausedError) {
+      console.warn("Could not check paused status:", pausedError);
+    }
+
+    // Check token address is valid
+    if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
+      throw new Error("Invalid token address. Please select a valid token.");
+    }
     
     try {
       const simulation = await pc.simulateContract({
