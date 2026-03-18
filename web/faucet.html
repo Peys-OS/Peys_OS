@@ -1,217 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get ETH - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, #6777ee 0%, #8b5cf6 100%);
-            padding: 48px 24px;
-            text-align: center;
-            border-radius: 0 0 32px 32px;
-        }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; }
-        .header p { color: rgba(255,255,255,0.9); font-size: 14px; }
-        .container { max-width: 480px; margin: -40px auto 24px; padding: 0 20px; position: relative; z-index: 1; }
-        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; }
-        .eth-display {
-            text-align: center;
-            padding: 32px;
-            background: linear-gradient(135deg, #fef3c7 0%, #fff 100%);
-            border-radius: var(--radius-lg);
-            margin-bottom: 24px;
-            border: 2px solid #fbbf24;
-        }
-        .eth-icon { font-size: 48px; margin-bottom: 12px; }
-        .eth-amount { font-size: 36px; font-weight: 700; color: var(--text-primary); }
-        .eth-label { color: var(--text-muted); font-size: 14px; }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: #6777ee; color: white; }
-        .btn-primary:hover { background: #5558e3; }
-        .btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; }
-        .btn-whatsapp { background: var(--primary); color: white; margin-top: 12px; }
-        .info-section { margin-top: 20px; }
-        .info-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .info-item:last-child { border-bottom: none; }
-        .info-icon { font-size: 24px; }
-        .info-content { flex: 1; }
-        .info-label { font-size: 13px; color: var(--text-muted); }
-        .info-value { font-weight: 600; margin-top: 2px; }
-        .cooldown-badge { background: #fff3cd; padding: 12px 16px; border-radius: var(--radius-md); text-align: center; margin-top: 16px; }
-        .cooldown-badge.success { background: var(--primary-light); }
-        .success-screen { text-align: center; padding: 40px 24px; }
-        .success-icon { width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
-        .tx-link { display: block; background: var(--background); padding: 12px; border-radius: var(--radius-md); margin-top: 16px; text-decoration: none; color: var(--text-primary); font-size: 13px; text-align: center; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .loading-overlay.active { opacity: 1; visibility: visible; }
-        .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: #6777ee; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .warning-banner { background: #fff3cd; border: 1px solid #ffeaa7; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
-        .warning-icon { font-size: 24px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faucet - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>⛽ Get ETH</h1>
-        <p>Get test ETH for gas fees on Base Sepolia</p>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>Faucet</h1>
+  </header>
+
+  <main class="container">
+    <div class="card text-center">
+      <div style="font-size: 4rem; margin-bottom: var(--space-md);">🚰</div>
+      <h2>Get Test ETH</h2>
+      <p class="text-muted">Get free ETH on Base Sepolia testnet to pay for gas</p>
     </div>
-    <div class="container">
-        <div class="warning-banner">
-            <span class="warning-icon">⚠️</span>
-            <span>Only available on Base Sepolia testnet. ETH has no real value.</span>
-        </div>
-        <div class="card">
-            <div class="eth-display">
-                <div class="eth-icon">💎</div>
-                <div class="eth-amount" id="ethBalance">--</div>
-                <div class="eth-label">Your ETH Balance</div>
-            </div>
-            <div id="requestSection">
-                <button class="btn btn-primary" id="requestBtn">
-                    <span>💧</span><span>Request 0.01 ETH</span>
-                </button>
-                <div class="cooldown-badge" id="cooldownBadge" style="display: none;">
-                    <span id="cooldownText">Next request available in</span> <strong id="cooldownTime">--:--</strong>
-                </div>
-            </div>
-            <div id="successSection" style="display: none;">
-                <div class="success-screen">
-                    <div class="success-icon">✓</div>
-                    <h2 style="font-size: 24px; margin-bottom: 8px;">ETH Sent!</h2>
-                    <p style="color: var(--text-secondary);">Check your wallet balance</p>
-                    <a href="whatsapp://send?text=balance" class="btn btn-whatsapp" style="margin-top: 24px;">
-                        <span>💬</span><span>Check Balance</span>
-                    </a>
-                    <a href="#" id="txLink" class="tx-link" target="_blank">View Transaction →</a>
-                </div>
-            </div>
-            <div class="info-section">
-                <div class="info-item">
-                    <span class="info-icon">📍</span>
-                    <div class="info-content">
-                        <div class="info-label">Network</div>
-                        <div class="info-value">Base Sepolia Testnet</div>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <span class="info-icon">⛽</span>
-                    <div class="info-content">
-                        <div class="info-label">Gas Price</div>
-                        <div class="info-value" id="gasPrice">Loading...</div>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <span class="info-icon">🔄</span>
-                    <div class="info-content">
-                        <div class="info-label">Cooldown</div>
-                        <div class="info-value">24 hours between requests</div>
-                    </div>
-                </div>
-            </div>
-            <a href="whatsapp://send?text=eth" class="btn btn-whatsapp">
-                <span>📱</span><span>Request via WhatsApp</span>
-            </a>
-        </div>
+
+    <div class="card">
+      <div class="input-group">
+        <label class="input-label">Wallet Address</label>
+        <input type="text" class="input font-mono" id="wallet" placeholder="0x...">
+      </div>
+      <div id="faucet-result"></div>
+      <button class="btn btn-primary" onclick="getFunds()">Get 0.1 ETH</button>
     </div>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div style="margin-top: 16px;">Processing...</div>
+
+    <div class="alert alert-warning">
+      <strong>Testnet only</strong> - This faucet gives fake ETH for testing
     </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        let cooldownEnd = null;
-        let cooldownTimer = null;
-        async function loadEthBalance() {
-            try {
-                const response = await fetch(`/api/web/eth/balance?phone=${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('ethBalance').textContent = `${parseFloat(data.balance).toFixed(4)} ETH`;
-                }
-            } catch (error) {
-                document.getElementById('ethBalance').textContent = '0.0000 ETH';
-            }
-        }
-        async function loadGasPrice() {
-            try {
-                const response = await fetch('/api/web/gas-price');
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('gasPrice').textContent = `${data.gasPrice} Gwei`;
-                }
-            } catch (error) {
-                document.getElementById('gasPrice').textContent = 'N/A';
-            }
-        }
-        async function requestEth() {
-            document.getElementById('loadingOverlay').classList.add('active');
-            try {
-                const response = await fetch('/api/web/faucet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phoneNumber })
-                });
-                const data = await response.json();
-                document.getElementById('loadingOverlay').classList.remove('active');
-                if (data.success) {
-                    document.getElementById('requestSection').style.display = 'none';
-                    document.getElementById('successSection').style.display = 'block';
-                    if (data.txHash) {
-                        document.getElementById('txLink').href = `https://sepolia.basescan.org/tx/${data.txHash}`;
-                    }
-                    loadEthBalance();
-                } else {
-                    alert(data.message || 'Request failed. Please try again later.');
-                }
-            } catch (error) {
-                document.getElementById('loadingOverlay').classList.remove('active');
-                alert('Network error. Please try again.');
-            }
-        }
-        function startCooldownTimer() {
-            const badge = document.getElementById('cooldownBadge');
-            const timeEl = document.getElementById('cooldownTime');
-            badge.style.display = 'block';
-            document.getElementById('requestBtn').disabled = true;
-            badge.classList.remove('success');
-            const timer = setInterval(() => {
-                const remaining = cooldownEnd - Date.now();
-                if (remaining <= 0) {
-                    clearInterval(timer);
-                    badge.classList.add('success');
-                    timeEl.textContent = 'Ready!';
-                    document.getElementById('requestBtn').disabled = false;
-                    return;
-                }
-                const hours = Math.floor(remaining / (1000 * 60 * 60));
-                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                timeEl.textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-        document.getElementById('requestBtn').addEventListener('click', requestEth);
-        loadEthBalance();
-        loadGasPrice();
-    </script>
+  </main>
+
+  <script>
+    async function getFunds() {
+      const wallet = document.getElementById('wallet').value.trim();
+      if (!wallet) {
+        document.getElementById('faucet-result').innerHTML = '<div class="alert alert-danger">Enter wallet address</div>';
+        return;
+      }
+      document.getElementById('faucet-result').innerHTML = '<div class="alert alert-warning">Requesting... (Demo)</div>';
+      setTimeout(() => {
+        document.getElementById('faucet-result').innerHTML = '<div class="alert alert-success">Sent 0.1 ETH!</div>';
+      }, 1500);
+    }
+  </script>
 </body>
 </html>

@@ -1,196 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Transaction History - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); min-height: 100vh; }
-        .header {
-            background: var(--surface);
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .header h1 { font-size: 20px; margin-bottom: 16px; }
-        .tabs { display: flex; gap: 8px; }
-        .tab {
-            flex: 1;
-            padding: 10px 16px;
-            background: var(--background);
-            border: none;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .tab.active { background: var(--primary); color: white; }
-        .content { padding: 20px; }
-        .date-group { margin-bottom: 24px; }
-        .date-header { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px; }
-        .tx-list { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); }
-        .tx-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
-            cursor: pointer;
-        }
-        .tx-item:last-child { border-bottom: none; }
-        .tx-item:hover { background: var(--background); }
-        .tx-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-        .tx-icon.sent { background: #fce8e8; }
-        .tx-icon.received { background: var(--primary-light); }
-        .tx-icon.claim { background: #fff3cd; }
-        .tx-info { flex: 1; min-width: 0; }
-        .tx-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .tx-meta { display: flex; gap: 8px; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .tx-amount { text-align: right; flex-shrink: 0; }
-        .tx-amount-value { font-weight: 700; font-size: 15px; }
-        .tx-amount-value.sent { color: #dc3545; }
-        .tx-amount-value.received { color: var(--primary); }
-        .tx-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 600; }
-        .tx-status.confirmed { background: var(--primary-light); color: var(--primary-dark); }
-        .tx-status.pending { background: #fff3cd; color: #856404; }
-        .tx-status.failed { background: #f8d7da; color: #721c24; }
-        .tx-detail {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin: 16px;
-            box-shadow: var(--shadow-md);
-            display: none;
-        }
-        .tx-detail.active { display: block; }
-        .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: var(--text-muted); font-size: 14px; }
-        .detail-value { font-weight: 500; font-size: 14px; text-align: right; word-break: break-all; }
-        .detail-value.address { font-family: monospace; font-size: 12px; }
-        .detail-actions { display: flex; gap: 12px; margin-top: 16px; }
-        .detail-btn { flex: 1; padding: 12px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; font-size: 14px; }
-        .detail-btn.primary { background: var(--primary); color: white; }
-        .detail-btn.secondary { background: var(--background); color: var(--text-primary); }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        .empty-icon { font-size: 64px; margin-bottom: 16px; }
-        .empty-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
-        .loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
-        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .filter-bar { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 16px; -webkit-overflow-scrolling: touch; }
-        .filter-btn { padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; white-space: nowrap; cursor: pointer; }
-        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--primary); text-decoration: none; font-weight: 500; margin-bottom: 16px; padding: 8px 0; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header">
-        <a href="balance.html" class="back-btn">← Back</a>
-        <h1>Transaction History</h1>
-        <div class="filter-bar" id="filterBar">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="sent">Sent</button>
-            <button class="filter-btn" data-filter="received">Received</button>
-            <button class="filter-btn" data-filter="claim">Claims</button>
-        </div>
-    </header>
-    <div id="txContainer">
-        <div class="loading"><div class="spinner"></div></div>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>History</h1>
+  </header>
+
+  <main class="container">
+    <div class="tabs mb-md">
+      <button class="tab active" onclick="filterType('all')">All</button>
+      <button class="tab" onclick="filterType('sent')">Sent</button>
+      <button class="tab" onclick="filterType('received')">Received</button>
     </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        let allTransactions = [];
-        let currentFilter = 'all';
-        async function loadTransactions() {
-            const container = document.getElementById('txContainer');
-            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-            try {
-                const response = await fetch(`/api/web/transactions/${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                allTransactions = data.transactions || [];
-                renderTransactions();
-            } catch (error) {
-                console.error('Error loading transactions:', error);
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Unable to load</div><p>Please check your connection</p></div>';
-            }
-        }
-        function renderTransactions() {
-            const container = document.getElementById('txContainer');
-            let filtered = allTransactions;
-            if (currentFilter !== 'all') {
-                filtered = allTransactions.filter(tx => tx.type === currentFilter);
-            }
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-title">No transactions</div><p>${currentFilter === 'all' ? 'You haven\'t made any transactions yet' : 'No ${currentFilter} transactions found'}</p></div>`;
-                return;
-            }
-            const grouped = {};
-            filtered.forEach(tx => {
-                const date = new Date(tx.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                if (!grouped[date]) grouped[date] = [];
-                grouped[date].push(tx);
-            });
-            let html = '';
-            Object.keys(grouped).forEach(date => {
-                html += `<div class="date-group"><div class="date-header">${date}</div><div class="tx-list">`;
-                grouped[date].forEach(tx => {
-                    html += `
-                        <div class="tx-item" onclick="showDetail(${tx.id})">
-                            <div class="tx-icon ${tx.type}">${tx.type === 'sent' ? '📤' : tx.type === 'received' ? '📥' : '🎁'}</div>
-                            <div class="tx-info">
-                                <div class="tx-name">${tx.recipient || tx.sender || 'Unknown'}</div>
-                                <div class="tx-meta">
-                                    <span>${tx.type === 'sent' ? 'To' : 'From'}: ${tx.recipient || tx.sender || 'Unknown'}</span>
-                                </div>
-                            </div>
-                            <div class="tx-amount">
-                                <div class="tx-amount-value ${tx.type}">${tx.type === 'sent' ? '-' : '+'}$${parseFloat(tx.amount).toFixed(2)}</div>
-                                <span class="tx-status ${tx.status}">${tx.status}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div></div>';
-            });
-            container.innerHTML = html;
-        }
-        function showDetail(txId) {
-            const tx = allTransactions.find(t => t.id === txId);
-            if (!tx) return;
-            alert(`Transaction Details\n\nAmount: $${parseFloat(tx.amount).toFixed(2)} ${tx.type.toUpperCase()}\nStatus: ${tx.status}\nDate: ${new Date(tx.createdAt).toLocaleString()}\n${tx.txHash ? 'Tx Hash: ' + tx.txHash.substring(0, 20) + '...' : ''}`);
-        }
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.filter;
-                renderTransactions();
-            });
-        });
-        loadTransactions();
-    </script>
+
+    <div class="card" id="tx-list">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const phone = getPhoneFromUrl();
+    let allTxs = [];
+
+    async function loadHistory() {
+      allTxs = await loadTransactions(phone, 50);
+      renderTransactions(allTxs);
+    }
+
+    function filterType(type) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (type === 'all') {
+        renderTransactions(allTxs);
+      } else {
+        renderTransactions(allTxs.filter(tx => tx.type === type));
+      }
+    }
+
+    function renderTransactions(txs) {
+      const list = document.getElementById('tx-list');
+      
+      if (txs.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📜</div>
+            <p>No transactions</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = txs.map(tx => `
+        <a href="transaction.html?id=${tx.id}" class="list-item">
+          <div class="list-item-icon">${tx.type === 'sent' ? '📤' : '📥'}</div>
+          <div class="list-item-content">
+            <div class="list-item-title">${tx.type === 'sent' ? 'Sent to' : 'Received from'}</div>
+            <div class="list-item-subtitle">
+              ${tx.recipient || tx.sender || 'Unknown'}
+              <span class="badge ${tx.status === 'completed' ? 'badge-success' : 'badge-warning'}">${tx.status}</span>
+            </div>
+            <div class="list-item-subtitle">${new Date(tx.created_at).toLocaleString()}</div>
+          </div>
+          <div class="amount ${tx.type === 'sent' ? 'amount-negative' : 'amount-positive'}">
+            ${tx.type === 'sent' ? '-' : '+'}$${parseFloat(tx.amount).toFixed(2)}
+          </div>
+        </a>
+      `).join('');
+    }
+
+    loadHistory();
+  </script>
 </body>
 </html>

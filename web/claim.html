@@ -1,249 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claim Funds - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 48px 24px;
-            text-align: center;
-            border-radius: 0 0 32px 32px;
-        }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; }
-        .header p { color: rgba(255,255,255,0.9); font-size: 14px; }
-        .container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
-        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; }
-        .claim-display {
-            text-align: center;
-            padding: 32px;
-            background: linear-gradient(135deg, var(--primary-light) 0%, #fff 100%);
-            border-radius: var(--radius-lg);
-            margin-bottom: 24px;
-        }
-        .claim-amount { font-size: 48px; font-weight: 700; color: var(--primary); }
-        .claim-label { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
-        .claim-from { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .claim-from-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
-        .claim-from-name { font-weight: 600; font-size: 16px; margin-top: 4px; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
-        .form-input {
-            width: 100%; padding: 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 18px; font-family: inherit;
-            text-align: center; letter-spacing: 4px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .form-input:focus { outline: none; border-color: var(--primary); }
-        .expiry-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: #fff3cd;
-            padding: 8px 16px; border-radius: 20px;
-            font-size: 13px; color: #856404;
-            margin-top: 16px;
-        }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-primary:disabled { background: var(--text-muted); cursor: not-allowed; }
-        .btn-whatsapp { background: var(--primary); color: white; margin-top: 12px; }
-        .success-screen { text-align: center; padding: 40px 24px; }
-        .success-icon { width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
-        .loading-overlay.active { opacity: 1; visibility: visible; }
-        .spinner { width: 48px; height: 48px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .pending-card { background: var(--primary-light); border: 2px solid var(--primary); }
-        .pending-card .claim-amount { font-size: 36px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claim - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>🎁 Claim Funds</h1>
-        <p>Receive USDC sent to you</p>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>Claim</h1>
+  </header>
+
+  <main class="container">
+    <div class="card text-center">
+      <div style="font-size: 4rem; margin-bottom: var(--space-md);">🎁</div>
+      <h2>Claim Your Funds</h2>
+      <p class="text-muted">Enter the claim code sent to you</p>
     </div>
-    <div class="container">
-        <div id="pendingClaim" class="card pending-card" style="display: none;">
-            <div class="claim-display">
-                <div class="claim-amount" id="pendingAmount">$0.00</div>
-                <div class="claim-label">USDC Available</div>
-                <div class="claim-from">
-                    <div class="claim-from-label">From</div>
-                    <div class="claim-from-name" id="pendingFrom">-</div>
-                </div>
-                <div class="expiry-badge" id="expiryBadge">⏰ Expires in <span id="expiryTime">23:59:59</span></div>
-            </div>
-            <button class="btn btn-primary" id="claimPendingBtn">
-                <span>🎉</span><span>Claim Now</span>
-            </button>
-        </div>
-        <div id="claimForm" class="card">
-            <div class="form-group">
-                <label class="form-label">Enter Claim Code</label>
-                <input type="text" id="claimCode" class="form-input" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off">
-            </div>
-            <button class="btn btn-primary" id="checkBtn" disabled>
-                <span>🔍</span><span>Check Code</span>
-            </button>
-            <a href="whatsapp://send?text=pending" class="btn btn-whatsapp">
-                <span>📱</span><span>Check via WhatsApp</span>
-            </a>
-        </div>
-        <div id="claimDetails" class="card" style="display: none;">
-            <div class="claim-display">
-                <div class="claim-amount" id="claimAmount">$0.00</div>
-                <div class="claim-label">USDC</div>
-                <div class="claim-from">
-                    <div class="claim-from-label">From</div>
-                    <div class="claim-from-name" id="claimFrom">-</div>
-                </div>
-            </div>
-            <button class="btn btn-primary" id="claimBtn">
-                <span>🎉</span><span>Claim Funds</span>
-            </button>
-        </div>
-        <div id="successScreen" class="card" style="display: none;">
-            <div class="success-screen">
-                <div class="success-icon">✓</div>
-                <h2 style="font-size: 24px; margin-bottom: 8px;">Funds Claimed!</h2>
-                <p style="color: var(--text-secondary);">Your USDC has been added to your wallet</p>
-                <div id="claimedAmount" style="font-size: 36px; font-weight: 700; color: var(--primary); margin: 24px 0;">$0.00</div>
-                <a href="whatsapp://send?text=balance" class="btn btn-whatsapp">
-                    <span>💬</span><span>Check Balance</span>
-                </a>
-            </div>
-        </div>
+
+    <div class="card">
+      <div class="input-group">
+        <label class="input-label">Claim Code</label>
+        <input type="text" class="input font-mono" id="claim-code" placeholder="Enter code">
+      </div>
+
+      <div id="claim-result"></div>
+
+      <button class="btn btn-primary" onclick="claimFunds()">Claim Funds</button>
     </div>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div style="margin-top: 16px;">Processing...</div>
+
+    <div class="section">
+      <h3 class="section-title">Pending Claims</h3>
+      <div class="card" id="pending-claims">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
     </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        const codeParam = urlParams.get('code') || '';
-        let currentClaim = null;
-        const claimCodeInput = document.getElementById('claimCode');
-        const checkBtn = document.getElementById('checkBtn');
-        const claimBtn = document.getElementById('claimBtn');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (codeParam) {
-            claimCodeInput.value = codeParam;
-            checkBtn.disabled = false;
-            checkClaim();
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const phone = getPhoneFromUrl();
+
+    async function loadPendingClaims() {
+      try {
+        const claims = await api.getPendingClaims(phone);
+        const list = document.getElementById('pending-claims');
+        
+        if (!claims || claims.length === 0) {
+          list.innerHTML = '<p class="text-muted text-center">No pending claims</p>';
+          return;
         }
-        claimCodeInput.addEventListener('input', (e) => {
-            let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            if (value.length > 4) value = value.substring(0, 4) + '-' + value.substring(4, 8);
-            e.target.value = value;
-            checkBtn.disabled = value.length !== 9;
-        });
-        claimCodeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !checkBtn.disabled) checkClaim();
-        });
-        async function checkClaim() {
-            const code = claimCodeInput.value;
-            if (code.length !== 9) return;
-            loadingOverlay.classList.add('active');
-            try {
-                const response = await fetch(`/api/web/claim/check?code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                loadingOverlay.classList.remove('active');
-                if (data.valid) {
-                    currentClaim = data;
-                    document.getElementById('claimForm').style.display = 'none';
-                    document.getElementById('claimDetails').style.display = 'block';
-                    document.getElementById('claimAmount').textContent = `$${parseFloat(data.amount).toFixed(2)}`;
-                    document.getElementById('claimFrom').textContent = data.from || 'Unknown Sender';
-                } else {
-                    alert(data.message || 'Invalid or expired claim code');
-                }
-            } catch (error) {
-                loadingOverlay.classList.remove('active');
-                alert('Unable to verify code. Please try again.');
-            }
-        }
-        async function loadPendingClaims() {
-            try {
-                const response = await fetch(`/api/web/claims/pending?phone=${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                if (data.claims && data.claims.length > 0) {
-                    const claim = data.claims[0];
-                    currentClaim = claim;
-                    document.getElementById('pendingClaim').style.display = 'block';
-                    document.getElementById('pendingAmount').textContent = `$${parseFloat(claim.amount).toFixed(2)}`;
-                    document.getElementById('pendingFrom').textContent = claim.from || 'Unknown';
-                    updateExpiryTimer(claim.expiresAt);
-                }
-            } catch (error) {
-                console.error('Error loading pending claims:', error);
-            }
-        }
-        function updateExpiryTimer(expiresAt) {
-            const timer = setInterval(() => {
-                const remaining = new Date(expiresAt) - new Date();
-                if (remaining <= 0) {
-                    clearInterval(timer);
-                    document.getElementById('expiryTime').textContent = 'Expired';
-                    return;
-                }
-                const hours = Math.floor(remaining / (1000 * 60 * 60));
-                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                document.getElementById('expiryTime').textContent = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-        checkBtn.addEventListener('click', checkClaim);
-        claimBtn.addEventListener('click', async () => {
-            if (!currentClaim) return;
-            loadingOverlay.classList.add('active');
-            try {
-                const response = await fetch('/api/web/claim/process', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        code: currentClaim.code,
-                        phoneNumber
-                    })
-                });
-                const data = await response.json();
-                loadingOverlay.classList.remove('active');
-                if (data.success) {
-                    document.getElementById('claimDetails').style.display = 'none';
-                    document.getElementById('pendingClaim').style.display = 'none';
-                    document.getElementById('successScreen').style.display = 'block';
-                    document.getElementById('claimedAmount').textContent = `$${parseFloat(currentClaim.amount).toFixed(2)}`;
-                } else {
-                    alert(data.message || 'Claim failed. Please try again.');
-                }
-            } catch (error) {
-                loadingOverlay.classList.remove('active');
-                alert('Network error. Please try again.');
-            }
-        });
+
+        list.innerHTML = claims.map(c => `
+          <div class="list-item">
+            <div class="list-item-icon">🎁</div>
+            <div class="list-item-content">
+              <div class="list-item-title">$${parseFloat(c.amount).toFixed(2)} USDC</div>
+              <div class="list-item-subtitle">From: ${c.sender}</div>
+            </div>
+            <button class="btn btn-secondary" onclick="claimById('${c.id}')">Claim</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('pending-claims').innerHTML = '<p class="text-muted text-center">Unable to load</p>';
+      }
+    }
+
+    async function claimFunds() {
+      const code = document.getElementById('claim-code').value.trim();
+      if (!code) return;
+
+      try {
+        const claim = await api.claimFunds(code, phone);
+        document.getElementById('claim-result').innerHTML = `
+          <div class="alert alert-success">
+            Claimed $${parseFloat(claim.amount).toFixed(2)} USDC!
+          </div>
+        `;
+        document.getElementById('claim-code').value = '';
         loadPendingClaims();
-    </script>
+      } catch (e) {
+        document.getElementById('claim-result').innerHTML = `
+          <div class="alert alert-danger">${e.message}</div>
+        `;
+      }
+    }
+
+    async function claimById(id) {
+      try {
+        const claims = await api.getPendingClaims(phone);
+        const claim = claims.find(c => c.id == id);
+        if (claim) {
+          await api.claimFunds(claim.code, phone);
+          alert('Funds claimed!');
+          loadPendingClaims();
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    loadPendingClaims();
+  </script>
 </body>
 </html>
