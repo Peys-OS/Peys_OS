@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Wallet Connect">
+    <meta property="og:title" content="Peys - Connect Wallet">
+    <meta property="og:description" content="Connect your crypto wallet">
+    <meta property="og:type" content="website">
+    <title>Connect Wallet - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .wallet-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .wallet-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 2px solid transparent;
+        }
+        .wallet-card:hover {
+            background: var(--bg-card);
+        }
+        .wallet-card.selected {
+            border-color: var(--accent-light);
+            background: rgba(37, 211, 102, 0.1);
+        }
+        .wallet-logo {
+            width: 56px;
+            height: 56px;
+            background: var(--bg-card);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .wallet-info {
+            flex: 1;
+        }
+        .wallet-name {
+            font-size: 17px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .wallet-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .wallet-check {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--accent-light);
+            opacity: 0;
+        }
+        .wallet-card.selected .wallet-check {
+            opacity: 1;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 24px 0 16px;
+            letter-spacing: 0.5px;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .qr-placeholder {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .qr-icon {
+            font-size: 64px;
+            margin-bottom: 12px;
+        }
+        .qr-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .manual-address {
+            margin-top: 16px;
+        }
+        .manual-address label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .manual-address input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: monospace;
+        }
+        .info-note {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Connect Wallet</h1>
+    </div>
+
+    <div class="wallet-icon">🔗</div>
+    <h2 class="title">Connect Your Wallet</h2>
+    <p class="subtitle">Choose a wallet to connect with Peys</p>
+
+    <div class="section-title">Popular</div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'metamask')">
+        <div class="wallet-logo">🦊</div>
+        <div class="wallet-info">
+            <div class="wallet-name">MetaMask</div>
+            <div class="wallet-desc">Most popular browser wallet</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'coinbase')">
+        <div class="wallet-logo">💰</div>
+        <div class="wallet-info">
+            <div class="wallet-name">Coinbase Wallet</div>
+            <div class="wallet-desc">By Coinbase</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'walletconnect')">
+        <div class="wallet-logo">🔗</div>
+        <div class="wallet-info">
+            <div class="wallet-name">WalletConnect</div>
+            <div class="wallet-desc">Connect via QR code</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="section-title">More Options</div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'rainbow')">
+        <div class="wallet-logo">🌈</div>
+        <div class="wallet-info">
+            <div class="wallet-name">Rainbow</div>
+            <div class="wallet-desc">Fun & easy to use</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'trust')">
+        <div class="wallet-logo">🔒</div>
+        <div class="wallet-info">
+            <div class="wallet-name">Trust Wallet</div>
+            <div class="wallet-desc">Mobile-first wallet</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="wallet-card" onclick="selectWallet(this, 'phantom')">
+        <div class="wallet-logo">👻</div>
+        <div class="wallet-info">
+            <div class="wallet-name">Phantom</div>
+            <div class="wallet-desc">For Solana & Ethereum</div>
+        </div>
+        <div class="wallet-check">✓</div>
+    </div>
+
+    <div class="divider">or</div>
+
+    <div class="qr-placeholder">
+        <div class="qr-icon">📱</div>
+        <div class="qr-text">Scan with any mobile wallet</div>
+    </div>
+
+    <button class="btn btn-primary" id="connectBtn" disabled onclick="connectWallet()">Connect Wallet</button>
+    <button class="btn btn-secondary">Back to Home</button>
+
+    <div class="manual-address">
+        <label>Enter wallet address manually</label>
+        <input type="text" placeholder="0x..." id="manualWallet">
+    </div>
+
+    <div class="info-note">
+        By connecting a wallet, you agree to Peys Terms of Service and acknowledge that you have read and understand the Privacy Policy.
+    </div>
+
+    <script>
+        let selectedWallet = null;
+
+        function selectWallet(element, wallet) {
+            document.querySelectorAll('.wallet-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedWallet = wallet;
+            document.getElementById('connectBtn').disabled = false;
+        }
+
+        function connectWallet() {
+            if (selectedWallet) {
+                alert('Connecting to ' + selectedWallet + '...');
+            }
+        }
+    </script>
+</body>
+</html>

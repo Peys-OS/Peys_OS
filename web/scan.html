@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Scan QR Code">
+    <meta property="og:title" content="Peys - Scan">
+    <meta property="og:description" content="Scan QR code to pay or receive">
+    <meta property="og:type" content="website">
+    <title>Scan - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 16px;
+        }
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .scanner-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+        .scanner-frame {
+            width: 280px;
+            height: 280px;
+            border: 3px solid var(--accent-light);
+            border-radius: 24px;
+            position: relative;
+            background: transparent;
+        }
+        .scanner-frame::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 20%;
+            right: 20%;
+            height: 4px;
+            background: var(--accent-light);
+            border-radius: 2px;
+            animation: scan 2s ease-in-out infinite;
+        }
+        @keyframes scan {
+            0%, 100% { top: -3px; }
+            50% { top: calc(100% - 4px); }
+        }
+        .corner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-color: var(--accent-light);
+            border-style: solid;
+        }
+        .corner.tl { top: -3px; left: -3px; border-width: 4px 0 0 4px; border-radius: 8px 0 0 0; }
+        .corner.tr { top: -3px; right: -3px; border-width: 4px 4px 0 0; border-radius: 0 8px 0 0; }
+        .corner.bl { bottom: -3px; left: -3px; border-width: 0 0 4px 4px; border-radius: 0 0 0 8px; }
+        .corner.br { bottom: -3px; right: -3px; border-width: 0 4px 4px 0; border-radius: 0 0 8px 0; }
+        .scanner-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+        .scan-status {
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        .mode-tabs {
+            display: flex;
+            background: var(--bg-secondary);
+            margin: 0 24px 24px;
+            border-radius: var(--radius);
+            padding: 4px;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .mode-tab.active {
+            background: var(--accent-light);
+            color: white;
+        }
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin: 0 24px 24px;
+            text-align: center;
+            display: none;
+        }
+        .result-card.show {
+            display: block;
+        }
+        .result-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .result-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .result-address {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            word-break: break-all;
+        }
+        .result-amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-light);
+        }
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .manual-input {
+            margin: 0 24px 24px;
+        }
+        .manual-input label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .manual-input input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: monospace;
+        }
+        .manual-input input:focus {
+            outline: none;
+            border-color: var(--accent-light);
+        }
+        @media (max-width: 480px) {
+            .scanner-frame { width: 240px; height: 240px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Scan QR Code</h1>
+    </div>
+
+    <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('pay')">Pay</button>
+        <button class="mode-tab" onclick="setMode('receive')">Receive</button>
+    </div>
+
+    <div class="scanner-area" id="scannerArea">
+        <div class="scanner-frame">
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+            <div class="scanner-icon">📷</div>
+        </div>
+        <p class="scan-status">Position the QR code within the frame</p>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-icon">✅</div>
+        <div class="result-title">QR Code Detected</div>
+        <div class="result-address" id="resultAddress">0x7a3B9f2E4d5C...</div>
+        <div class="result-amount" id="resultAmount">$50.00 USDC</div>
+        <div class="result-actions">
+            <button class="btn btn-secondary" onclick="cancelScan()">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmPayment()">Confirm</button>
+        </div>
+    </div>
+
+    <div class="manual-input">
+        <label>Or enter address manually</label>
+        <input type="text" placeholder="0x..." id="manualAddress">
+    </div>
+
+    <script>
+        let mode = 'pay';
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.querySelectorAll('.mode-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent.toLowerCase() === mode);
+            });
+        }
+
+        function cancelScan() {
+            document.getElementById('resultCard').classList.remove('show');
+            document.getElementById('scannerArea').style.display = 'flex';
+        }
+
+        function confirmPayment() {
+            const address = document.getElementById('resultAddress').textContent;
+            window.location.href = 'send.html?to=' + address;
+        }
+
+        setTimeout(() => {
+            document.getElementById('resultAddress').textContent = '0x7a3B9f2E4d5C6b7a8B9c0D1e2F3a4B5c6D7e8F9';
+            document.getElementById('resultAmount').textContent = '$50.00 USDC';
+            document.getElementById('scannerArea').style.display = 'none';
+            document.getElementById('resultCard').classList.add('show');
+        }, 3000);
+    </script>
+</body>
+</html>
