@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay - Peys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --primary-light: #dcf8c6;
+            --background: #f8f9fa;
+            --surface: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #e0e0e0;
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 48px 24px;
+            text-align: center;
+            border-radius: 0 0 32px 32px;
+        }
+        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; }
+        .header p { color: rgba(255,255,255,0.9); font-size: 14px; }
+        .container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; text-align: center; }
+        .amount-display {
+            font-size: 56px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 24px 0;
+        }
+        .from-section { padding: 16px; background: var(--background); border-radius: var(--radius-md); margin: 20px 0; }
+        .from-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .from-name { font-size: 18px; font-weight: 600; margin-top: 4px; }
+        .description { color: var(--text-secondary); font-size: 14px; margin-top: 16px; }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-whatsapp { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--background); color: var(--text-primary); border: 2px solid var(--border); }
+        .btn-disabled { background: var(--text-muted); cursor: not-allowed; }
+        .expired-badge { background: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: var(--radius-md); display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+        .success-screen { text-align: center; padding: 40px 24px; }
+        .success-icon { width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
+        .tx-info { background: var(--background); padding: 16px; border-radius: var(--radius-md); margin-top: 20px; text-align: left; }
+        .tx-row { display: flex; justify-content: space-between; padding: 8px 0; }
+        .tx-label { color: var(--text-muted); }
+        .tx-value { font-weight: 500; }
+        .loading { display: flex; align-items: center; justify-content: center; padding: 60px; }
+        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Payment Request</h1>
+        <p>You've received a payment request</p>
+    </div>
+    <div class="container">
+        <div id="loadingState" class="card">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+        <div id="paymentDetails" class="card" style="display: none;">
+            <div class="from-section">
+                <div class="from-label">From</div>
+                <div class="from-name" id="fromName">-</div>
+            </div>
+            <div class="amount-display" id="amountDisplay">$0.00</div>
+            <div class="description" id="descriptionText"></div>
+            <button class="btn btn-primary" id="payBtn">
+                <span>💸</span><span>Pay with WhatsApp</span>
+            </button>
+            <a href="whatsapp://send?text=pay" class="btn btn-whatsapp">
+                <span>📱</span><span>Open WhatsApp to Pay</span>
+            </a>
+            <button class="btn btn-secondary" onclick="window.close()">Cancel</button>
+        </div>
+        <div id="expiredState" class="card" style="display: none; text-align: center;">
+            <div class="expired-badge">⏰ This link has expired</div>
+            <p style="color: var(--text-secondary); margin-top: 16px;">Please request a new payment link</p>
+        </div>
+        <div id="successScreen" class="card" style="display: none;">
+            <div class="success-screen">
+                <div class="success-icon">✓</div>
+                <h2 style="font-size: 24px; margin-bottom: 8px;">Payment Sent!</h2>
+                <p style="color: var(--text-secondary);">Your payment has been processed</p>
+                <div class="tx-info">
+                    <div class="tx-row"><span class="tx-label">Amount</span><span class="tx-value" id="txAmount">-</span></div>
+                    <div class="tx-row"><span class="tx-label">Status</span><span class="tx-value" style="color: var(--primary);">Confirmed</span></div>
+                    <div class="tx-row"><span class="tx-label">Tx Hash</span><span class="tx-value" id="txHash" style="font-size: 12px; font-family: monospace;">-</span></div>
+                </div>
+                <a href="whatsapp://send?text=balance" class="btn btn-primary" style="margin-top: 20px;">
+                    <span>💬</span><span>Confirm on WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>
+        const pathParts = window.location.pathname.split('/');
+        const linkId = pathParts[pathParts.length - 1] || '';
+        async function loadPaymentLink() {
+            try {
+                const response = await fetch(`/api/web/payment-link/${linkId}`);
+                const data = await response.json();
+                if (data.valid) {
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('paymentDetails').style.display = 'block';
+                    document.getElementById('fromName').textContent = data.from || 'Someone';
+                    document.getElementById('amountDisplay').textContent = `$${parseFloat(data.amount).toFixed(2)}`;
+                    document.getElementById('descriptionText').textContent = data.description || '';
+                } else {
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('expiredState').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('expiredState').style.display = 'block';
+            }
+        }
+        document.getElementById('payBtn').addEventListener('click', () => {
+            window.location.href = 'whatsapp://send?text=pay';
+        });
+        loadPaymentLink();
+    </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Book - Peys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --primary-light: #dcf8c6;
+            --background: #f8f9fa;
+            --surface: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #e0e0e0;
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
+        .header {
+            background: var(--surface);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .header h1 { font-size: 20px; }
+        .add-btn { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .search-box { display: flex; align-items: center; gap: 12px; background: var(--background); padding: 12px 16px; border-radius: var(--radius-md); }
+        .search-box input { flex: 1; border: none; background: none; font-size: 15px; outline: none; }
+        .content { padding: 20px; }
+        .section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px; }
+        .contact-list { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .contact-item:hover { background: var(--background); }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-avatar { width: 48px; height: 48px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600; flex-shrink: 0; }
+        .contact-info { flex: 1; min-width: 0; }
+        .contact-name { font-weight: 600; font-size: 15px; }
+        .contact-phone { font-size: 13px; color: var(--text-muted); }
+        .contact-actions { display: flex; gap: 8px; }
+        .action-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; opacity: 0.6; transition: opacity 0.2s; }
+        .action-btn:hover { opacity: 1; }
+        .action-btn.star { color: #ffc107; }
+        .fav-badge { background: #fff3cd; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 64px; margin-bottom: 16px; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 400px; }
+        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 16px; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: var(--primary); }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--background); color: var(--text-primary); border: 2px solid var(--border); margin-top: 12px; }
+        .recent-section { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 16px; -webkit-overflow-scrolling: touch; }
+        .recent-chip { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .recent-chip:hover { background: var(--primary-light); border-color: var(--primary); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-top">
+            <h1>📒 Address Book</h1>
+            <button class="add-btn" id="addBtn">+</button>
+        </div>
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Search contacts...">
+        </div>
+    </header>
+    <div class="content">
+        <div class="section-title">Favorites</div>
+        <div class="contact-list" id="favoritesList">
+            <div class="empty-state" style="padding: 20px;">
+                <p style="font-size: 13px;">No favorite contacts yet</p>
+            </div>
+        </div>
+        <div class="section-title" style="margin-top: 24px;">All Contacts</div>
+        <div class="contact-list" id="contactsList">
+            <div class="loading" style="padding: 40px;">
+                <p style="color: var(--text-muted);">Loading contacts...</p>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <div class="modal-title">Add Contact</div>
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" id="contactName" class="form-input" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" id="contactPhone" class="form-input" placeholder="+1234567890">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <input type="text" id="contactNotes" class="form-input" placeholder="Friend, colleague...">
+            </div>
+            <button class="btn btn-primary" id="saveContact">Save Contact</button>
+            <button class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
+        </div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const phoneNumber = urlParams.get('phone') || '';
+        let contacts = [];
+        async function loadContacts() {
+            try {
+                const response = await fetch(`/api/web/contacts?phone=${encodeURIComponent(phoneNumber)}`);
+                const data = await response.json();
+                contacts = data.contacts || [];
+                renderContacts();
+            } catch (error) {
+                contacts = [];
+                renderContacts();
+            }
+        }
+        function renderContacts() {
+            const favorites = contacts.filter(c => c.favorite);
+            const others = contacts.filter(c => !c.favorite);
+            const favList = document.getElementById('favoritesList');
+            const list = document.getElementById('contactsList');
+            if (favorites.length > 0) {
+                favList.innerHTML = favorites.map(c => createContactHTML(c, true)).join('');
+            } else {
+                favList.innerHTML = '<div class="empty-state" style="padding: 20px;"><p style="font-size: 13px;">No favorites yet</p></div>';
+            }
+            if (others.length > 0) {
+                list.innerHTML = others.map(c => createContactHTML(c)).join('');
+            } else {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📒</div><div>No contacts yet</div><div style="font-size: 13px; margin-top: 8px;">Add contacts to quickly send them money</div></div>';
+            }
+        }
+        function createContactHTML(c, isFavorite = false) {
+            const name = c.name || 'Unknown';
+            const initial = name[0].toUpperCase();
+            const id = c.id || c.phone;
+            return `
+                <div class="contact-item" onclick="selectContact('${id}')">
+                    <div class="contact-avatar">${initial}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${name}${c.favorite ? ' <span class="fav-badge">★</span>' : ''}</div>
+                        <div class="contact-phone">${c.phone || ''}</div>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="action-btn star" onclick="event.stopPropagation(); toggleFavorite('${id}')">★</button>
+                        <button class="action-btn" onclick="event.stopPropagation(); sendTo('${id}')">💸</button>
+                    </div>
+                </div>
+            `;
+        }
+        function selectContact(id) {
+            window.location.href = `send.html?phone=${phoneNumber}&recipient=${id}`;
+        }
+        function sendTo(id) {
+            window.location.href = `send.html?phone=${phoneNumber}&recipient=${id}`;
+        }
+        function toggleFavorite(id) {
+            const contact = contacts.find(c => c.id === id || c.phone === id);
+            if (contact) {
+                contact.favorite = !contact.favorite;
+                renderContacts();
+            }
+        }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        document.getElementById('addBtn').addEventListener('click', () => document.getElementById('addModal').classList.add('active'));
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = contacts.filter(c => 
+                (c.name || '').toLowerCase().includes(query) || 
+                (c.phone || '').includes(query)
+            );
+            const favList = document.getElementById('favoritesList');
+            const list = document.getElementById('contactsList');
+            if (query) {
+                favList.innerHTML = filtered.filter(c => c.favorite).map(c => createContactHTML(c, true)).join('');
+                list.innerHTML = filtered.filter(c => !c.favorite).map(c => createContactHTML(c)).join('');
+            } else {
+                renderContacts();
+            }
+        });
+        document.getElementById('saveContact').addEventListener('click', async () => {
+            const name = document.getElementById('contactName').value.trim();
+            const phone = document.getElementById('contactPhone').value.trim();
+            const notes = document.getElementById('contactNotes').value.trim();
+            if (!name || !phone) { alert('Name and phone are required'); return; }
+            contacts.push({ id: Date.now(), name, phone, notes, favorite: false });
+            renderContacts();
+            closeModal('addModal');
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactNotes').value = '';
+        });
+        loadContacts();
+    </script>
+</body>
+</html>
