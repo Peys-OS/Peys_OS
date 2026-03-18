@@ -1,331 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: var(--surface);
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-        }
-        .header h1 { font-size: 20px; }
-        .content { padding: 20px; }
-        .section { margin-bottom: 24px; }
-        .section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px; }
-        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: hidden; }
-        .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .setting-item:hover { background: var(--background); }
-        .setting-item:last-child { border-bottom: none; }
-        .setting-left { display: flex; align-items: center; gap: 12px; }
-        .setting-icon { font-size: 24px; }
-        .setting-info { flex: 1; }
-        .setting-label { font-weight: 500; }
-        .setting-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-        .setting-value { color: var(--text-muted); font-size: 14px; margin-right: 8px; }
-        .setting-arrow { color: var(--text-muted); font-size: 18px; }
-        .toggle { position: relative; width: 52px; height: 28px; }
-        .toggle input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); transition: 0.3s; border-radius: 28px; }
-        .toggle-slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background: white; transition: 0.3s; border-radius: 50%; }
-        .toggle input:checked + .toggle-slider { background: var(--primary); }
-        .toggle input:checked + .toggle-slider:before { transform: translateX(24px); }
-        .danger-section { border: 2px solid #dc3545; }
-        .danger-section .section-title { color: #dc3545; }
-        .danger-item { color: #dc3545; }
-        .version { text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
-        .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 400px; }
-        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; text-align: center; }
-        .modal-desc { color: var(--text-secondary); font-size: 14px; text-align: center; margin-bottom: 20px; }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
-        .form-input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 16px; font-family: inherit; }
-        .form-input:focus { outline: none; border-color: var(--primary); }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-secondary { background: var(--background); color: var(--text-primary); border: 2px solid var(--border); margin-top: 12px; }
-        .theme-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .theme-option { padding: 16px; border: 2px solid var(--border); border-radius: var(--radius-md); text-align: center; cursor: pointer; transition: all 0.2s; }
-        .theme-option.selected { border-color: var(--primary); background: var(--primary-light); }
-        .theme-preview { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; }
-        .theme-preview.light { background: #f8f9fa; border: 1px solid #ccc; }
-        .theme-preview.dark { background: #1a1a2e; }
-        .theme-preview.system { background: linear-gradient(135deg, #f8f9fa 50%, #1a1a2e 50%); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header">
-        <h1>⚙️ Settings</h1>
-    </header>
-    <div class="content">
-        <div class="section">
-            <div class="section-title">Preferences</div>
-            <div class="card">
-                <div class="setting-item" onclick="openModal('themeModal')">
-                    <div class="setting-left">
-                        <span class="setting-icon">🎨</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Appearance</div>
-                            <div class="setting-desc">Light, Dark, or System</div>
-                        </div>
-                    </div>
-                    <span class="setting-value" id="themeValue">System</span>
-                    <span class="setting-arrow">›</span>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">🌐</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Language</div>
-                            <div class="setting-desc">English</div>
-                        </div>
-                    </div>
-                    <span class="setting-value">English</span>
-                    <span class="setting-arrow">›</span>
-                </div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-title">Notifications</div>
-            <div class="card">
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">🔔</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Push Notifications</div>
-                            <div class="setting-desc">Receive transaction alerts</div>
-                        </div>
-                    </div>
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">💬</span>
-                        <div class="setting-info">
-                            <div class="setting-label">WhatsApp Notifications</div>
-                            <div class="setting-desc">Get updates via WhatsApp</div>
-                        </div>
-                    </div>
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">🔒</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Security Alerts</div>
-                            <div class="setting-desc">Login and PIN change alerts</div>
-                        </div>
-                    </div>
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-title">Privacy</div>
-            <div class="card">
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">👁️</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Show Balance</div>
-                            <div class="setting-desc">Allow others to see your balance</div>
-                        </div>
-                    </div>
-                    <label class="toggle">
-                        <input type="checkbox">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">📜</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Transaction Privacy</div>
-                            <div class="setting-desc">Hide transactions from public view</div>
-                        </div>
-                    </div>
-                    <label class="toggle">
-                        <input type="checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-title">Network</div>
-            <div class="card">
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">🔗</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Network</div>
-                            <div class="setting-desc">Base Sepolia Testnet</div>
-                        </div>
-                    </div>
-                    <span class="setting-value">Base Sepolia</span>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">⛽</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Gas Settings</div>
-                            <div class="setting-desc">Adjust transaction speed</div>
-                        </div>
-                    </div>
-                    <span class="setting-value">Normal</span>
-                    <span class="setting-arrow">›</span>
-                </div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="section-title">About</div>
-            <div class="card">
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">📄</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Terms of Service</div>
-                        </div>
-                    </div>
-                    <span class="setting-arrow">›</span>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">🔒</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Privacy Policy</div>
-                        </div>
-                    </div>
-                    <span class="setting-arrow">›</span>
-                </div>
-                <div class="setting-item">
-                    <div class="setting-left">
-                        <span class="setting-icon">📱</span>
-                        <div class="setting-info">
-                            <div class="setting-label">App Version</div>
-                        </div>
-                    </div>
-                    <span class="setting-value">1.0.0</span>
-                </div>
-            </div>
-        </div>
-        <div class="section danger-section">
-            <div class="section-title">Danger Zone</div>
-            <div class="card">
-                <div class="setting-item danger-item" onclick="openModal('logoutModal')">
-                    <div class="setting-left">
-                        <span class="setting-icon">🚪</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Log Out</div>
-                            <div class="setting-desc">Sign out of this device</div>
-                        </div>
-                    </div>
-                    <span class="setting-arrow">›</span>
-                </div>
-                <div class="setting-item danger-item" onclick="openModal('deleteModal')">
-                    <div class="setting-left">
-                        <span class="setting-icon">🗑️</span>
-                        <div class="setting-info">
-                            <div class="setting-label">Delete Account</div>
-                            <div class="setting-desc">Permanently remove your account</div>
-                        </div>
-                    </div>
-                    <span class="setting-arrow">›</span>
-                </div>
-            </div>
-        </div>
-        <div class="version">Peys v1.0.0 • Made with 💚</div>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>Settings</h1>
+  </header>
+
+  <main class="container">
+    <div class="section">
+      <h3 class="section-title">Account</h3>
+      <div class="card">
+        <a href="profile.html" class="list-item">
+          <div class="list-item-icon">👤</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Profile</div>
+            <div class="list-item-subtitle">Manage your profile</div>
+          </div>
+          <span>→</span>
+        </a>
+        <a href="security.html" class="list-item">
+          <div class="list-item-icon">🔒</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Security</div>
+            <div class="list-item-subtitle">PIN, 2FA, sessions</div>
+          </div>
+          <span>→</span>
+        </a>
+      </div>
     </div>
-    <div class="modal" id="themeModal">
-        <div class="modal-content">
-            <div class="modal-title">Choose Theme</div>
-            <div class="theme-options">
-                <div class="theme-option" data-theme="light" onclick="selectTheme('Light')">
-                    <div class="theme-preview light"></div>
-                    <div>Light</div>
-                </div>
-                <div class="theme-option" data-theme="dark" onclick="selectTheme('Dark')">
-                    <div class="theme-preview dark"></div>
-                    <div>Dark</div>
-                </div>
-                <div class="theme-option selected" data-theme="system" onclick="selectTheme('System')">
-                    <div class="theme-preview system"></div>
-                    <div>System</div>
-                </div>
-            </div>
-            <button class="btn btn-primary" style="margin-top: 20px;" onclick="closeModal('themeModal')">Done</button>
+
+    <div class="section">
+      <h3 class="section-title">Preferences</h3>
+      <div class="card">
+        <div class="list-item">
+          <div class="list-item-icon">🔔</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Notifications</div>
+          </div>
+          <div class="toggle active" onclick="this.classList.toggle('active')"></div>
         </div>
-    </div>
-    <div class="modal" id="logoutModal">
-        <div class="modal-content">
-            <div class="modal-title">🚪 Log Out</div>
-            <div class="modal-desc">Are you sure you want to log out? You'll need to scan the QR code again to access your account.</div>
-            <button class="btn btn-primary">Log Out</button>
-            <button class="btn btn-secondary" onclick="closeModal('logoutModal')">Cancel</button>
+        <div class="list-item">
+          <div class="list-item-icon">🌙</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Dark Mode</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('active')"></div>
         </div>
+      </div>
     </div>
-    <div class="modal" id="deleteModal">
-        <div class="modal-content">
-            <div class="modal-title">🗑️ Delete Account</div>
-            <div class="modal-desc">This action cannot be undone. All your data, including wallet and transaction history, will be permanently deleted.</div>
-            <div class="form-group" style="margin-top: 16px;">
-                <label class="form-label">Enter DELETE to confirm</label>
-                <input type="text" id="deleteConfirm" class="form-input" placeholder="DELETE">
-            </div>
-            <button class="btn btn-danger" id="deleteBtn" disabled>Delete My Account</button>
-            <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+
+    <div class="section">
+      <h3 class="section-title">Data</h3>
+      <div class="card">
+        <a href="export-data.html" class="list-item">
+          <div class="list-item-icon">📥</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Export Data</div>
+            <div class="list-item-subtitle">Download your data</div>
+          </div>
+          <span>→</span>
+        </a>
+        <a href="referral.html" class="list-item">
+          <div class="list-item-icon">🎁</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Referrals</div>
+            <div class="list-item-subtitle">Invite friends, earn rewards</div>
+          </div>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="section-title">Support</h3>
+      <div class="card">
+        <a href="help.html" class="list-item">
+          <div class="list-item-icon">❓</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Help & FAQ</div>
+          </div>
+          <span>→</span>
+        </a>
+        <a href="support.html" class="list-item">
+          <div class="list-item-icon">💬</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Contact Support</div>
+          </div>
+          <span>→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3 class="section-title">About</h3>
+      <div class="card">
+        <a href="network-status.html" class="list-item">
+          <div class="list-item-icon">🟢</div>
+          <div class="list-item-content">
+            <div class="list-item-title">Network Status</div>
+          </div>
+          <span>→</span>
+        </a>
+        <div class="list-item" style="cursor: default;">
+          <div class="list-item-content">
+            <div class="list-item-title">Version</div>
+            <div class="list-item-subtitle">1.0.0</div>
+          </div>
         </div>
+      </div>
     </div>
-    <script>
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function selectTheme(theme) {
-            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('selected'));
-            document.querySelector(`[data-theme="${theme.toLowerCase()}"]`).classList.add('selected');
-            document.getElementById('themeValue').textContent = theme;
-        }
-        document.getElementById('deleteConfirm').addEventListener('input', (e) => {
-            document.getElementById('deleteBtn').disabled = e.target.value !== 'DELETE';
-        });
-    </script>
+
+    <button class="btn btn-secondary" onclick="logout()">Log Out</button>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    function logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        window.location.href = 'login.html';
+      }
+    }
+  </script>
 </body>
 </html>

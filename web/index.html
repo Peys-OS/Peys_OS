@@ -1,182 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peys - Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 24px;
-            color: white;
-        }
-        .greeting { font-size: 14px; opacity: 0.9; }
-        .user-name { font-size: 24px; font-weight: 700; margin-top: 4px; }
-        .balance-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            margin: -30px 20px 20px;
-            box-shadow: var(--shadow-md);
-            position: relative;
-        }
-        .balance-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .balance-amount { font-size: 36px; font-weight: 700; color: var(--text-primary); margin: 8px 0; }
-        .balance-usdc { color: var(--primary); font-weight: 600; }
-        .network-status { display: inline-flex; align-items: center; gap: 6px; background: var(--background); padding: 6px 12px; border-radius: 20px; font-size: 12px; margin-top: 12px; }
-        .network-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding: 0 20px;
-            margin-bottom: 24px;
-        }
-        .action-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
-            padding: 16px 8px;
-            background: var(--surface);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.2s;
-        }
-        .action-item:hover { transform: translateY(-2px); }
-        .action-icon { font-size: 28px; margin-bottom: 8px; }
-        .action-label { font-size: 11px; font-weight: 500; text-align: center; }
-        .section { padding: 0 20px; margin-bottom: 24px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-size: 16px; font-weight: 600; }
-        .section-link { font-size: 13px; color: var(--primary); text-decoration: none; }
-        .tx-list { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); }
-        .tx-item { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); }
-        .tx-item:last-child { border-bottom: none; }
-        .tx-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .tx-icon.sent { background: #fce8e8; }
-        .tx-icon.received { background: var(--primary-light); }
-        .tx-info { flex: 1; }
-        .tx-name { font-weight: 500; font-size: 14px; }
-        .tx-date { font-size: 12px; color: var(--text-muted); }
-        .tx-amount { font-weight: 600; font-size: 14px; }
-        .tx-amount.sent { color: #dc3545; }
-        .tx-amount.received { color: var(--primary); }
-        .pending-card { background: linear-gradient(135deg, #fef3c7 0%, #fff 100%); border: 2px solid #fbbf24; border-radius: var(--radius-lg); padding: 16px; margin: 0 20px 24px; display: flex; align-items: center; gap: 12px; }
-        .pending-icon { font-size: 32px; }
-        .pending-info { flex: 1; }
-        .pending-title { font-weight: 600; font-size: 14px; }
-        .pending-amount { color: #856404; font-size: 13px; }
-        .pending-btn { background: #fbbf24; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-        .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header">
-        <div class="greeting">Welcome back,</div>
-        <div class="user-name" id="userName">User</div>
-    </header>
-    <div class="balance-card">
-        <div class="balance-label">Total Balance</div>
-        <div class="balance-amount"><span id="balanceAmount">$0.00</span> <span class="balance-usdc">USDC</span></div>
-        <div class="network-status"><span class="network-dot"></span><span>Base Sepolia</span></div>
+  <header class="header">
+    <h1>Peys</h1>
+  </header>
+
+  <main class="container">
+    <div class="balance card">
+      <div class="balance-amount">
+        $<span id="balance">0.00</span>
+        <span class="balance-currency">USDC</span>
+      </div>
+      <p class="text-sm text-muted mt-md">Base Sepolia</p>
     </div>
-    <div class="quick-actions">
-        <a href="send.html" class="action-item"><span class="action-icon">💸</span><span class="action-label">Send</span></a>
-        <a href="receive.html" class="action-item"><span class="action-icon">📥</span><span class="action-label">Receive</span></a>
-        <a href="history.html" class="action-item"><span class="action-icon">📜</span><span class="action-label">History</span></a>
-        <a href="help.html" class="action-item"><span class="action-icon">❓</span><span class="action-label">Help</span></a>
+
+    <div class="grid grid-4 mb-md">
+      <a href="send.html" class="quick-action">
+        <span class="quick-action-icon">📤</span>
+        <span class="quick-action-label">Send</span>
+      </a>
+      <a href="receive.html" class="quick-action">
+        <span class="quick-action-icon">📥</span>
+        <span class="quick-action-label">Receive</span>
+      </a>
+      <a href="scan.html" class="quick-action">
+        <span class="quick-action-icon">📷</span>
+        <span class="quick-action-label">Scan</span>
+      </a>
+      <a href="request.html" class="quick-action">
+        <span class="quick-action-icon">📋</span>
+        <span class="quick-action-label">Request</span>
+      </a>
     </div>
-    <div id="pendingSection" class="pending-card" style="display: none;">
-        <span class="pending-icon">🎁</span>
-        <div class="pending-info">
-            <div class="pending-title">Pending Claim</div>
-            <div class="pending-amount" id="pendingAmount">$0.00 USDC</div>
-        </div>
-        <a href="claim.html" class="pending-btn">Claim</a>
-    </div>
+
+    <div class="divider"></div>
+
     <div class="section">
-        <div class="section-header">
-            <span class="section-title">Recent Activity</span>
-            <a href="history.html" class="section-link">View All →</a>
-        </div>
-        <div id="txList">
-            <div class="loading"><div class="spinner"></div></div>
-        </div>
+      <h3 class="section-title">Recent Activity</h3>
+      <div class="card" id="activity-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
     </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        async function loadUserData() {
-            try {
-                const response = await fetch(`/api/web/user/${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                if (data.success) {
-                    document.getElementById('userName').textContent = data.user.name || 'User';
-                    document.getElementById('balanceAmount').textContent = '$' + (data.balance || '0.00');
-                }
-            } catch (error) {
-                console.error('Error loading user:', error);
-            }
-        }
-        async function loadRecentTx() {
-            try {
-                const response = await fetch(`/api/web/transactions/${encodeURIComponent(phoneNumber)}?limit=3`);
-                const data = await response.json();
-                const list = document.getElementById('txList');
-                if (data.transactions && data.transactions.length > 0) {
-                    list.innerHTML = '<div class="tx-list">' + data.transactions.map(tx => `
-                        <div class="tx-item">
-                            <div class="tx-icon ${tx.type}">${tx.type === 'sent' ? '📤' : '📥'}</div>
-                            <div class="tx-info">
-                                <div class="tx-name">${tx.recipient || tx.sender || 'Unknown'}</div>
-                                <div class="tx-date">${new Date(tx.createdAt).toLocaleDateString()}</div>
-                            </div>
-                            <div class="tx-amount ${tx.type}">${tx.type === 'sent' ? '-' : '+'}$${parseFloat(tx.amount).toFixed(2)}</div>
-                        </div>
-                    `).join('') + '</div>';
-                } else {
-                    list.innerHTML = '<div class="empty-state">📜<div>No transactions yet</div><div style="font-size: 13px; margin-top: 4px;">Send or receive USDC to get started</div></div>';
-                }
-            } catch (error) {
-                document.getElementById('txList').innerHTML = '<div class="empty-state">Unable to load transactions</div>';
-            }
-        }
-        async function checkPendingClaims() {
-            try {
-                const response = await fetch(`/api/web/claims/pending?phone=${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                if (data.claims && data.claims.length > 0) {
-                    document.getElementById('pendingSection').style.display = 'flex';
-                    document.getElementById('pendingAmount').textContent = `$${parseFloat(data.claims[0].amount).toFixed(2)} USDC`;
-                }
-            } catch (error) {}
-        }
-        loadUserData();
-        loadRecentTx();
-        checkPendingClaims();
-    </script>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">
+      <span>🏠</span>
+      <span>Home</span>
+    </a>
+    <a href="history.html" class="nav-item">
+      <span>📜</span>
+      <span>History</span>
+    </a>
+    <a href="send.html" class="nav-item">
+      <span>💸</span>
+      <span>Send</span>
+    </a>
+    <a href="settings.html" class="nav-item">
+      <span>⚙️</span>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <style>
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: var(--space-sm) 0;
+      padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 0.625rem;
+    }
+    .nav-item span:first-child { font-size: 1.25rem; }
+    .nav-item.active { color: var(--accent); }
+    body { padding-bottom: 70px; }
+  </style>
+
+  <script src="api.js"></script>
+  <script>
+    const phone = getPhoneFromUrl();
+
+    async function init() {
+      const balance = await loadBalance(phone);
+      document.getElementById('balance').textContent = parseFloat(balance).toFixed(2);
+
+      const txs = await loadTransactions(phone, 5);
+      const list = document.getElementById('activity-list');
+      
+      if (!txs || txs.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📜</div>
+            <p>No transactions yet</p>
+          </div>
+        `;
+      } else {
+        list.innerHTML = txs.map(tx => `
+          <a href="transaction.html?id=${tx.id}" class="list-item">
+            <div class="list-item-icon">${tx.type === 'sent' ? '📤' : '📥'}</div>
+            <div class="list-item-content">
+              <div class="list-item-title">${tx.type === 'sent' ? 'Sent to' : 'Received from'} ${tx.recipient || tx.sender || 'Unknown'}</div>
+              <div class="list-item-subtitle">${new Date(tx.created_at).toLocaleDateString()}</div>
+            </div>
+            <div class="amount ${tx.type === 'sent' ? 'amount-negative' : 'amount-positive'}">
+              ${tx.type === 'sent' ? '-' : '+'}$${parseFloat(tx.amount).toFixed(2)}
+            </div>
+          </a>
+        `).join('');
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>

@@ -1,273 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Balance - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 48px 24px 80px;
-            text-align: center;
-            position: relative;
-        }
-        .header h1 { color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
-        .balance-display {
-            font-size: 48px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 4px;
-        }
-        .balance-usdc { color: rgba(255,255,255,0.7); font-size: 18px; font-weight: 400; }
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            padding: 20px;
-            margin: -40px 20px 20px;
-            position: relative;
-        }
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .action-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 16px 8px;
-            background: var(--background);
-            border-radius: var(--radius-md);
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: all 0.2s;
-        }
-        .action-btn:hover { background: var(--primary-light); }
-        .action-icon { font-size: 28px; margin-bottom: 8px; }
-        .action-label { font-size: 12px; font-weight: 500; text-align: center; }
-        .wallet-section { margin-top: 20px; }
-        .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-        .wallet-address {
-            background: var(--background);
-            padding: 16px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-        .address-text { font-size: 12px; font-family: monospace; word-break: break-all; flex: 1; }
-        .copy-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .copy-btn.copied { background: var(--primary-dark); }
-        .network-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--background);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        .network-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
-        .limit-section { margin-top: 20px; }
-        .limit-bar { background: var(--background); border-radius: 8px; height: 8px; overflow: hidden; margin: 12px 0; }
-        .limit-fill { height: 100%; background: var(--primary); border-radius: 8px; transition: width 0.3s; }
-        .limit-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
-        .recent-section { margin-top: 20px; }
-        .recent-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .recent-item:last-child { border-bottom: none; }
-        .recent-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .recent-icon.sent { background: #fce8e8; }
-        .recent-icon.received { background: var(--primary-light); }
-        .recent-info { flex: 1; }
-        .recent-name { font-weight: 500; font-size: 14px; }
-        .recent-date { font-size: 12px; color: var(--text-muted); }
-        .recent-amount { font-weight: 600; font-size: 14px; }
-        .recent-amount.sent { color: var(--error, #dc3545); }
-        .recent-amount.received { color: var(--primary); }
-        .view-all { display: block; text-align: center; color: var(--primary); text-decoration: none; padding: 16px; font-weight: 500; }
-        .refresh-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            transition: transform 0.3s;
-        }
-        .refresh-btn:hover { transform: rotate(180deg); }
-        .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .spinner {
-            width: 32px; height: 32px;
-            border: 3px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balance - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <button class="refresh-btn" id="refreshBtn">🔄</button>
-        <h1>Your Balance</h1>
-        <div class="balance-display" id="balanceAmount">--</div>
-        <div class="balance-usdc">USDC</div>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>Balance</h1>
+  </header>
+
+  <main class="container">
+    <div class="balance card">
+      <div class="text-muted text-sm">Total Balance</div>
+      <div class="balance-amount">
+        $<span id="balance">0.00</span>
+        <span class="balance-currency">USDC</span>
+      </div>
     </div>
-    <div class="card">
-        <div class="quick-actions">
-            <a href="send.html" class="action-btn">
-                <span class="action-icon">💸</span>
-                <span class="action-label">Send</span>
-            </a>
-            <a href="receive.html" class="action-btn">
-                <span class="action-icon">📥</span>
-                <span class="action-label">Receive</span>
-            </a>
-            <a href="history.html" class="action-btn">
-                <span class="action-icon">📜</span>
-                <span class="action-label">History</span>
-            </a>
-        </div>
-        <div class="wallet-section">
-            <div class="section-title">Wallet Address</div>
-            <div class="wallet-address">
-                <span class="address-text" id="walletAddress">Loading...</span>
-                <button class="copy-btn" id="copyBtn">Copy</button>
-            </div>
-            <div style="margin-top: 12px;">
-                <span class="network-badge"><span class="network-dot"></span><span id="networkName">Base Sepolia</span></span>
-            </div>
-        </div>
-        <div class="limit-section">
-            <div class="section-title">Daily Limit</div>
-            <div class="limit-bar"><div class="limit-fill" id="limitFill" style="width: 0%"></div></div>
-            <div class="limit-info">
-                <span>Used: <strong id="limitUsed">$0.00</strong></span>
-                <span>Remaining: <strong id="limitRemaining">$1,000.00</strong></span>
-            </div>
-        </div>
-        <div class="recent-section">
-            <div class="section-title">Recent Activity</div>
-            <div id="recentList">
-                <div class="loading"><div class="spinner"></div></div>
-            </div>
-            <a href="history.html" class="view-all">View All Transactions →</a>
-        </div>
+
+    <div class="grid grid-2 mb-md">
+      <div class="card text-center">
+        <div class="text-muted text-sm">This Month</div>
+        <div class="amount amount-positive" id="month-received">+$0.00</div>
+      </div>
+      <div class="card text-center">
+        <div class="text-muted text-sm">This Month</div>
+        <div class="amount amount-negative" id="month-sent">-$0.00</div>
+      </div>
     </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        let balance = 0;
-        async function loadBalance() {
-            try {
-                const response = await fetch(`/api/web/balance/${encodeURIComponent(phoneNumber)}`);
-                const data = await response.json();
-                if (data.success) {
-                    balance = parseFloat(data.balance) || 0;
-                    document.getElementById('balanceAmount').textContent = `$${balance.toFixed(2)}`;
-                    document.getElementById('walletAddress').textContent = data.walletAddress || 'N/A';
-                } else {
-                    document.getElementById('balanceAmount').textContent = '$0.00';
-                }
-            } catch (error) {
-                console.error('Error loading balance:', error);
-                document.getElementById('balanceAmount').textContent = '$0.00';
-            }
-        }
-        async function loadRecentTransactions() {
-            try {
-                const response = await fetch(`/api/web/transactions/${encodeURIComponent(phoneNumber)}?limit=3`);
-                const data = await response.json();
-                const list = document.getElementById('recentList');
-                if (data.transactions && data.transactions.length > 0) {
-                    list.innerHTML = data.transactions.map(tx => `
-                        <div class="recent-item">
-                            <div class="recent-icon ${tx.type}">${tx.type === 'sent' ? '📤' : '📥'}</div>
-                            <div class="recent-info">
-                                <div class="recent-name">${tx.recipient || tx.sender || 'Unknown'}</div>
-                                <div class="recent-date">${new Date(tx.createdAt).toLocaleDateString()}</div>
-                            </div>
-                            <div class="recent-amount ${tx.type}">${tx.type === 'sent' ? '-' : '+'}$${parseFloat(tx.amount).toFixed(2)}</div>
-                        </div>
-                    `).join('');
-                } else {
-                    list.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No transactions yet</p>';
-                }
-            } catch (error) {
-                console.error('Error loading transactions:', error);
-                document.getElementById('recentList').innerHTML = '<p style="text-align: center; color: var(--text-muted);">Unable to load transactions</p>';
-            }
-        }
-        function loadLimits() {
-            document.getElementById('limitFill').style.width = '0%';
-            document.getElementById('limitUsed').textContent = '$0.00';
-            document.getElementById('limitRemaining').textContent = '$1,000.00';
-        }
-        document.getElementById('copyBtn').addEventListener('click', async () => {
-            const address = document.getElementById('walletAddress').textContent;
-            try {
-                await navigator.clipboard.writeText(address);
-                const btn = document.getElementById('copyBtn');
-                btn.textContent = 'Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = 'Copy';
-                    btn.classList.remove('copied');
-                }, 2000);
-            } catch (error) {
-                console.error('Copy failed:', error);
-            }
-        });
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            loadBalance();
-            loadRecentTransactions();
-            loadLimits();
-        });
-        loadBalance();
-        loadRecentTransactions();
-        loadLimits();
-    </script>
+
+    <div class="section">
+      <h3 class="section-title">Tokens</h3>
+      <div class="card">
+        <div class="list-item">
+          <div style="width: 36px; height: 36px; background: #2775CA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">💵</div>
+          <div class="list-item-content">
+            <div class="list-item-title">USD Coin</div>
+            <div class="list-item-subtitle">USDC</div>
+          </div>
+          <div class="text-right">
+            <div id="usdc-balance">0.00</div>
+            <div class="text-muted text-sm">~$<span id="usdc-usd">0.00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <a href="send.html" class="btn btn-primary">Send</a>
+    <a href="receive.html" class="btn btn-secondary mt-md">Receive</a>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const phone = getPhoneFromUrl();
+
+    async function loadBalance() {
+      const balance = await loadBalance(phone);
+      document.getElementById('balance').textContent = parseFloat(balance).toFixed(2);
+      document.getElementById('usdc-balance').textContent = parseFloat(balance).toFixed(2);
+      document.getElementById('usdc-usd').textContent = parseFloat(balance).toFixed(2);
+
+      const txs = await loadTransactions(phone, 100);
+      const now = new Date();
+      const monthTxs = txs.filter(tx => new Date(tx.created_at).getMonth() === now.getMonth());
+      
+      const received = monthTxs.filter(tx => tx.type === 'received').reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+      const sent = monthTxs.filter(tx => tx.type === 'sent').reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+      
+      document.getElementById('month-received').textContent = `+$${received.toFixed(2)}`;
+      document.getElementById('month-sent').textContent = `-$${sent.toFixed(2)}`;
+    }
+
+    loadBalance();
+  </script>
 </body>
 </html>

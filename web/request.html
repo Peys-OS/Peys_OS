@@ -1,168 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Payment - Peys</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 48px 24px;
-            text-align: center;
-            border-radius: 0 0 32px 32px;
-        }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; }
-        .header p { color: rgba(255,255,255,0.9); font-size: 14px; }
-        .container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
-        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
-        .form-input, .form-textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary); }
-        .amount-input { position: relative; }
-        .amount-input .currency { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: 600; color: var(--primary); }
-        .amount-input input { padding-left: 48px; font-size: 32px; font-weight: 700; text-align: center; }
-        .expiry-select { display: flex; gap: 8px; }
-        .expiry-option { flex: 1; padding: 12px; background: var(--background); border: 2px solid var(--border); border-radius: var(--radius-md); text-align: center; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-        .expiry-option.selected { border-color: var(--primary); background: var(--primary-light); }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-whatsapp { background: var(--primary); color: white; }
-        .link-display { background: var(--background); padding: 16px; border-radius: var(--radius-md); font-family: monospace; font-size: 13px; word-break: break-all; margin-top: 16px; }
-        .success-screen { text-align: center; padding: 40px 24px; }
-        .success-icon { width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
-        .share-buttons { display: flex; gap: 12px; margin-top: 16px; }
-        .share-btn { flex: 1; padding: 12px; border: none; border-radius: var(--radius-md); font-size: 24px; cursor: pointer; transition: transform 0.2s; }
-        .share-btn:hover { transform: scale(1.1); }
-        .share-whatsapp { background: #25D366; }
-        .share-copy { background: var(--background); }
-        .copy-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 16px 32px; border-radius: 8px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000; }
-        .copy-feedback.show { opacity: 1; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request - Peys</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>💰 Request Payment</h1>
-        <p>Generate a payment link to share</p>
+  <header class="header">
+    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <h1>Request</h1>
+  </header>
+
+  <main class="container">
+    <div class="card text-center">
+      <div style="font-size: 4rem; margin-bottom: var(--space-md);">📋</div>
+      <h2>Create Payment Link</h2>
+      <p class="text-muted">Share a link and anyone can pay you</p>
     </div>
-    <div class="container">
-        <div id="requestForm" class="card">
-            <div class="form-group">
-                <label class="form-label">Amount</label>
-                <div class="amount-input">
-                    <span class="currency">$</span>
-                    <input type="number" id="amount" class="form-input" placeholder="0.00" min="1" step="0.01">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description (optional)</label>
-                <input type="text" id="description" class="form-input" placeholder="What's this for?">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Link Expires In</label>
-                <div class="expiry-select">
-                    <div class="expiry-option selected" data-hours="24">24h</div>
-                    <div class="expiry-option" data-hours="72">3 days</div>
-                    <div class="expiry-option" data-hours="168">7 days</div>
-                    <div class="expiry-option" data-hours="0">Never</div>
-                </div>
-            </div>
-            <button class="btn btn-primary" id="generateBtn">
-                <span>🔗</span><span>Generate Link</span>
-            </button>
-        </div>
-        <div id="successScreen" class="card" style="display: none;">
-            <div class="success-screen">
-                <div class="success-icon">✓</div>
-                <h2 style="font-size: 24px; margin-bottom: 8px;">Link Created!</h2>
-                <p style="color: var(--text-secondary);">Share this link to receive payment</p>
-                <div class="link-display" id="paymentLink">Loading...</div>
-                <div class="share-buttons">
-                    <button class="share-btn share-whatsapp" id="shareWhatsapp">💬</button>
-                    <button class="share-btn share-copy" id="shareCopy">📋</button>
-                </div>
-                <a href="index.html" class="btn btn-primary" style="margin-top: 24px;">
-                    <span>🏠</span><span>Go to Dashboard</span>
-                </a>
-            </div>
-        </div>
+
+    <div class="card">
+      <div class="input-group">
+        <label class="input-label">Amount (USDC)</label>
+        <input type="number" class="input" id="amount" placeholder="0.00" step="0.01">
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Description</label>
+        <input type="text" class="input" id="memo" placeholder="What's this for?">
+      </div>
+
+      <div id="link-result"></div>
+      <button class="btn btn-primary" onclick="createLink()">Create Link</button>
     </div>
-    <div class="copy-feedback" id="copyFeedback">Link Copied!</div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const phoneNumber = urlParams.get('phone') || '';
-        let expiryHours = 24;
-        let generatedLink = '';
-        document.querySelectorAll('.expiry-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                document.querySelectorAll('.expiry-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                expiryHours = parseInt(opt.dataset.hours);
-            });
-        });
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            const amount = document.getElementById('amount').value;
-            const description = document.getElementById('description').value;
-            if (!amount || parseFloat(amount) < 1) {
-                alert('Please enter a valid amount (minimum $1)');
-                return;
-            }
-            try {
-                const response = await fetch('/api/web/payment-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phoneNumber, amount, description, expiryHours })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    generatedLink = `${window.location.origin}/pay/${data.linkId}`;
-                    document.getElementById('paymentLink').textContent = generatedLink;
-                    document.getElementById('requestForm').style.display = 'none';
-                    document.getElementById('successScreen').style.display = 'block';
-                } else {
-                    alert(data.message || 'Failed to generate link');
-                }
-            } catch (error) {
-                alert('Network error. Please try again.');
-            }
-        });
-        document.getElementById('shareWhatsapp').addEventListener('click', () => {
-            const text = `Pay me $${document.getElementById('amount').value} USDC: ${generatedLink}`;
-            window.open(`whatsapp://send?text=${encodeURIComponent(text)}`, '_blank');
-        });
-        document.getElementById('shareCopy').addEventListener('click', async () => {
-            await navigator.clipboard.writeText(generatedLink);
-            const feedback = document.getElementById('copyFeedback');
-            feedback.classList.add('show');
-            setTimeout(() => feedback.classList.remove('show'), 2000);
-        });
-    </script>
+
+    <div class="section">
+      <h3 class="section-title">Your Links</h3>
+      <div class="card" id="links-list">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const phone = getPhoneFromUrl();
+
+    async function loadLinks() {
+      try {
+        const links = await api.getPaymentLinks(phone);
+        const list = document.getElementById('links-list');
+        
+        if (!links || links.length === 0) {
+          list.innerHTML = '<p class="text-muted text-center">No payment links yet</p>';
+          return;
+        }
+
+        list.innerHTML = links.map(l => `
+          <div class="list-item">
+            <div class="list-item-icon">📋</div>
+            <div class="list-item-content">
+              <div class="list-item-title">$${parseFloat(l.amount).toFixed(2)}</div>
+              <div class="list-item-subtitle">${l.memo || 'Payment request'}</div>
+            </div>
+            <button class="btn btn-secondary btn-icon" onclick="copyLink('${l.slug}')">📋</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        document.getElementById('links-list').innerHTML = '<p class="text-muted text-center">Unable to load</p>';
+      }
+    }
+
+    async function createLink() {
+      const amount = document.getElementById('amount').value;
+      const memo = document.getElementById('memo').value;
+      if (!amount) {
+        document.getElementById('link-result').innerHTML = '<div class="alert alert-danger">Enter amount</div>';
+        return;
+      }
+
+      try {
+        const link = await api.createPaymentLink({ creator: phone, amount, memo });
+        const url = `https://peys.io/pay/${link.slug}`;
+        document.getElementById('link-result').innerHTML = `
+          <div class="alert alert-success">
+            <strong>Link created!</strong><br>
+            <code>${url}</code>
+          </div>
+        `;
+        loadLinks();
+      } catch (e) {
+        document.getElementById('link-result').innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
+      }
+    }
+
+    function copyLink(slug) {
+      navigator.clipboard.writeText(`https://peys.io/pay/${slug}`);
+      alert('Link copied!');
+    }
+
+    loadLinks();
+  </script>
 </body>
 </html>
