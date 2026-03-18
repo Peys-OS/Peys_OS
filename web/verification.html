@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Account Verification">
+    <meta property="og:title" content="Peys - Verify Account">
+    <meta property="og:description" content="Verify your identity to unlock all features">
+    <meta property="og:type" content="website">
+    <title>Verify Account - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .progress-bar {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            height: 8px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s;
+        }
+        .verify-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .benefit-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .benefit-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .benefit-text h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .benefit-text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .tier-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid var(--border);
+            transition: border-color 0.3s;
+        }
+        .tier-card.selected {
+            border-color: var(--accent-light);
+        }
+        .tier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .tier-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .tier-badge {
+            padding: 4px 10px;
+            background: var(--accent-light);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tier-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .tier-features {
+            list-style: none;
+        }
+        .tier-features li {
+            padding: 8px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tier-features li::before {
+            content: '✓';
+            color: var(--accent-light);
+            font-weight: bold;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .status-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .status-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .status-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .status-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Verify Account</h1>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: 66%"></div>
+    </div>
+
+    <div class="status-card">
+        <div class="status-icon">⏳</div>
+        <div class="status-title">Verification In Progress</div>
+        <div class="status-desc">Your documents are being reviewed. This usually takes 1-2 minutes.</div>
+    </div>
+
+    <p class="subtitle">Verified accounts unlock higher limits and more features</p>
+
+    <div class="benefit-card">
+        <div class="benefit-icon">💰</div>
+        <div class="benefit-text">
+            <h3>Higher Limits</h3>
+            <p>Send up to $10,000/day (unverified: $500)</p>
+        </div>
+    </div>
+    <div class="benefit-card">
+        <div class="benefit-icon">🔗</div>
+        <div class="benefit-text">
+            <h3>Full Access</h3>
+            <p>Access all features and services</p>
+        </div>
+    </div>
+    <div class="benefit-card">
+        <div class="benefit-icon">🛡️</div>
+        <div class="benefit-text">
+            <h3>Enhanced Security</h3>
+            <p>Additional fraud protection</p>
+        </div>
+    </div>
+
+    <div class="tier-card selected">
+        <div class="tier-header">
+            <span class="tier-name">Basic Verification</span>
+            <span class="tier-badge">Current</span>
+        </div>
+        <p class="tier-desc">Phone number + ID document</p>
+        <ul class="tier-features">
+            <li>$500 daily limit</li>
+            <li>Basic features</li>
+            <li>Email support</li>
+        </ul>
+    </div>
+
+    <div class="tier-card">
+        <div class="tier-header">
+            <span class="tier-name">Full Verification</span>
+            <span class="tier-badge">Recommended</span>
+        </div>
+        <p class="tier-desc">Government ID + Selfie verification</p>
+        <ul class="tier-features">
+            <li>$10,000 daily limit</li>
+            <li>All features</li>
+            <li>Priority support</li>
+            <li>Fiat on/off ramps</li>
+        </ul>
+    </div>
+
+    <button class="btn btn-primary">Complete Full Verification</button>
+    <button class="btn btn-secondary">Upload Documents</button>
+</body>
+</html>
