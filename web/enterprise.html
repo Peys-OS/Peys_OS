@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Enterprise">
+    <meta property="og:title" content="Peys - Enterprise">
+    <meta property="og:description" content="Enterprise solutions for businesses">
+    <meta property="og:type" content="website">
+    <title>Enterprise - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: var(--radius);
+            padding: 32px 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .hero-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        .hero-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .hero-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .feature-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .feature-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 24px 0 16px;
+            letter-spacing: 0.5px;
+        }
+        .plan-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 2px solid var(--border);
+        }
+        .plan-card.featured {
+            border-color: var(--accent-light);
+        }
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .plan-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .plan-badge {
+            padding: 4px 10px;
+            background: var(--accent-light);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .plan-price {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .plan-price span {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .plan-features {
+            list-style: none;
+            margin-top: 16px;
+        }
+        .plan-features li {
+            padding: 8px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .plan-features li::before {
+            content: '✓';
+            color: var(--accent-light);
+            font-weight: bold;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .contact-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .contact-row:last-child {
+            border-bottom: none;
+        }
+        .contact-icon {
+            font-size: 20px;
+        }
+        .contact-info {
+            flex: 1;
+        }
+        .contact-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .contact-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Enterprise</h1>
+    </div>
+
+    <div class="hero">
+        <div class="hero-icon">🏢</div>
+        <div class="hero-title">Enterprise Solutions</div>
+        <div class="hero-subtitle">Powerful tools for businesses of all sizes</div>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">💸</div>
+            <div class="feature-name">Bulk Payments</div>
+            <div class="feature-desc">Pay thousands at once</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <div class="feature-name">Analytics</div>
+            <div class="feature-desc">Deep insights & reports</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🔗</div>
+            <div class="feature-name">API Access</div>
+            <div class="feature-desc">Full REST API</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🛡️</div>
+            <div class="feature-name">Compliance</div>
+            <div class="feature-desc">KYC/AML ready</div>
+        </div>
+    </div>
+
+    <div class="section-title">Pricing Plans</div>
+
+    <div class="plan-card">
+        <div class="plan-header">
+            <span class="plan-name">Starter</span>
+        </div>
+        <div class="plan-price">$99<span>/month</span></div>
+        <ul class="plan-features">
+            <li>Up to 100 transactions/month</li>
+            <li>Basic analytics</li>
+            <li>Email support</li>
+            <li>Single user</li>
+        </ul>
+        <button class="btn btn-secondary">Get Started</button>
+    </div>
+
+    <div class="plan-card featured">
+        <div class="plan-header">
+            <span class="plan-name">Business</span>
+            <span class="plan-badge">Popular</span>
+        </div>
+        <div class="plan-price">$499<span>/month</span></div>
+        <ul class="plan-features">
+            <li>Unlimited transactions</li>
+            <li>Advanced analytics</li>
+            <li>Priority support</li>
+            <li>Up to 10 users</li>
+            <li>API access</li>
+        </ul>
+        <button class="btn btn-primary">Get Started</button>
+    </div>
+
+    <div class="plan-card">
+        <div class="plan-header">
+            <span class="plan-name">Enterprise</span>
+        </div>
+        <div class="plan-price">Custom</div>
+        <ul class="plan-features">
+            <li>Everything in Business</li>
+            <li>Unlimited users</li>
+            <li>Dedicated account manager</li>
+            <li>Custom integrations</li>
+            <li>SLA guarantee</li>
+        </ul>
+        <button class="btn btn-secondary">Contact Sales</button>
+    </div>
+
+    <div class="contact-card">
+        <div class="contact-row">
+            <span class="contact-icon">📧</span>
+            <div class="contact-info">
+                <h4>Email</h4>
+                <p>enterprise@peys.io</p>
+            </div>
+        </div>
+        <div class="contact-row">
+            <span class="contact-icon">💬</span>
+            <div class="contact-info">
+                <h4>Sales Chat</h4>
+                <p>Available 24/7</p>
+            </div>
+        </div>
+        <div class="contact-row">
+            <span class="contact-icon">📞</span>
+            <div class="contact-info">
+                <h4>Phone</h4>
+                <p>+1 (888) 555-PAYS</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
