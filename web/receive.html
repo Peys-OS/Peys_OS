@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receive USDC - Peys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --primary-light: #dcf8c6;
+            --background: #f8f9fa;
+            --surface: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #e0e0e0;
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 48px 24px;
+            text-align: center;
+            border-radius: 0 0 32px 32px;
+        }
+        .header h1 { color: white; font-size: 28px; margin-bottom: 8px; }
+        .header p { color: rgba(255,255,255,0.9); font-size: 14px; }
+        .container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 24px; margin-bottom: 20px; text-align: center; }
+        .qr-container { background: white; padding: 16px; border-radius: var(--radius-lg); display: inline-block; margin-bottom: 24px; }
+        .qr-placeholder { width: 200px; height: 200px; background: var(--background); display: flex; align-items: center; justify-content: center; font-size: 64px; border-radius: 8px; }
+        .address-section { margin-bottom: 24px; }
+        .address-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .address-display {
+            background: var(--background);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            text-align: left;
+            border: 2px solid var(--border);
+        }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px 24px; border: none; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--background); color: var(--text-primary); border: 2px solid var(--border); }
+        .btn-whatsapp { background: var(--primary); color: white; }
+        .info-box { background: var(--primary-light); border: 1px solid var(--primary); padding: 16px; border-radius: var(--radius-md); margin-top: 20px; text-align: left; }
+        .info-box h4 { font-size: 14px; margin-bottom: 8px; }
+        .info-box ul { font-size: 13px; color: var(--text-secondary); padding-left: 20px; }
+        .info-box li { margin-bottom: 4px; }
+        .network-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--background); padding: 8px 16px; border-radius: 20px; font-size: 13px; margin-top: 16px; }
+        .network-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+        .copy-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 16px 32px; border-radius: 8px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000; }
+        .copy-feedback.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📥 Receive</h1>
+        <p>Your wallet address to receive USDC</p>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div class="qr-container">
+                <div class="qr-placeholder" id="qrCode">📱</div>
+            </div>
+            <div class="network-badge">
+                <span class="network-dot"></span>
+                <span>Base Sepolia</span>
+            </div>
+            <div class="address-section">
+                <div class="address-label">Wallet Address</div>
+                <div class="address-display" id="walletAddress">Loading...</div>
+            </div>
+            <button class="btn btn-primary" id="copyBtn">
+                <span>📋</span><span>Copy Address</span>
+            </button>
+            <button class="btn btn-secondary" id="shareBtn">
+                <span>📤</span><span>Share</span>
+            </button>
+            <a href="whatsapp://send?text=wallet" class="btn btn-whatsapp">
+                <span>📱</span><span>Share via WhatsApp</span>
+            </a>
+        </div>
+        <div class="info-box">
+            <h4>📋 Instructions</h4>
+            <ul>
+                <li>Share this address to receive USDC</li>
+                <li>Only send USDC on Base network</li>
+                <li>Transactions may take a few minutes</li>
+                <li>Minimum deposit: 1 USDC</li>
+            </ul>
+        </div>
+    </div>
+    <div class="copy-feedback" id="copyFeedback">Address Copied!</div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const phoneNumber = urlParams.get('phone') || '';
+        let walletAddress = '';
+        async function loadWalletAddress() {
+            try {
+                const response = await fetch(`/api/web/user/${encodeURIComponent(phoneNumber)}`);
+                const data = await response.json();
+                if (data.success && data.user.walletAddress) {
+                    walletAddress = data.user.walletAddress;
+                    document.getElementById('walletAddress').textContent = walletAddress;
+                    generateQRCode();
+                }
+            } catch (error) {
+                document.getElementById('walletAddress').textContent = 'Unable to load';
+            }
+        }
+        function generateQRCode() {
+            if (!walletAddress) return;
+            const qrPlaceholder = document.getElementById('qrCode');
+            qrPlaceholder.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(walletAddress)}" alt="QR Code" style="width: 200px; height: 200px; border-radius: 8px;">`;
+        }
+        function showCopyFeedback() {
+            const feedback = document.getElementById('copyFeedback');
+            feedback.classList.add('show');
+            setTimeout(() => feedback.classList.remove('show'), 2000);
+        }
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(walletAddress);
+                showCopyFeedback();
+            } catch (error) {
+                const textArea = document.createElement('textarea');
+                textArea.value = walletAddress;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopyFeedback();
+            }
+        });
+        document.getElementById('shareBtn').addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'My Peys Wallet Address',
+                        text: `Send USDC to: ${walletAddress}`,
+                        url: `ethereum:${walletAddress}`
+                    });
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        await navigator.clipboard.writeText(walletAddress);
+                        showCopyFeedback();
+                    }
+                }
+            } else {
+                await navigator.clipboard.writeText(walletAddress);
+                showCopyFeedback();
+            }
+        });
+        loadWalletAddress();
+    </script>
+</body>
+</html>
