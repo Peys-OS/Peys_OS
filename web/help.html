@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ - Peys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #25D366;
+            --primary-dark: #128C7E;
+            --background: #f8f9fa;
+            --surface: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border: #e0e0e0;
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); min-height: 100vh; }
+        .header {
+            background: var(--surface);
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header h1 { font-size: 20px; margin-bottom: 12px; }
+        .search-box { display: flex; align-items: center; gap: 12px; background: var(--background); padding: 12px 16px; border-radius: var(--radius-md); }
+        .search-box input { flex: 1; border: none; background: none; font-size: 15px; outline: none; }
+        .content { padding: 20px; }
+        .section { margin-bottom: 24px; }
+        .section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px; }
+        .faq-item { background: var(--surface); border-radius: var(--radius-md); margin-bottom: 8px; overflow: hidden; box-shadow: var(--shadow-md); }
+        .faq-question { display: flex; align-items: center; justify-content: space-between; padding: 16px; cursor: pointer; font-weight: 500; }
+        .faq-question:hover { background: var(--background); }
+        .faq-icon { transition: transform 0.3s; }
+        .faq-item.open .faq-icon { transform: rotate(180deg); }
+        .faq-answer { padding: 0 16px 16px; color: var(--text-secondary); font-size: 14px; line-height: 1.6; display: none; }
+        .faq-item.open .faq-answer { display: block; }
+        .cmd-list { background: var(--surface); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-md); }
+        .cmd-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .cmd-item:last-child { border-bottom: none; }
+        .cmd-code { background: var(--background); padding: 6px 12px; border-radius: 6px; font-family: monospace; font-size: 13px; min-width: 120px; }
+        .cmd-desc { flex: 1; font-size: 14px; color: var(--text-secondary); }
+        .contact-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 24px; text-align: center; color: white; margin-top: 24px; }
+        .contact-card h3 { margin-bottom: 8px; }
+        .contact-card p { opacity: 0.9; font-size: 14px; margin-bottom: 16px; }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 24px; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; }
+        .btn-whatsapp { background: white; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>❓ Help & FAQ</h1>
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Search for help...">
+        </div>
+    </header>
+    <div class="content">
+        <div class="section">
+            <div class="section-title">Getting Started</div>
+            <div class="faq-item">
+                <div class="faq-question">How do I register? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Send "register" to our WhatsApp bot, or tap the Register button. You'll need a 4-digit PIN to secure your account.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Is Peys free to use? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Yes! Creating an account is free. A small 1.5% fee applies only when you send USDC.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What is USDC? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">USDC is a stablecoin pegged to the US Dollar. Unlike regular crypto, its value stays at $1.00, making it perfect for sending money.</div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">Sending & Receiving</div>
+            <div class="faq-item">
+                <div class="faq-question">How do I send USDC? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Use "send [amount] [recipient]" command. Recipients can be phone numbers, @usernames, or names.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How long do transfers take? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Most transactions confirm within seconds on Base network. During high traffic, it may take a few minutes.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What's the minimum amount? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Minimum transfer amount is 1 USDC. There's no maximum, but daily limits apply based on your verification level.</div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">Security</div>
+            <div class="faq-item">
+                <div class="faq-question">Is my money safe? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">Your funds are secured by cryptographic encryption. Never share your PIN with anyone, including our support team.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What if I forget my PIN? <span class="faq-icon">▼</span></div>
+                <div class="faq-answer">For security reasons, we cannot recover your PIN. You'll need to create a new account with a different phone number.</div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">WhatsApp Commands</div>
+            <div class="cmd-list">
+                <div class="cmd-item"><span class="cmd-code">register [PIN]</span><span class="cmd-desc">Create your account</span></div>
+                <div class="cmd-item"><span class="cmd-code">balance</span><span class="cmd-desc">Check your balance</span></div>
+                <div class="cmd-item"><span class="cmd-code">send [amt] [to]</span><span class="cmd-desc">Send USDC</span></div>
+                <div class="cmd-item"><span class="cmd-code">history</span><span class="cmd-desc">View transactions</span></div>
+                <div class="cmd-item"><span class="cmd-code">wallet</span><span class="cmd-desc">Get your address</span></div>
+                <div class="cmd-item"><span class="cmd-code">claim [code]</span><span class="cmd-desc">Claim pending funds</span></div>
+                <div class="cmd-item"><span class="cmd-code">faucet</span><span class="cmd-desc">Get test ETH</span></div>
+                <div class="cmd-item"><span class="cmd-code">help</span><span class="cmd-desc">Show all commands</span></div>
+            </div>
+        </div>
+        <div class="contact-card">
+            <h3>💬 Still Need Help?</h3>
+            <p>Our support team is available on WhatsApp</p>
+            <a href="whatsapp://send?text=help" class="btn btn-whatsapp">
+                <span>📱</span><span>Chat with Support</span>
+            </a>
+        </div>
+    </div>
+    <script>
+        const faqItems = document.querySelectorAll('.faq-item');
+        faqItems.forEach(item => {
+            item.querySelector('.faq-question').addEventListener('click', () => {
+                item.classList.toggle('open');
+            });
+        });
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                if (query === '' || question.includes(query) || answer.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
