@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Earn with Referrals">
     <meta property="og:description" content="Invite friends and earn USDC rewards">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-referral.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Referrals - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -245,6 +248,7 @@
             .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -280,31 +284,31 @@
             <button class="copy-btn" onclick="copyLink()">Copy</button>
         </div>
         <div class="share-row">
-            <button class="share-btn">💬</button>
-            <button class="share-btn">📧</button>
-            <button class="share-btn">🐦</button>
-            <button class="share-btn">📱</button>
+            <button class="share-btn"><i data-lucide="message-circle" style="width:20px;height:20px;"></i></button>
+            <button class="share-btn"><i data-lucide="mail" style="width:20px;height:20px;"></i></button>
+            <button class="share-btn"><i data-lucide="twitter" style="width:20px;height:20px;"></i></button>
+            <button class="share-btn"><i data-lucide="smartphone" style="width:20px;height:20px;"></i></button>
         </div>
     </div>
 
     <div class="section-title">How it works</div>
 
     <div class="reward-card">
-        <div class="reward-icon">1️⃣</div>
+        <div class="reward-icon"><i data-lucide="share-2" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
         <div class="reward-info">
             <h3>Share your link</h3>
             <p>Send your unique referral link to friends</p>
         </div>
     </div>
     <div class="reward-card">
-        <div class="reward-icon">2️⃣</div>
+        <div class="reward-icon"><i data-lucide="user-plus" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
         <div class="reward-info">
             <h3>Friend signs up</h3>
             <p>They create an account and verify their phone</p>
         </div>
     </div>
     <div class="reward-card">
-        <div class="reward-icon">3️⃣</div>
+        <div class="reward-icon"><i data-lucide="gift" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
         <div class="reward-info">
             <h3>Both get $5</h3>
             <p>After their first transaction, you both earn!</p>
@@ -358,6 +362,7 @@
                 setTimeout(() => btn.textContent = 'Copy', 2000);
             });
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

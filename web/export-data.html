@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Export Data">
     <meta property="og:description" content="Download your account data">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-export-data.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Export Data - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -210,6 +213,7 @@
             .header h1 { font-size: 20px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -217,7 +221,7 @@
         <h1>Export Data</h1>
     </div>
 
-    <div class="export-icon">📥</div>
+    <div class="export-icon"><i data-lucide="download" style="width:48px;height:48px;color:var(--accent-light);"></i></div>
     <h2 class="title">Download Your Data</h2>
     <p class="subtitle">Export your transaction history, account statements, and more in various formats</p>
 
@@ -229,77 +233,7 @@
         <div class="date-row">
             <span class="date-label">To</span>
             <span class="date-value">Today</span>
-        </div>
     </div>
-
-    <div class="format-options">
-        <button class="format-btn active">CSV</button>
-        <button class="format-btn">PDF</button>
-        <button class="format-btn">JSON</button>
-    </div>
-
-    <div class="section-title">Available Exports</div>
-
-    <div class="export-card">
-        <div class="export-icon-sm">💰</div>
-        <div class="export-info">
-            <h3>Transaction History</h3>
-            <p>All sends, receives, and swaps</p>
-        </div>
-        <span class="export-action">→</span>
-    </div>
-
-    <div class="export-card">
-        <div class="export-icon-sm">📊</div>
-        <div class="export-info">
-            <h3>Account Statement</h3>
-            <p>Monthly summary of all activity</p>
-        </div>
-        <span class="export-action">→</span>
-    </div>
-
-    <div class="export-card">
-        <div class="export-icon-sm">📋</div>
-        <div class="export-info">
-            <h3>Tax Report</h3>
-            <p>Capital gains and losses for taxes</p>
-        </div>
-        <span class="export-action">→</span>
-    </div>
-
-    <div class="export-card">
-        <div class="export-icon-sm">📱</div>
-        <div class="export-info">
-            <h3>Account Data</h3>
-            <p>Profile, settings, and preferences</p>
-        </div>
-        <span class="export-action">→</span>
-    </div>
-
-    <div class="export-card">
-        <div class="export-icon-sm">🔑</div>
-        <div class="export-info">
-            <h3>Wallet Keys</h3>
-            <p>Export private keys (use caution)</p>
-        </div>
-        <span class="export-action">→</span>
-    </div>
-
-    <div class="info-card">
-        <div class="info-item">
-            <span class="icon">🔒</span>
-            <span>Your data is encrypted and secure</span>
-        </div>
-        <div class="info-item">
-            <span class="icon">📧</span>
-            <span>Download link expires in 24 hours</span>
-        </div>
-        <div class="info-item">
-            <span class="icon">⏱️</span>
-            <span>Large exports may take a few minutes</span>
-        </div>
-    </div>
-
-    <button class="btn btn-primary" onclick="exportAll()">Export All Data</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

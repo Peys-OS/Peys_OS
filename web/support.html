@@ -8,6 +8,13 @@
     <meta property="og:title" content="Peys - Get Help">
     <meta property="og:description" content="Contact our support team for help">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-support.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Support - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -245,37 +252,37 @@
 </head>
 <body>
     <div class="header">
-        <a href="index.html" class="back-btn">←</a>
+        <a href="index.html" class="back-btn"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></a>
         <h1>Support</h1>
     </div>
 
-    <div class="support-icon">💬</div>
+    <div class="support-icon"><i data-lucide="message-circle" style="width:40px;height:40px;color:white;"></i></div>
     <h2 class="title">How can we help?</h2>
     <p class="subtitle">Get in touch with our team or browse common questions</p>
 
     <div class="quick-actions">
         <div class="quick-action">
-            <div class="quick-action-icon">💸</div>
+            <div class="quick-action-icon"><i data-lucide="send" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">Transfer Issue</div>
         </div>
         <div class="quick-action">
-            <div class="quick-action-icon">🔐</div>
+            <div class="quick-action-icon"><i data-lucide="lock" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">Account Access</div>
         </div>
         <div class="quick-action">
-            <div class="quick-action-icon">💳</div>
+            <div class="quick-action-icon"><i data-lucide="credit-card" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">Payment Help</div>
         </div>
         <div class="quick-action">
-            <div class="quick-action-icon">📱</div>
+            <div class="quick-action-icon"><i data-lucide="smartphone" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">App Issues</div>
         </div>
         <div class="quick-action">
-            <div class="quick-action-icon">🔄</div>
+            <div class="quick-action-icon"><i data-lucide="refresh-cw" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">Refund</div>
         </div>
         <div class="quick-action">
-            <div class="quick-action-icon">📋</div>
+            <div class="quick-action-icon"><i data-lucide="list" style="width:28px;height:28px;color:var(--accent-light);"></i></div>
             <div class="quick-action-text">Other</div>
         </div>
     </div>
@@ -283,16 +290,16 @@
     <div class="section-title">Contact Options</div>
 
     <div class="contact-card">
-        <div class="contact-icon">💬</div>
+        <div class="contact-icon"><i data-lucide="message-circle" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
         <div class="contact-text">
             <h3>Chat with Us</h3>
             <p>Instant response • Available 24/7</p>
         </div>
-        <div class="chat-button">→</div>
+        <div class="chat-button"><i data-lucide="chevron-right" style="width:24px;height:24px;"></i></div>
     </div>
 
     <div class="contact-card">
-        <div class="contact-icon">✉️</div>
+        <div class="contact-icon"><i data-lucide="mail" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
         <div class="contact-text">
             <h3>Email Support</h3>
             <p>support@peys.io • Response in 24h</p>
@@ -300,7 +307,7 @@
     </div>
 
     <div class="contact-card">
-        <div class="contact-icon">🐦</div>
+        <div class="contact-icon"><i data-lucide="twitter" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
         <div class="contact-text">
             <h3>Twitter / X</h3>
             <p>@PeysOfficial • Quick replies</p>
@@ -354,5 +361,6 @@
     </div>
 
     <button class="btn btn-primary">Send Message</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

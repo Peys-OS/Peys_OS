@@ -8,6 +8,13 @@
     <meta property="og:title" content="Peys - Saved Addresses">
     <meta property="og:description" content="Manage your saved wallet addresses">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-address-book.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Address Book - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -220,14 +227,14 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <a href="index.html" class="back-btn">←</a>
+            <a href="index.html" class="back-btn"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></a>
             <h1>Address Book</h1>
         </div>
-        <button class="add-btn" onclick="showAddModal()">+</button>
+        <button class="add-btn" onclick="showAddModal()"><i data-lucide="plus" style="width:24px;height:24px;"></i></button>
     </div>
 
     <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <i data-lucide="search" style="width:18px;height:18px;color:var(--text-secondary);"></i>
         <input type="text" placeholder="Search contacts or addresses..." id="searchInput">
     </div>
 
@@ -246,8 +253,8 @@
             <div class="contact-address">0x7a3B...9f2E</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon" onclick="event.stopPropagation(); sendTo('alice')">💸</button>
-            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x7a3B...9f2E')">📋</button>
+            <button class="action-icon" onclick="event.stopPropagation(); sendTo('alice')"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x7a3B...9f2E')"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
@@ -258,20 +265,20 @@
             <div class="contact-address">0x1d4F...3aB9</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon" onclick="event.stopPropagation(); sendTo('bob')">💸</button>
-            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x1d4F...3aB9')">📋</button>
+            <button class="action-icon" onclick="event.stopPropagation(); sendTo('bob')"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x1d4F...3aB9')"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
     <div class="contact-card" onclick="viewContact('crypto')">
-        <div class="contact-avatar">🏦</div>
+        <div class="contact-avatar"><i data-lucide="landmark" style="width:20px;height:20px;"></i></div>
         <div class="contact-info">
             <div class="contact-name">Crypto Exchange</div>
             <div class="contact-address">0x9c2D...1eF7</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon" onclick="event.stopPropagation(); sendTo('crypto')">💸</button>
-            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x9c2D...1eF7')">📋</button>
+            <button class="action-icon" onclick="event.stopPropagation(); sendTo('crypto')"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon" onclick="event.stopPropagation(); copyAddress('0x9c2D...1eF7')"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
@@ -284,8 +291,8 @@
             <div class="contact-address">0x2b8C...7dA4</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon">💸</button>
-            <button class="action-icon">📋</button>
+            <button class="action-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
@@ -298,8 +305,8 @@
             <div class="contact-address">0x5e3A...8bC2</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon">💸</button>
-            <button class="action-icon">📋</button>
+            <button class="action-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
@@ -312,8 +319,8 @@
             <div class="contact-address">0xf4dE...2cB8</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon">💸</button>
-            <button class="action-icon">📋</button>
+            <button class="action-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
@@ -324,13 +331,13 @@
             <div class="contact-address">0xa8bC...1dE5</div>
         </div>
         <div class="contact-actions">
-            <button class="action-icon">💸</button>
-            <button class="action-icon">📋</button>
+            <button class="action-icon"><i data-lucide="send" style="width:16px;height:16px;"></i></button>
+            <button class="action-icon"><i data-lucide="copy" style="width:16px;height:16px;"></i></button>
         </div>
     </div>
 
     <div class="empty-state" id="emptyState" style="display: none;">
-        <div class="empty-icon">👤</div>
+        <div class="empty-icon"><i data-lucide="users" style="width:64px;height:64px;"></i></div>
         <div class="empty-title">No contacts found</div>
         <p>Try a different search term</p>
     </div>
@@ -372,6 +379,7 @@
         function showAddModal() {
             alert('Add new contact');
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

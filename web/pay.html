@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pay with USDC on Peys - fast and secure crypto payments.">
+    <meta name="theme-color" content="#25D366">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Pay - Peys">
+    <meta property="og:description" content="Pay with USDC on Peys - fast and secure crypto payments.">
+    <meta property="og:image" content="https://peys.io/images/og-pay.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Pay - Peys</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -60,10 +68,11 @@
         .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
-        <h1>💰 Payment Request</h1>
+        <h1><i data-lucide="dollar-sign" style="width:24px;height:24px;vertical-align:middle;margin-right:8px;"></i> Payment Request</h1>
         <p>You've received a payment request</p>
     </div>
     <div class="container">
@@ -78,20 +87,20 @@
             <div class="amount-display" id="amountDisplay">$0.00</div>
             <div class="description" id="descriptionText"></div>
             <button class="btn btn-primary" id="payBtn">
-                <span>💸</span><span>Pay with WhatsApp</span>
+                <i data-lucide="send" style="width:18px;height:18px;"></i><span>Pay with WhatsApp</span>
             </button>
             <a href="whatsapp://send?text=pay" class="btn btn-whatsapp">
-                <span>📱</span><span>Open WhatsApp to Pay</span>
+                <i data-lucide="message-circle" style="width:18px;height:18px;"></i><span>Open WhatsApp to Pay</span>
             </a>
             <button class="btn btn-secondary" onclick="window.close()">Cancel</button>
         </div>
         <div id="expiredState" class="card" style="display: none; text-align: center;">
-            <div class="expired-badge">⏰ This link has expired</div>
+            <div class="expired-badge"><i data-lucide="clock" style="width:16px;height:16px;vertical-align:middle;margin-right:8px;"></i> This link has expired</div>
             <p style="color: var(--text-secondary); margin-top: 16px;">Please request a new payment link</p>
         </div>
         <div id="successScreen" class="card" style="display: none;">
             <div class="success-screen">
-                <div class="success-icon">✓</div>
+                <div class="success-icon"><i data-lucide="check" style="width:24px;height:24px;"></i></div>
                 <h2 style="font-size: 24px; margin-bottom: 8px;">Payment Sent!</h2>
                 <p style="color: var(--text-secondary);">Your payment has been processed</p>
                 <div class="tx-info">
@@ -100,7 +109,7 @@
                     <div class="tx-row"><span class="tx-label">Tx Hash</span><span class="tx-value" id="txHash" style="font-size: 12px; font-family: monospace;">-</span></div>
                 </div>
                 <a href="whatsapp://send?text=balance" class="btn btn-primary" style="margin-top: 20px;">
-                    <span>💬</span><span>Confirm on WhatsApp</span>
+                    <i data-lucide="message-circle" style="width:18px;height:18px;"></i><span>Confirm on WhatsApp</span>
                 </a>
             </div>
         </div>
@@ -131,6 +140,7 @@
             window.location.href = 'whatsapp://send?text=pay';
         });
         loadPaymentLink();
+        lucide.createIcons();
     </script>
 </body>
 </html>

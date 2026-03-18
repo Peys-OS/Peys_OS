@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - PIN">
     <meta property="og:description" content="Manage your security PIN">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-pin.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>PIN - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -323,7 +326,7 @@
             </div>
         </div>
         <div class="info-item">
-            <div class="info-icon">🔄</div>
+            <div class="info-icon"><i data-lucide="refresh-cw" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
             <div class="info-text">
                 <h4>Change regularly</h4>
                 <p>Update your PIN every few months</p>
@@ -411,7 +414,7 @@
                     if (newPin === confirmPin) {
                         document.getElementById('title').textContent = 'PIN Changed!';
                         document.getElementById('subtitle').textContent = 'Your PIN has been updated successfully';
-                        document.querySelector('.pin-icon').textContent = '✓';
+                        document.querySelector('.pin-icon').innerHTML = '<i data-lucide="check" style="width:24px;height:24px;color:var(--accent-light);"></i>';
                     } else {
                         document.getElementById('errorMsg').textContent = 'PINs do not match. Please try again.';
                         document.getElementById('errorMsg').classList.add('show');
@@ -429,6 +432,7 @@
                 confirmPin = confirmPin.slice(0, -1);
             }
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

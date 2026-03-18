@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Account Statement">
     <meta property="og:description" content="View your monthly account statement">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-statement.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Statement - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -200,109 +203,7 @@
         <div class="header-left">
             <a href="index.html" class="back-btn">←</a>
             <h1>Statement</h1>
-        </div>
     </div>
-
-    <div class="month-selector">
-        <button class="month-nav" onclick="changeMonth(-1)">←</button>
-        <span class="month-name" id="monthName">February 2024</span>
-        <button class="month-nav" onclick="changeMonth(1)">→</button>
-    </div>
-
-    <div class="summary-card">
-        <div class="summary-label">Total Sent</div>
-        <div class="summary-value">$1,245.00</div>
-        <div class="summary-row">
-            <div class="summary-item">
-                <div class="summary-item-label">Received</div>
-                <div class="summary-item-value">$2,890</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-item-label">Transactions</div>
-                <div class="summary-item-value">23</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-item-label">Net Change</div>
-                <div class="summary-item-value">+$1,645</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-title">All Transactions</div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📤</div>
-        <div class="tx-info">
-            <div class="tx-name">USDC Transfer to Alice</div>
-            <div class="tx-date">Feb 28, 2024 • 2:30 PM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value sent">-$50.00</div>
-            <div class="tx-amount-usd">50 USDC</div>
-        </div>
-    </div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📥</div>
-        <div class="tx-info">
-            <div class="tx-name">Received from Bob</div>
-            <div class="tx-date">Feb 25, 2024 • 11:15 AM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value received">+$125.00</div>
-            <div class="tx-amount-usd">125 USDC</div>
-        </div>
-    </div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📤</div>
-        <div class="tx-info">
-            <div class="tx-name">Payment to Coffee Shop</div>
-            <div class="tx-date">Feb 22, 2024 • 9:00 AM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value sent">-$8.50</div>
-            <div class="tx-amount-usd">8.50 USDC</div>
-        </div>
-    </div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📥</div>
-        <div class="tx-info">
-            <div class="tx-name">Received from Sarah</div>
-            <div class="tx-date">Feb 20, 2024 • 4:45 PM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value received">+$500.00</div>
-            <div class="tx-amount-usd">500 USDC</div>
-        </div>
-    </div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📤</div>
-        <div class="tx-info">
-            <div class="tx-name">USDC Transfer to Mike</div>
-            <div class="tx-date">Feb 15, 2024 • 6:30 PM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value sent">-$250.00</div>
-            <div class="tx-amount-usd">250 USDC</div>
-        </div>
-    </div>
-
-    <div class="tx-item">
-        <div class="tx-icon">📥</div>
-        <div class="tx-info">
-            <div class="tx-name">Claimed from Code</div>
-            <div class="tx-date">Feb 10, 2024 • 1:00 PM</div>
-        </div>
-        <div class="tx-amount">
-            <div class="tx-amount-value received">+$100.00</div>
-            <div class="tx-amount-usd">100 USDC</div>
-        </div>
-    </div>
-
-    <button class="btn btn-primary" onclick="window.location.href='export-data.html'">Export Statement</button>
-    <button class="btn btn-secondary">Download PDF</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

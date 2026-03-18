@@ -8,8 +8,324 @@
     <meta property="og:title" content="Peys - Security">
     <meta property="og:description" content="Manage your account security">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-security.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Security - Peys</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .shield-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+        .section {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+        .security-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .security-item:last-child {
+            border-bottom: none;
+        }
+        .security-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .security-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .security-text h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .security-text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .toggle {
+            width: 52px;
+            height: 32px;
+            background: var(--border);
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle.active {
+            background: var(--accent-light);
+        }
+        .toggle::after {
+            content: '';
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .session-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .session-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .session-info { flex: 1; }
+        .session-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .session-info p { font-size: 12px; color: var(--text-secondary); }
+        .session-badge {
+            background: var(--accent-light);
+            color: white;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .activity-info { flex: 1; }
+        .activity-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+        .activity-info p { font-size: 12px; color: var(--text-secondary); }
+        .activity-time { font-size: 11px; color: var(--text-secondary); }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></a>
+        <h1>Security</h1>
+    </div>
+
+    <div class="shield-icon"><i data-lucide="shield" style="width:32px;height:32px;color:white;"></i></div>
+    <p class="subtitle">Keep your account protected</p>
+
+    <div class="section">
+        <div class="section-title">Authentication</div>
+        <div class="security-item">
+            <div class="security-info">
+                <div class="security-icon"><i data-lucide="smartphone" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
+                <div class="security-text">
+                    <h3>Two-Factor Auth</h3>
+                    <p>Add extra layer of security</p>
+                </div>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('active')"></div>
+        </div>
+        <div class="security-item">
+            <div class="security-info">
+                <div class="security-icon"><i data-lucide="key" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
+                <div class="security-text">
+                    <h3>Change PIN</h3>
+                    <p>Update your 4-digit PIN</p>
+                </div>
+            </div>
+            <a href="pin.html" style="color: var(--accent-light);"><i data-lucide="chevron-right" style="width:24px;height:24px;"></i></a>
+        </div>
+        <div class="security-item">
+            <div class="security-info">
+                <div class="security-icon"><i data-lucide="scan-face" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
+                <div class="security-text">
+                    <h3>Biometric Login</h3>
+                    <p>Use fingerprint or face ID</p>
+                </div>
+            </div>
+            <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Active Sessions</div>
+        <div class="session-item">
+            <div class="session-icon"><i data-lucide="smartphone" style="width:20px;height:20px;"></i></div>
+            <div class="session-info">
+                <h4>iPhone 15 Pro</h4>
+                <p>WhatsApp • San Francisco, CA</p>
+            </div>
+            <span class="session-badge">Current</span>
+        </div>
+        <div class="session-item">
+            <div class="session-icon"><i data-lucide="laptop" style="width:20px;height:20px;"></i></div>
+            <div class="session-info">
+                <h4>Chrome on MacBook</h4>
+                <p>Web • New York, NY</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Recent Activity</div>
+        <div class="activity-item">
+            <div class="activity-icon"><i data-lucide="log-in" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
+            <div class="activity-info">
+                <h4>Login successful</h4>
+                <p>WhatsApp Web • iPhone 15 Pro</p>
+            </div>
+            <span class="activity-time">2 min ago</span>
+        </div>
+        <div class="activity-item">
+            <div class="activity-icon"><i data-lucide="key" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
+            <div class="activity-info">
+                <h4>PIN changed</h4>
+                <p>Successfully updated PIN</p>
+            </div>
+            <span class="activity-time">Yesterday</span>
+        </div>
+        <div class="activity-item">
+            <div class="activity-icon"><i data-lucide="smartphone" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
+            <div class="activity-info">
+                <h4>New device linked</h4>
+                <p>Chrome on MacBook</p>
+            </div>
+            <span class="activity-time">3 days ago</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <button class="btn btn-danger">Sign Out All Devices</button>
+        <button class="btn btn-secondary">View Recovery Codes</button>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --bg-primary: #111B21;
@@ -220,14 +536,14 @@
         <h1>Security</h1>
     </div>
 
-    <div class="shield-icon">🔒</div>
+    <div class="shield-icon"><i data-lucide="shield-check" style="width:32px;height:32px;color:white;"></i></div>
     <p class="subtitle">Keep your account protected</p>
 
     <div class="section">
         <div class="section-title">Authentication</div>
         <div class="security-item">
             <div class="security-info">
-                <div class="security-icon">📱</div>
+                <div class="security-icon"><i data-lucide="smartphone" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
                 <div class="security-text">
                     <h3>Two-Factor Auth</h3>
                     <p>Add extra layer of security</p>
@@ -237,17 +553,17 @@
         </div>
         <div class="security-item">
             <div class="security-info">
-                <div class="security-icon">🔑</div>
+                <div class="security-icon"><i data-lucide="key" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
                 <div class="security-text">
                     <h3>Change PIN</h3>
                     <p>Update your 4-digit PIN</p>
                 </div>
             </div>
-            <a href="pin.html" style="color: var(--accent-light); font-size: 24px;">→</a>
+            <a href="pin.html" style="color: var(--accent-light); font-size: 24px;"><i data-lucide="chevron-right" style="width:24px;height:24px;"></i></a>
         </div>
         <div class="security-item">
             <div class="security-info">
-                <div class="security-icon">👤</div>
+                <div class="security-icon"><i data-lucide="scan-face" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
                 <div class="security-text">
                     <h3>Biometric Login</h3>
                     <p>Use fingerprint or face ID</p>
@@ -260,7 +576,7 @@
     <div class="section">
         <div class="section-title">Active Sessions</div>
         <div class="session-item">
-            <div class="session-icon">📱</div>
+            <div class="session-icon"><i data-lucide="smartphone" style="width:20px;height:20px;"></i></div>
             <div class="session-info">
                 <h4>iPhone 15 Pro</h4>
                 <p>WhatsApp • San Francisco, CA</p>
@@ -268,7 +584,7 @@
             <span class="session-badge">Current</span>
         </div>
         <div class="session-item">
-            <div class="session-icon">💻</div>
+            <div class="session-icon"><i data-lucide="laptop" style="width:20px;height:20px;"></i></div>
             <div class="session-info">
                 <h4>Chrome on MacBook</h4>
                 <p>Web • New York, NY</p>
@@ -279,7 +595,7 @@
     <div class="section">
         <div class="section-title">Recent Activity</div>
         <div class="activity-item">
-            <div class="activity-icon">🔐</div>
+            <div class="activity-icon"><i data-lucide="log-in" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
             <div class="activity-info">
                 <h4>Login successful</h4>
                 <p>WhatsApp Web • iPhone 15 Pro</p>
@@ -287,7 +603,7 @@
             <span class="activity-time">2 min ago</span>
         </div>
         <div class="activity-item">
-            <div class="activity-icon">🔑</div>
+            <div class="activity-icon"><i data-lucide="key" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
             <div class="activity-info">
                 <h4>PIN changed</h4>
                 <p>Successfully updated PIN</p>
@@ -295,7 +611,7 @@
             <span class="activity-time">Yesterday</span>
         </div>
         <div class="activity-item">
-            <div class="activity-icon">📱</div>
+            <div class="activity-icon"><i data-lucide="smartphone" style="width:18px;height:18px;color:var(--accent-light);"></i></div>
             <div class="activity-info">
                 <h4>New device linked</h4>
                 <p>Chrome on MacBook</p>
@@ -308,5 +624,6 @@
         <button class="btn btn-danger">Sign Out All Devices</button>
         <button class="btn btn-secondary">View Recovery Codes</button>
     </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

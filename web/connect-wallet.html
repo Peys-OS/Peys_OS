@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Connect Wallet">
     <meta property="og:description" content="Connect your crypto wallet">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-connect-wallet.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Connect Wallet - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -228,6 +231,7 @@
             .header h1 { font-size: 20px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -235,7 +239,7 @@
         <h1>Connect Wallet</h1>
     </div>
 
-    <div class="wallet-icon">🔗</div>
+    <div class="wallet-icon"><i data-lucide="link" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
     <h2 class="title">Connect Your Wallet</h2>
     <p class="subtitle">Choose a wallet to connect with Peys</p>
 
@@ -247,25 +251,25 @@
             <div class="wallet-name">MetaMask</div>
             <div class="wallet-desc">Most popular browser wallet</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="wallet-card" onclick="selectWallet(this, 'coinbase')">
-        <div class="wallet-logo">💰</div>
+        <div class="wallet-logo"><i data-lucide="wallet" style="width:24px;height:24px;color:white;"></i></div>
         <div class="wallet-info">
             <div class="wallet-name">Coinbase Wallet</div>
             <div class="wallet-desc">By Coinbase</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="wallet-card" onclick="selectWallet(this, 'walletconnect')">
-        <div class="wallet-logo">🔗</div>
+        <div class="wallet-logo"><i data-lucide="link" style="width:24px;height:24px;color:white;"></i></div>
         <div class="wallet-info">
             <div class="wallet-name">WalletConnect</div>
             <div class="wallet-desc">Connect via QR code</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="section-title">More Options</div>
@@ -276,7 +280,7 @@
             <div class="wallet-name">Rainbow</div>
             <div class="wallet-desc">Fun & easy to use</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="wallet-card" onclick="selectWallet(this, 'trust')">
@@ -285,7 +289,7 @@
             <div class="wallet-name">Trust Wallet</div>
             <div class="wallet-desc">Mobile-first wallet</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="wallet-card" onclick="selectWallet(this, 'phantom')">
@@ -294,13 +298,13 @@
             <div class="wallet-name">Phantom</div>
             <div class="wallet-desc">For Solana & Ethereum</div>
         </div>
-        <div class="wallet-check">✓</div>
+        <div class="wallet-check"><i data-lucide="check" style="width:16px;height:16px;"></i></div>
     </div>
 
     <div class="divider">or</div>
 
     <div class="qr-placeholder">
-        <div class="qr-icon">📱</div>
+        <div class="qr-icon"><i data-lucide="scan" style="width:32px;height:32px;color:var(--text-muted);"></i></div>
         <div class="qr-text">Scan with any mobile wallet</div>
     </div>
 
@@ -333,6 +337,7 @@
                 alert('Connecting to ' + selectedWallet + '...');
             }
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

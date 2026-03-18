@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Access quick actions on Peys for faster payments.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Quick Actions - Peys">
+    <meta property="og:description" content="Access quick actions on Peys for faster payments.">
+    <meta property="og:image" content="https://peys.io/images/og-quick-actions.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Quick Actions - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -81,6 +88,7 @@
         .action-name { font-size: 13px; font-weight: 500; }
         @media (max-width: 480px) { body { padding: 16px; } .action-grid { gap: 12px; } }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -89,49 +97,49 @@
     </div>
 
     <div class="search-box">
-        <span>🔍</span>
+        <i data-lucide="search" style="width:18px;height:18px;color:var(--text-secondary);"></i>
         <input type="text" placeholder="Search actions...">
     </div>
 
     <div class="action-grid">
         <div class="action-card" onclick="location.href='send.html'">
-            <div class="action-icon">💸</div>
+            <div class="action-icon"><i data-lucide="send" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Send</div>
         </div>
         <div class="action-card" onclick="location.href='receive.html'">
-            <div class="action-icon">📥</div>
+            <div class="action-icon"><i data-lucide="download" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Receive</div>
         </div>
         <div class="action-card" onclick="location.href='scan.html'">
-            <div class="action-icon">📷</div>
+            <div class="action-icon"><i data-lucide="scan" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Scan</div>
         </div>
         <div class="action-card" onclick="location.href='request.html'">
-            <div class="action-icon">📋</div>
+            <div class="action-icon"><i data-lucide="clipboard-list" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Request</div>
         </div>
         <div class="action-card" onclick="location.href='swap.html'">
-            <div class="action-icon">🔄</div>
+            <div class="action-icon"><i data-lucide="repeat" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Swap</div>
         </div>
         <div class="action-card" onclick="location.href='bridge.html'">
-            <div class="action-icon">🌉</div>
+            <div class="action-icon"><i data-lucide="git-branch" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Bridge</div>
         </div>
         <div class="action-card" onclick="location.href='batch-send.html'">
-            <div class="action-icon">📦</div>
+            <div class="action-icon"><i data-lucide="layers" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Batch</div>
         </div>
         <div class="action-card" onclick="location.href='payroll.html'">
-            <div class="action-icon">💼</div>
+            <div class="action-icon"><i data-lucide="briefcase" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Payroll</div>
         </div>
         <div class="action-card" onclick="location.href='faucet.html'">
-            <div class="action-icon">🚰</div>
+            <div class="action-icon"><i data-lucide="droplet" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">Faucet</div>
         </div>
         <div class="action-card" onclick="location.href='history.html'">
-            <div class="action-icon">📜</div>
+            <div class="action-icon"><i data-lucide="file-text" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="action-name">History</div>
         </div>
         <div class="action-card" onclick="location.href='analytics.html'">
@@ -143,5 +151,6 @@
             <div class="action-name">Contacts</div>
         </div>
     </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
