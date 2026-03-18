@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Tax Report">
+    <meta property="og:title" content="Peys - Tax Report">
+    <meta property="og:description" content="View your tax report for crypto transactions">
+    <meta property="og:type" content="website">
+    <title>Tax Report - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --warning: #ffc107;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .year-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .year-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .year-btn.active {
+            border-color: var(--accent-light);
+            color: var(--accent-light);
+            background: rgba(37, 211, 102, 0.1);
+        }
+        .summary-card {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .summary-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .summary-value {
+            font-size: 36px;
+            font-weight: 700;
+        }
+        .summary-sub {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 24px 0 16px;
+            letter-spacing: 0.5px;
+        }
+        .tx-item {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+        .tx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .tx-type {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .tx-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tx-badge.short {
+            background: rgba(241, 92, 109, 0.2);
+            color: var(--danger);
+        }
+        .tx-badge.long {
+            background: rgba(37, 211, 102, 0.2);
+            color: var(--accent-light);
+        }
+        .tx-badge.transfer {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--warning);
+        }
+        .tx-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .disclaimer {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .disclaimer strong {
+            color: var(--warning);
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Tax Report</h1>
+    </div>
+
+    <div class="year-selector">
+        <button class="year-btn active">2024</button>
+        <button class="year-btn">2023</button>
+        <button class="year-btn">2022</button>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-title">Estimated Tax Liability</div>
+        <div class="summary-value">$127.45</div>
+        <div class="summary-sub">Based on short-term capital gains</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-label">Realized Gains</div>
+            <div class="stat-value" style="color: var(--accent-light);">+$342.18</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📉</div>
+            <div class="stat-label">Realized Losses</div>
+            <div class="stat-value" style="color: var(--danger);">-$89.50</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Total Received</div>
+            <div class="stat-value">$4,521.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📤</div>
+            <div class="stat-label">Total Sent</div>
+            <div class="stat-value">$2,890.00</div>
+        </div>
+    </div>
+
+    <div class="section-title">Capital Gains Events</div>
+
+    <div class="tx-item">
+        <div class="tx-header">
+            <span class="tx-type">USDC Transfer (Received)</span>
+            <span class="tx-badge long">Long-term</span>
+        </div>
+        <div class="tx-details">
+            <span>Cost basis: $95.00 • Proceeds: $125.00</span>
+            <span>Gain: +$30.00</span>
+        </div>
+    </div>
+
+    <div class="tx-item">
+        <div class="tx-header">
+            <span class="tx-type">Payment Received</span>
+            <span class="tx-badge short">Short-term</span>
+        </div>
+        <div class="tx-details">
+            <span>Cost basis: $48.00 • Proceeds: $50.00</span>
+            <span>Gain: +$2.00</span>
+        </div>
+    </div>
+
+    <div class="tx-item">
+        <div class="tx-header">
+            <span class="tx-type">Gift Received</span>
+            <span class="tx-badge transfer">Transfer</span>
+        </div>
+        <div class="tx-details">
+            <span>No taxable event on transfer</span>
+        </div>
+    </div>
+
+    <div class="tx-item">
+        <div class="tx-header">
+            <span class="tx-type">Payment Sent</span>
+            <span class="tx-badge short">Short-term</span>
+        </div>
+        <div class="tx-details">
+            <span>Cost basis: $55.00 • Proceeds: $50.00</span>
+            <span>Loss: -$5.00</span>
+        </div>
+    </div>
+
+    <button class="btn btn-primary">Export Tax Report (CSV)</button>
+    <button class="btn btn-secondary">Generate PDF Report</button>
+
+    <div class="disclaimer">
+        <strong>Disclaimer:</strong> This report is for informational purposes only and should not be considered tax advice. Cryptocurrency tax treatment varies by jurisdiction. Please consult a qualified tax professional for your specific situation. Transaction data may not reflect all cost basis calculations.
+    </div>
+</body>
+</html>
