@@ -3,9 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claim - Peys</title>
+  <title>Claim Funds - Peys</title>
+  <meta name="description" content="Claim your USDC funds sent via Peys on WhatsApp. Enter your claim code to receive.">
+  <meta name="theme-color" content="#25D366">
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Claim Funds - Peys">
+  <meta property="og:description" content="Claim your USDC funds from Peys. Enter the claim code to receive.">
+  <meta property="og:image" content="https://peys.io/images/og-claim.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Claim Funds - Peys">
+  <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
 </head>
 <body class="grid-bg">
   <header class="header">
@@ -42,6 +51,7 @@
   </main>
 
   <script src="api.js"></script>
+  <script src="notifications.js"></script>
   <script>
     lucide.createIcons();
     
@@ -85,11 +95,16 @@
           </div>
         `;
         document.getElementById('claim-code').value = '';
+        
+        // Send WhatsApp notification
+        await notifyClaimSuccess(phone, parseFloat(claim.amount_usd || claim.amount / 1000000).toFixed(2), code);
+        
         loadPendingClaims();
       } catch (e) {
         document.getElementById('claim-result').innerHTML = `
           <div class="alert alert-danger">${e.message}</div>
         `;
+        await notifyClaimFailed(phone, e.message);
       }
     }
 

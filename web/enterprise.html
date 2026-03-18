@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Enterprise">
     <meta property="og:description" content="Enterprise solutions for businesses">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-enterprise.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Enterprise - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -214,6 +217,7 @@
             .feature-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -229,7 +233,7 @@
 
     <div class="feature-grid">
         <div class="feature-card">
-            <div class="feature-icon">💸</div>
+            <div class="feature-icon"><i data-lucide="send" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="feature-name">Bulk Payments</div>
             <div class="feature-desc">Pay thousands at once</div>
         </div>
@@ -239,12 +243,12 @@
             <div class="feature-desc">Deep insights & reports</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🔗</div>
+            <div class="feature-icon"><i data-lucide="link" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="feature-name">API Access</div>
             <div class="feature-desc">Full REST API</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🛡️</div>
+            <div class="feature-icon"><i data-lucide="shield-check" style="width:24px;height:24px;color:var(--accent-light);"></i></div>
             <div class="feature-name">Compliance</div>
             <div class="feature-desc">KYC/AML ready</div>
         </div>
@@ -296,29 +300,6 @@
         </ul>
         <button class="btn btn-secondary">Contact Sales</button>
     </div>
-
-    <div class="contact-card">
-        <div class="contact-row">
-            <span class="contact-icon">📧</span>
-            <div class="contact-info">
-                <h4>Email</h4>
-                <p>enterprise@peys.io</p>
-            </div>
-        </div>
-        <div class="contact-row">
-            <span class="contact-icon">💬</span>
-            <div class="contact-info">
-                <h4>Sales Chat</h4>
-                <p>Available 24/7</p>
-            </div>
-        </div>
-        <div class="contact-row">
-            <span class="contact-icon">📞</span>
-            <div class="contact-info">
-                <h4>Phone</h4>
-                <p>+1 (888) 555-PAYS</p>
-            </div>
-        </div>
-    </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

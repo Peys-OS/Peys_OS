@@ -8,6 +8,13 @@
     <meta property="og:title" content="Peys - Swap">
     <meta property="og:description" content="Swap USDC for other tokens">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-swap.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Swap - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,14 +73,8 @@
             align-items: center;
             margin-bottom: 16px;
         }
-        .swap-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        .swap-balance {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
+        .swap-label { font-size: 13px; color: var(--text-secondary); }
+        .swap-balance { font-size: 13px; color: var(--text-secondary); }
         .swap-row {
             display: flex;
             align-items: center;
@@ -81,93 +82,73 @@
         }
         .swap-input {
             flex: 1;
-            background: var(--bg-card);
+            background: transparent;
             border: none;
-            border-radius: 8px;
-            padding: 14px 16px;
+            font-size: 32px;
+            font-weight: 600;
             color: var(--text-primary);
-            font-size: 24px;
-            font-weight: 500;
-        }
-        .swap-input:focus {
             outline: none;
         }
+        .swap-input::placeholder { color: var(--text-secondary); }
         .token-select {
             display: flex;
             align-items: center;
             gap: 8px;
             background: var(--bg-card);
             border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
             cursor: pointer;
+            transition: background 0.2s;
         }
+        .token-select:hover { background: var(--border); }
         .token-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #2775CA, #00A3E0);
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-        }
-        .token-name {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .token-arrow {
-            display: flex;
-            justify-content: center;
-            margin: -8px 0;
-            position: relative;
-            z-index: 1;
-        }
-        .swap-arrow-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--accent-light);
-            border: 4px solid var(--bg-primary);
-            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
             color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
+        .token-name { font-size: 16px; font-weight: 600; color: var(--text-primary); }
         .swap-info {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-top: 1px solid var(--border);
-            margin-top: 16px;
+            margin-top: 12px;
             font-size: 13px;
-        }
-        .swap-info span:first-child {
             color: var(--text-secondary);
         }
-        .swap-info span:last-child {
-            color: var(--text-primary);
+        .swap-arrow-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -16px auto 0;
+            position: relative;
+            z-index: 1;
+            cursor: pointer;
+            border: 4px solid var(--bg-primary);
         }
         .rate-card {
             background: var(--bg-secondary);
             border-radius: var(--radius);
             padding: 16px;
-            margin-bottom: 16px;
+            margin: 24px 0;
         }
         .rate-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            font-size: 14px;
-        }
-        .rate-row span:first-child {
+            font-size: 13px;
             color: var(--text-secondary);
         }
-        .rate-row span:last-child {
-            color: var(--text-primary);
-        }
+        .rate-row span:last-child { color: var(--text-primary); }
         .btn {
             width: 100%;
             padding: 16px;
@@ -176,7 +157,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 16px;
             transition: opacity 0.2s;
         }
         .btn:hover { opacity: 0.9; }
@@ -184,20 +164,11 @@
             background: var(--accent-light);
             color: white;
         }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
         .token-list {
-            background: var(--bg-secondary);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-top: 16px;
             display: none;
+            margin-top: 16px;
         }
-        .token-list.show {
-            display: block;
-        }
+        .token-list.show { display: block; }
         .token-item {
             display: flex;
             align-items: center;
@@ -207,9 +178,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .token-item:hover {
-            background: var(--bg-card);
-        }
+        .token-item:hover { background: var(--bg-card); }
         .token-item-icon {
             width: 36px;
             height: 36px;
@@ -217,16 +186,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
         }
-        .token-item-info h4 {
-            font-size: 15px;
-            font-weight: 500;
-        }
-        .token-item-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
+        .token-item-info h4 { font-size: 15px; font-weight: 500; }
+        .token-item-info p { font-size: 12px; color: var(--text-secondary); }
         @media (max-width: 480px) {
             body { padding: 16px; }
             .header h1 { font-size: 20px; }
@@ -235,7 +200,7 @@
 </head>
 <body>
     <div class="header">
-        <a href="index.html" class="back-btn">←</a>
+        <a href="index.html" class="back-btn"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></a>
         <h1>Swap</h1>
     </div>
 
@@ -247,18 +212,18 @@
         <div class="swap-row">
             <input type="number" class="swap-input" value="100" id="fromAmount">
             <button class="token-select" onclick="toggleTokenList('from')">
-                <div class="token-icon">💵</div>
+                <div class="token-icon" style="background:#2775CA;">$</div>
                 <span class="token-name">USDC</span>
-                <span>▼</span>
+                <i data-lucide="chevron-down" style="width:16px;height:16px;color:var(--text-secondary);"></i>
             </button>
         </div>
         <div class="swap-info">
             <span>~$100.00</span>
-            <span style="cursor: pointer; color: var(--accent-light);">MAX</span>
+            <span style="cursor:pointer;color:var(--accent-light);">MAX</span>
         </div>
     </div>
 
-    <div class="swap-arrow-btn">↓</div>
+    <div class="swap-arrow-btn"><i data-lucide="arrow-down" style="width:24px;height:24px;"></i></div>
 
     <div class="swap-card">
         <div class="swap-header">
@@ -268,9 +233,9 @@
         <div class="swap-row">
             <input type="number" class="swap-input" value="0.0342" id="toAmount" readonly>
             <button class="token-select" onclick="toggleTokenList('to')">
-                <div class="token-icon">Ξ</div>
+                <div class="token-icon" style="background:#627EEA;">Ξ</div>
                 <span class="token-name">ETH</span>
-                <span>▼</span>
+                <i data-lucide="chevron-down" style="width:16px;height:16px;color:var(--text-secondary);"></i>
             </button>
         </div>
         <div class="swap-info">
@@ -286,7 +251,7 @@
         </div>
         <div class="rate-row">
             <span>Price Impact</span>
-            <span style="color: var(--accent-light);">0.01%</span>
+            <span style="color:var(--accent-light);">0.01%</span>
         </div>
         <div class="rate-row">
             <span>Network Fee</span>
@@ -294,36 +259,36 @@
         </div>
         <div class="rate-row">
             <span>Slippage</span>
-            <span style="color: var(--accent-light);">0.5%</span>
+            <span style="color:var(--accent-light);">0.5%</span>
         </div>
     </div>
 
-    <button class="btn btn-primary" onclick="swapTokens()">Swap 100 USDC</button>
+    <button class="btn btn-primary" onclick="swapTokens()"><i data-lucide="repeat" style="width:18px;height:18px;margin-right:8px;"></i>Swap 100 USDC</button>
 
     <div class="token-list" id="tokenList">
         <div class="token-item" onclick="selectToken('ETH')">
-            <div class="token-item-icon" style="background: #627EEA;">Ξ</div>
+            <div class="token-item-icon" style="background:#627EEA;">Ξ</div>
             <div class="token-item-info">
                 <h4>Ethereum</h4>
                 <p>ETH</p>
             </div>
         </div>
         <div class="token-item" onclick="selectToken('USDC')">
-            <div class="token-item-icon" style="background: #2775CA;">💵</div>
+            <div class="token-item-icon" style="background:#2775CA;">$</div>
             <div class="token-item-info">
                 <h4>USD Coin</h4>
                 <p>USDC</p>
             </div>
         </div>
         <div class="token-item" onclick="selectToken('WETH')">
-            <div class="token-item-icon" style="background: #EC1CF1;">W</div>
+            <div class="token-item-icon" style="background:#EC1CF1;">W</div>
             <div class="token-item-info">
                 <h4>Wrapped Ether</h4>
                 <p>WETH</p>
             </div>
         </div>
         <div class="token-item" onclick="selectToken('DAI')">
-            <div class="token-item-icon" style="background: #F5AC37;">◉</div>
+            <div class="token-item-icon" style="background:#F5AC37;">◉</div>
             <div class="token-item-info">
                 <h4>Dai</h4>
                 <p>DAI</p>
@@ -335,14 +300,13 @@
         function toggleTokenList(type) {
             document.getElementById('tokenList').classList.toggle('show');
         }
-
         function selectToken(token) {
             document.getElementById('tokenList').classList.remove('show');
         }
-
         function swapTokens() {
             alert('Swapping tokens...');
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

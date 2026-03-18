@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Manage your privacy settings on Peys.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Privacy Settings - Peys">
+    <meta property="og:description" content="Manage your privacy settings on Peys.">
+    <meta property="og:image" content="https://peys.io/images/og-privacy.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Privacy Settings - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -108,7 +119,7 @@
 </head>
 <body>
     <div class="header">
-        <a href="settings.html" class="back-btn">←</a>
+        <a href="settings.html" class="back-btn"><i data-lucide="arrow-left" style="width:20px;height:20px;"></i></a>
         <h1>Privacy</h1>
     </div>
 
@@ -170,7 +181,8 @@
         We never sell your personal data. You can request a copy of your data or delete your account at any time.
     </div>
 
-    <button class="btn btn-secondary">Download My Data</button>
-    <button class="btn btn-danger">Delete Account</button>
+    <button class="btn btn-secondary"><i data-lucide="download" style="width:18px;height:18px;margin-right:8px;"></i>Download My Data</button>
+    <button class="btn btn-danger"><i data-lucide="trash-2" style="width:18px;height:18px;margin-right:8px;"></i>Delete Account</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

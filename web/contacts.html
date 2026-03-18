@@ -3,88 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View and manage your contacts in the Peys address book.">
+    <meta name="theme-color" content="#25D366">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Contacts - Peys">
+    <meta property="og:description" content="View and manage your contacts in the Peys address book.">
+    <meta property="og:image" content="https://peys.io/images/og-contacts.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Address Book - Peys</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: var(--surface);
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .header h1 { font-size: 20px; }
-        .add-btn { background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .search-box { display: flex; align-items: center; gap: 12px; background: var(--background); padding: 12px 16px; border-radius: var(--radius-md); }
-        .search-box input { flex: 1; border: none; background: none; font-size: 15px; outline: none; }
-        .content { padding: 20px; }
-        .section-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; padding-left: 4px; }
-        .contact-list { background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); }
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .contact-item:hover { background: var(--background); }
-        .contact-item:last-child { border-bottom: none; }
-        .contact-avatar { width: 48px; height: 48px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: 600; flex-shrink: 0; }
-        .contact-info { flex: 1; min-width: 0; }
-        .contact-name { font-weight: 600; font-size: 15px; }
-        .contact-phone { font-size: 13px; color: var(--text-muted); }
-        .contact-actions { display: flex; gap: 8px; }
-        .action-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; opacity: 0.6; transition: opacity 0.2s; }
-        .action-btn:hover { opacity: 1; }
-        .action-btn.star { color: #ffc107; }
-        .fav-badge { background: #fff3cd; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-        .empty-icon { font-size: 64px; margin-bottom: 16px; }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
-        .modal.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 400px; }
-        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
-        .form-input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 16px; font-family: inherit; }
-        .form-input:focus { outline: none; border-color: var(--primary); }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: var(--background); color: var(--text-primary); border: 2px solid var(--border); margin-top: 12px; }
-        .recent-section { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 16px; -webkit-overflow-scrolling: touch; }
-        .recent-chip { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .recent-chip:hover { background: var(--primary-light); border-color: var(--primary); }
-    </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="grid-bg">
     <header class="header">
         <div class="header-top">
-            <h1>📒 Address Book</h1>
-            <button class="add-btn" id="addBtn">+</button>
+            <h1><i data-lucide="address-book" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"></i>Address Book</h1>
+            <button class="btn-icon" id="addBtn" style="background:var(--accent);color:white;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="plus" style="width:20px;height:20px;"></i>
+            </button>
         </div>
         <div class="search-box">
-            <span>🔍</span>
+            <i data-lucide="search" style="width:18px;height:18px;color:var(--text-muted);"></i>
             <input type="text" id="searchInput" placeholder="Search contacts...">
         </div>
     </header>
@@ -149,7 +91,7 @@
             if (others.length > 0) {
                 list.innerHTML = others.map(c => createContactHTML(c)).join('');
             } else {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📒</div><div>No contacts yet</div><div style="font-size: 13px; margin-top: 8px;">Add contacts to quickly send them money</div></div>';
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon"><i data-lucide="users" style="width:64px;height:64px;color:var(--text-muted);margin-bottom:16px;"></i></div><div>No contacts yet</div><div style="font-size:13px;margin-top:8px;">Add contacts to quickly send them money</div></div>';
             }
         }
         function createContactHTML(c, isFavorite = false) {
@@ -160,12 +102,16 @@
                 <div class="contact-item" onclick="selectContact('${id}')">
                     <div class="contact-avatar">${initial}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${name}${c.favorite ? ' <span class="fav-badge">★</span>' : ''}</div>
+                        <div class="contact-name">${name}${c.favorite ? ' <span class="fav-badge" style="background:#fff3cd;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">★</span>' : ''}</div>
                         <div class="contact-phone">${c.phone || ''}</div>
                     </div>
                     <div class="contact-actions">
-                        <button class="action-btn star" onclick="event.stopPropagation(); toggleFavorite('${id}')">★</button>
-                        <button class="action-btn" onclick="event.stopPropagation(); sendTo('${id}')">💸</button>
+                        <button class="action-btn" onclick="event.stopPropagation(); toggleFavorite('${id}')" style="color:#ffc107;">
+                            <i data-lucide="star" style="width:18px;height:18px;"></i>
+                        </button>
+                        <button class="action-btn" onclick="event.stopPropagation(); sendTo('${id}')">
+                            <i data-lucide="send" style="width:18px;height:18px;"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -213,6 +159,7 @@
             document.getElementById('contactNotes').value = '';
         });
         loadContacts();
+        lucide.createIcons();
     </script>
 </body>
 </html>

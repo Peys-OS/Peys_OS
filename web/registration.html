@@ -3,6 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your Peys account to send and receive USDC payments on WhatsApp.">
+    <meta name="theme-color" content="#25D366">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Register - Peys">
+    <meta property="og:description" content="Create your Peys account to send and receive USDC payments on WhatsApp.">
+    <meta property="og:image" content="https://peys.io/images/og-registration.png">
+    <meta name="twitter:card" content="summary">
+    <script src="notifications.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Peys - Register</title>
     <style>
         * {
@@ -236,6 +246,7 @@
             margin: 0 auto 20px;
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="container">
@@ -292,7 +303,7 @@
             </div>
             
             <div id="success-screen" class="loading success-message" style="display: none;">
-                <div class="checkmark">✓</div>
+                <div class="checkmark"><i data-lucide="check-circle" style="width:48px;height:48px;color:var(--accent-light);"></i></div>
                 <h2>Account Created Successfully!</h2>
                 <p>Your Peys wallet is now ready to use.</p>
             </div>
@@ -412,6 +423,10 @@
                     loadingScreen.style.display = 'none';
                     successScreen.style.display = 'block';
                     
+                    // Send WhatsApp notification
+                    const nameToUse = name || result.name || 'User';
+                    await notifyRegistration(phoneNumber, nameToUse);
+                    
                     // Auto-close after 3 seconds
                     setTimeout(() => {
                         window.close();
@@ -443,6 +458,7 @@
                 pinInput.focus();
             }
         });
+        lucide.createIcons();
     </script>
 </body>
 </html>

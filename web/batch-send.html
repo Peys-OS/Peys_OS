@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Batch Send">
     <meta property="og:description" content="Send to multiple recipients at once">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-batch-send.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Batch Send - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -204,6 +207,7 @@
             .header h1 { font-size: 20px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -273,15 +277,15 @@
 
     <div class="info-card">
         <div class="info-item">
-            <span class="icon">⚠️</span>
+            <i data-lucide="alert-triangle" style="width:16px;height:16px;color:var(--warning);"></i>
             <span>All transactions will be sent in a single batch</span>
         </div>
         <div class="info-item">
-            <span class="icon">⏱️</span>
+            <i data-lucide="clock" style="width:16px;height:16px;color:var(--text-muted);"></i>
             <span>Estimated time: ~30 seconds</span>
         </div>
         <div class="info-item">
-            <span class="icon">💰</span>
+            <i data-lucide="fuel" style="width:16px;height:16px;color:var(--accent-light);"></i>
             <span>Gas fees are split between recipients</span>
         </div>
     </div>
@@ -319,6 +323,7 @@
         function sendBatch() {
             alert('Sending batch transaction...');
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>

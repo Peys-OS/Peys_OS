@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Edit Payment Link">
     <meta property="og:description" content="Edit your payment request link">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-payment-link-edit.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Edit Link - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -187,6 +190,7 @@
             .header h1 { font-size: 20px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -195,71 +199,13 @@
     </div>
 
     <div class="link-preview">
-        <div class="link-icon">💰</div>
+        <div class="link-icon"><i data-lucide="dollar-sign" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
         <div class="link-url">peys.io/pay/Moses123/invoice-001</div>
         <div class="link-stats">
-            <span>👁 24 views</span>
-            <span>✅ 3 paid</span>
+            <span><i data-lucide="eye" style="width:14px;height:14px;vertical-align:middle;"></i> 24 views</span>
+            <span><i data-lucide="check" style="width:14px;height:14px;vertical-align:middle;color:var(--accent-light);"></i> 3 paid</span>
             <span>$450 received</span>
-        </div>
     </div>
-
-    <div class="form-group">
-        <label>Title</label>
-        <input type="text" value="Invoice #001 - Web Development">
-    </div>
-
-    <div class="form-group">
-        <label>Amount (USDC)</label>
-        <input type="number" value="150">
-    </div>
-
-    <div class="form-group">
-        <label>Description</label>
-        <textarea>Payment for web development services completed in February 2024.</textarea>
-    </div>
-
-    <div class="form-group">
-        <label>Expiry Date</label>
-        <input type="date" value="2024-03-31">
-    </div>
-
-    <div class="section-title" style="font-size: 12px; text-transform: uppercase; color: var(--text-secondary); margin: 24px 0 16px; letter-spacing: 0.5px;">Settings</div>
-
-    <div class="toggle-row">
-        <div class="toggle-info">
-            <h4>Allow partial payments</h4>
-            <p>Recipients can pay less than the requested amount</p>
-        </div>
-        <div class="toggle" onclick="this.classList.toggle('active')"></div>
-    </div>
-
-    <div class="toggle-row">
-        <div class="toggle-info">
-            <h4>Require recipient info</h4>
-            <p>Collect name and email on payment</p>
-        </div>
-        <div class="toggle" onclick="this.classList.toggle('active')"></div>
-    </div>
-
-    <div class="toggle-row">
-        <div class="toggle-info">
-            <h4>Show remaining amount</h4>
-            <p>Display how much is still owed</p>
-        </div>
-        <div class="toggle active" onclick="this.classList.toggle('active')"></div>
-    </div>
-
-    <div class="toggle-row">
-        <div class="toggle-info">
-            <h4>Enable reminders</h4>
-            <p>Send payment reminders to recipient</p>
-        </div>
-        <div class="toggle active" onclick="this.classList.toggle('active')"></div>
-    </div>
-
-    <button class="btn btn-primary">Save Changes</button>
-    <button class="btn btn-secondary">Copy Link</button>
-    <button class="btn btn-danger">Delete Link</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

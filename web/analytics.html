@@ -3,66 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View your spending analytics and insights on Peys.">
+    <meta name="theme-color" content="#25D366">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Analytics - Peys">
+    <meta property="og:description" content="View your spending analytics and insights on Peys.">
+    <meta property="og:image" content="https://peys.io/images/og-analytics.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Analytics - Peys</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #dcf8c6;
-            --background: #f8f9fa;
-            --surface: #ffffff;
-            --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            --border: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--background); min-height: 100vh; }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 48px 24px;
-            text-align: center;
-            color: white;
-        }
-        .header h1 { font-size: 20px; margin-bottom: 8px; }
-        .header-sub { font-size: 14px; opacity: 0.9; }
-        .container { padding: 20px; max-width: 480px; margin: 0 auto; }
-        .card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 20px; margin-bottom: 20px; }
-        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .stat-item { text-align: center; padding: 16px; background: var(--background); border-radius: var(--radius-md); }
-        .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); }
-        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-        .stat-value.sent { color: #dc3545; }
-        .chart-container { height: 200px; background: var(--background); border-radius: var(--radius-md); padding: 16px; margin: 16px 0; display: flex; align-items: flex-end; gap: 8px; }
-        .chart-bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; min-height: 10px; transition: height 0.3s; }
-        .chart-bar.received { background: var(--primary); }
-        .chart-bar.sent { background: #dc3545; }
-        .period-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .period-tab { flex: 1; padding: 10px; background: var(--background); border: none; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-        .period-tab.active { background: var(--primary); color: white; }
-        .top-contact { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .top-contact:last-child { border-bottom: none; }
-        .rank { font-size: 20px; font-weight: 700; color: var(--text-muted); width: 30px; }
-        .rank.gold { color: #ffd700; }
-        .rank.silver { color: #c0c0c0; }
-        .rank.bronze { color: #cd7f32; }
-        .contact-info { flex: 1; }
-        .contact-name { font-weight: 600; }
-        .contact-count { font-size: 13px; color: var(--text-muted); }
-        .contact-amount { font-weight: 700; color: var(--primary); }
-        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--background); color: var(--text-primary); border: 2px solid var(--border); }
-        .btn:hover { border-color: var(--primary); }
-        .loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--text-muted); }
-    </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <header class="header">
-        <h1>📊 Analytics</h1>
+<body class="grid-bg">
+    <header class="header" style="background:linear-gradient(135deg,var(--accent) 0%,var(--primary-dark, #128C7E) 100%);padding:48px 24px;text-align:center;color:white;">
+        <h1 style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:20px;margin-bottom:8px;">
+            <i data-lucide="bar-chart-2" style="width:24px;height:24px;"></i> Analytics
+        </h1>
         <div class="header-sub">Your spending insights</div>
     </header>
     <div class="container">
@@ -108,7 +67,7 @@
             </div>
         </div>
         <button class="btn" id="exportBtn">
-            <span>📥</span><span>Export as CSV</span>
+            <i data-lucide="download" style="width:18px;height:18px;"></i><span>Export as CSV</span>
         </button>
     </div>
     <script>
@@ -166,7 +125,7 @@
             }
             container.innerHTML = recipients.slice(0, 5).map((r, i) => {
                 const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-                const rankSymbol = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+                const rankSymbol = i === 0 ? '<i data-lucide="trophy" style="color:#ffd700;"></i>' : i === 1 ? '<i data-lucide="award" style="color:#c0c0c0;"></i>' : i === 2 ? '<i data-lucide="medal" style="color:#cd7f32;"></i>' : `${i + 1}`;
                 return `
                     <div class="top-contact">
                         <div class="rank ${rankClass}">${rankSymbol}</div>
@@ -201,6 +160,7 @@
             }
         });
         loadAnalytics();
+        lucide.createIcons();
     </script>
 </body>
 </html>

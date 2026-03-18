@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Tax Report">
     <meta property="og:description" content="View your tax report for crypto transactions">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-tax-report.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Tax Report - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -206,6 +209,7 @@
             .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -232,17 +236,17 @@
             <div class="stat-value" style="color: var(--accent-light);">+$342.18</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📉</div>
+            <div class="stat-icon"><i data-lucide="trending-down" style="width:20px;height:20px;color:var(--danger);"></i></div>
             <div class="stat-label">Realized Losses</div>
             <div class="stat-value" style="color: var(--danger);">-$89.50</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">💰</div>
+            <div class="stat-icon"><i data-lucide="dollar-sign" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
             <div class="stat-label">Total Received</div>
             <div class="stat-value">$4,521.00</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📤</div>
+            <div class="stat-icon"><i data-lucide="upload" style="width:20px;height:20px;color:var(--text-secondary);"></i></div>
             <div class="stat-label">Total Sent</div>
             <div class="stat-value">$2,890.00</div>
         </div>
@@ -299,5 +303,6 @@
     <div class="disclaimer">
         <strong>Disclaimer:</strong> This report is for informational purposes only and should not be considered tax advice. Cryptocurrency tax treatment varies by jurisdiction. Please consult a qualified tax professional for your specific situation. Transaction data may not reflect all cost basis calculations.
     </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

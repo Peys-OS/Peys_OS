@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Subscriptions">
     <meta property="og:description" content="Manage your recurring payments">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-subscriptions.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Subscriptions - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -215,6 +218,7 @@
             .header h1 { font-size: 20px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -239,7 +243,7 @@
 
     <div class="sub-card">
         <div class="sub-header">
-            <div class="sub-logo">☁️</div>
+            <div class="sub-logo"><i data-lucide="cloud" style="width:20px;height:20px;color:white;"></i></div>
             <div class="sub-info">
                 <div class="sub-name">Cloud Storage Pro</div>
                 <div class="sub-desc">2TB cloud storage</div>
@@ -268,7 +272,7 @@
 
     <div class="sub-card">
         <div class="sub-header">
-            <div class="sub-logo">🎵</div>
+            <div class="sub-logo"><i data-lucide="music" style="width:20px;height:20px;color:white;"></i></div>
             <div class="sub-info">
                 <div class="sub-name">Music Premium</div>
                 <div class="sub-desc">Ad-free music streaming</div>
@@ -356,5 +360,6 @@
     </div>
 
     <button class="btn btn-primary" style="margin-top: 24px;">+ Create New Subscription</button>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

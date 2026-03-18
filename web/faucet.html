@@ -3,9 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Faucet - Peys</title>
+  <title>Get Test ETH - Peys Faucet</title>
+  <meta name="description" content="Get free test ETH on Base Sepolia to pay for gas fees when using Peys.">
+  <meta name="theme-color" content="#25D366">
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Get Test ETH - Peys Faucet">
+  <meta property="og:description" content="Get free test ETH on Base Sepolia testnet.">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
 </head>
 <body class="grid-bg">
   <header class="header">
@@ -38,6 +45,7 @@
   </main>
 
   <script src="api.js"></script>
+  <script src="notifications.js"></script>
   <script>
     lucide.createIcons();
     
@@ -49,8 +57,10 @@
       }
       document.getElementById('faucet-result').innerHTML = '<div class="alert alert-warning">Requesting... (Demo)</div>';
       setTimeout(() => {
-        document.getElementById('faucet-result').innerHTML = '<div class="alert alert-success">Sent 0.1 ETH!</div>';
-        lucide.createIcons();
+      document.getElementById('faucet-result').innerHTML = '<div class="alert alert-success">Sent 0.1 ETH!</div>';
+      lucide.createIcons();
+      const phone = getPhoneFromUrl();
+      notifyFaucetSuccess(phone, '0.1', 'demo-tx-hash');
       }, 1500);
     }
   </script>

@@ -8,6 +8,9 @@
     <meta property="og:title" content="Peys - Bridge">
     <meta property="og:description" content="Bridge USDC across chains">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://peys.io/images/og-bridge.png">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/png" href="https://peys.io/favicon.png">
     <title>Bridge - Peys</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -204,6 +207,7 @@
             .amount-input { font-size: 24px; }
         }
     </style>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="header">
@@ -214,7 +218,7 @@
     <div class="bridge-visual">
         <div class="chain-row">
             <div class="chain-box">
-                <div class="chain-icon">🏦</div>
+                <div class="chain-icon"><i data-lucide="landmark" style="width:20px;height:20px;color:var(--accent-light);"></i></div>
                 <div class="chain-name">Base</div>
                 <div class="chain-balance">1,250 USDC</div>
             </div>
@@ -261,7 +265,8 @@
     <button class="btn btn-primary" onclick="startBridge()">Bridge 100 USDC</button>
 
     <div class="disclaimer">
-        ⚠️ Bridging takes time. Assets will be available on Ethereum after ~5 minutes. Network congestion may affect transfer times.
+        <i data-lucide="alert-triangle" style="width:16px;height:16px;vertical-align:middle;margin-right:8px;color:var(--warning);"></i> Bridging takes time. Assets will be available on Ethereum after ~5 minutes. Network congestion may affect transfer times.
     </div>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
