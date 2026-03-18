@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Help - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>Help</h1>
   </header>
 
@@ -18,12 +19,12 @@
       
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">How do I send USDC?</div>
-        <div class="faq-answer">Go to Send, enter the recipient's wallet address or username, enter the amount, and confirm. You can also share your payment link.</div>
+        <div class="faq-answer">Go to Send, enter the recipient's wallet address, enter the amount, and confirm.</div>
       </div>
       
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">How do I receive USDC?</div>
-        <div class="faq-answer">Go to Receive to see your wallet address and payment link. Share these with anyone who wants to send you USDC.</div>
+        <div class="faq-answer">Go to Receive to see your wallet address. Share these with anyone who wants to send you USDC.</div>
       </div>
       
       <div class="faq-item">
@@ -37,7 +38,7 @@
       
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">Is my wallet secure?</div>
-        <div class="faq-answer">Yes, your wallet is protected by a PIN and all transactions require authentication. We use industry-standard security.</div>
+        <div class="faq-answer">Yes, your wallet is protected by a PIN and all transactions require authentication.</div>
       </div>
       
       <div class="faq-item">
@@ -51,17 +52,17 @@
       
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">Transaction failed</div>
-        <div class="faq-answer">Check your balance and network connection. If the problem persists, try again later or contact support.</div>
+        <div class="faq-answer">Check your balance and network connection. If the problem persists, try again later.</div>
       </div>
       
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">Funds not received</div>
-        <div class="faq-answer">Transactions on Base are usually instant. Check your transaction history. If you still don't see funds, contact support with your tx hash.</div>
+        <div class="faq-answer">Transactions on Base are usually instant. If you still don't see funds, contact support.</div>
       </div>
     </div>
 
     <div class="section">
-      <a href="support.html" class="btn btn-primary">Contact Support</a>
+      <a href="support.html" class="btn btn-primary"><i data-lucide="message-circle" style="width:18px;height:18px;margin-right:8px;"></i>Contact Support</a>
     </div>
   </main>
 
@@ -75,8 +76,6 @@
       display: flex;
       justify-content: space-between;
     }
-    .faq-question::after { content: '+'; color: var(--accent); }
-    .faq-item.open .faq-question::after { content: '−'; }
     .faq-answer {
       max-height: 0;
       overflow: hidden;
@@ -89,6 +88,8 @@
   </style>
 
   <script>
+    lucide.createIcons();
+    
     function toggleFaq(el) {
       el.parentElement.classList.toggle('open');
     }

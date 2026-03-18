@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claim - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>Claim</h1>
   </header>
 
   <main class="container">
     <div class="card text-center">
-      <div style="font-size: 4rem; margin-bottom: var(--space-md);">🎁</div>
+      <div style="padding: var(--space-lg);">
+        <i data-lucide="gift" style="width:64px;height:64px;color:var(--accent);"></i>
+      </div>
       <h2>Claim Your Funds</h2>
       <p class="text-muted">Enter the claim code sent to you</p>
     </div>
@@ -27,7 +30,7 @@
 
       <div id="claim-result"></div>
 
-      <button class="btn btn-primary" onclick="claimFunds()">Claim Funds</button>
+      <button class="btn btn-primary" onclick="claimFunds()"><i data-lucide="check-circle" style="width:18px;height:18px;margin-right:8px;"></i>Claim Funds</button>
     </div>
 
     <div class="section">
@@ -40,6 +43,8 @@
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     const phone = getPhoneFromUrl();
 
     async function loadPendingClaims() {
@@ -54,7 +59,7 @@
 
         list.innerHTML = claims.map(c => `
           <div class="list-item">
-            <div class="list-item-icon">🎁</div>
+            <div class="list-item-icon"><i data-lucide="gift"></i></div>
             <div class="list-item-content">
               <div class="list-item-title">$${parseFloat(c.amount).toFixed(2)} USDC</div>
               <div class="list-item-subtitle">From: ${c.sender}</div>
@@ -62,6 +67,7 @@
             <button class="btn btn-secondary" onclick="claimById('${c.id}')">Claim</button>
           </div>
         `).join('');
+        lucide.createIcons();
       } catch (e) {
         document.getElementById('pending-claims').innerHTML = '<p class="text-muted text-center">Unable to load</p>';
       }

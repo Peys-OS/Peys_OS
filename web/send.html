@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Send - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>Send</h1>
   </header>
 
@@ -33,7 +34,7 @@
     <div id="error-msg" class="alert alert-danger" style="display: none;"></div>
     <div id="success-msg" class="alert alert-success" style="display: none;"></div>
 
-    <button class="btn btn-primary" onclick="sendFunds()">Send USDC</button>
+    <button class="btn btn-primary" onclick="sendFunds()"><i data-lucide="send" style="width:18px;height:18px;margin-right:8px;"></i>Send USDC</button>
 
     <div class="section">
       <h3 class="section-title">Quick Send</h3>
@@ -45,6 +46,8 @@
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     const phone = getPhoneFromUrl();
 
     async function loadContacts() {

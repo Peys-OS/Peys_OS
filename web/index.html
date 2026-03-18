@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
     <h1>Peys</h1>
   </header>
@@ -22,19 +23,19 @@
 
     <div class="grid grid-4 mb-md">
       <a href="send.html" class="quick-action">
-        <span class="quick-action-icon">📤</span>
+        <span class="quick-action-icon"><i data-lucide="send"></i></span>
         <span class="quick-action-label">Send</span>
       </a>
       <a href="receive.html" class="quick-action">
-        <span class="quick-action-icon">📥</span>
+        <span class="quick-action-icon"><i data-lucide="download"></i></span>
         <span class="quick-action-label">Receive</span>
       </a>
       <a href="scan.html" class="quick-action">
-        <span class="quick-action-icon">📷</span>
+        <span class="quick-action-icon"><i data-lucide="scan-line"></i></span>
         <span class="quick-action-label">Scan</span>
       </a>
       <a href="request.html" class="quick-action">
-        <span class="quick-action-icon">📋</span>
+        <span class="quick-action-icon"><i data-lucide="file-text"></i></span>
         <span class="quick-action-label">Request</span>
       </a>
     </div>
@@ -51,24 +52,37 @@
 
   <nav class="bottom-nav">
     <a href="index.html" class="nav-item active">
-      <span>🏠</span>
+      <i data-lucide="home"></i>
       <span>Home</span>
     </a>
     <a href="history.html" class="nav-item">
-      <span>📜</span>
+      <i data-lucide="clock"></i>
       <span>History</span>
     </a>
     <a href="send.html" class="nav-item">
-      <span>💸</span>
+      <i data-lucide="wallet"></i>
       <span>Send</span>
     </a>
     <a href="settings.html" class="nav-item">
-      <span>⚙️</span>
+      <i data-lucide="settings"></i>
       <span>Settings</span>
     </a>
   </nav>
 
   <style>
+    .quick-action-icon i {
+      width: 28px;
+      height: 28px;
+      color: var(--accent);
+    }
+    .nav-item i {
+      width: 24px;
+      height: 24px;
+    }
+    .list-item-icon i {
+      width: 20px;
+      height: 20px;
+    }
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -85,18 +99,30 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 4px;
       text-decoration: none;
       color: var(--text-muted);
       font-size: 0.625rem;
     }
-    .nav-item span:first-child { font-size: 1.25rem; }
+    .nav-item i { color: var(--text-muted); }
     .nav-item.active { color: var(--accent); }
+    .nav-item.active i { color: var(--accent); }
     body { padding-bottom: 70px; }
+    .list-item-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     const phone = getPhoneFromUrl();
 
     async function init() {
@@ -109,14 +135,17 @@
       if (!txs || txs.length === 0) {
         list.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">📜</div>
+            <div class="empty-state-icon"><i data-lucide="inbox"></i></div>
             <p>No transactions yet</p>
           </div>
         `;
+        lucide.createIcons();
       } else {
         list.innerHTML = txs.map(tx => `
           <a href="transaction.html?id=${tx.id}" class="list-item">
-            <div class="list-item-icon">${tx.type === 'sent' ? '📤' : '📥'}</div>
+            <div class="list-item-icon">
+              <i data-lucide="${tx.type === 'sent' ? 'arrow-up-right' : 'arrow-down-left'}"></i>
+            </div>
             <div class="list-item-content">
               <div class="list-item-title">${tx.type === 'sent' ? 'Sent to' : 'Received from'} ${tx.recipient || tx.sender || 'Unknown'}</div>
               <div class="list-item-subtitle">${new Date(tx.created_at).toLocaleDateString()}</div>
@@ -126,6 +155,7 @@
             </div>
           </a>
         `).join('');
+        lucide.createIcons();
       }
     }
 
