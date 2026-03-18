@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111B21">
+    <meta name="description" content="Peys - Data Export">
+    <meta property="og:title" content="Peys - Export Data">
+    <meta property="og:description" content="Download your account data">
+    <meta property="og:type" content="website">
+    <title>Export Data - Peys</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #111B21;
+            --bg-secondary: #1F2C34;
+            --bg-card: #222F37;
+            --text-primary: #E9EDEF;
+            --text-secondary: #8696A0;
+            --accent: #00A884;
+            --accent-light: #25D366;
+            --danger: #F15C6D;
+            --border: #374045;
+            --radius: 12px;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .export-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .export-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .export-card:hover {
+            background: var(--bg-card);
+        }
+        .export-icon-sm {
+            width: 52px;
+            height: 52px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .export-info {
+            flex: 1;
+        }
+        .export-info h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .export-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .export-action {
+            color: var(--accent-light);
+            font-size: 24px;
+        }
+        .date-range {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .date-row:last-child {
+            margin-bottom: 0;
+        }
+        .date-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .date-value {
+            font-size: 14px;
+            color: var(--accent-light);
+            cursor: pointer;
+        }
+        .format-options {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .format-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .format-btn.active {
+            border-color: var(--accent-light);
+            color: var(--accent-light);
+            background: rgba(37, 211, 102, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary {
+            background: var(--accent-light);
+            color: white;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 24px 0 16px;
+            letter-spacing: 0.5px;
+        }
+        .info-card {
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+        .info-item span {
+            font-size: 14px;
+        }
+        .info-item .icon {
+            font-size: 18px;
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px; }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h1>Export Data</h1>
+    </div>
+
+    <div class="export-icon">📥</div>
+    <h2 class="title">Download Your Data</h2>
+    <p class="subtitle">Export your transaction history, account statements, and more in various formats</p>
+
+    <div class="date-range">
+        <div class="date-row">
+            <span class="date-label">From</span>
+            <span class="date-value">Jan 1, 2024</span>
+        </div>
+        <div class="date-row">
+            <span class="date-label">To</span>
+            <span class="date-value">Today</span>
+        </div>
+    </div>
+
+    <div class="format-options">
+        <button class="format-btn active">CSV</button>
+        <button class="format-btn">PDF</button>
+        <button class="format-btn">JSON</button>
+    </div>
+
+    <div class="section-title">Available Exports</div>
+
+    <div class="export-card">
+        <div class="export-icon-sm">💰</div>
+        <div class="export-info">
+            <h3>Transaction History</h3>
+            <p>All sends, receives, and swaps</p>
+        </div>
+        <span class="export-action">→</span>
+    </div>
+
+    <div class="export-card">
+        <div class="export-icon-sm">📊</div>
+        <div class="export-info">
+            <h3>Account Statement</h3>
+            <p>Monthly summary of all activity</p>
+        </div>
+        <span class="export-action">→</span>
+    </div>
+
+    <div class="export-card">
+        <div class="export-icon-sm">📋</div>
+        <div class="export-info">
+            <h3>Tax Report</h3>
+            <p>Capital gains and losses for taxes</p>
+        </div>
+        <span class="export-action">→</span>
+    </div>
+
+    <div class="export-card">
+        <div class="export-icon-sm">📱</div>
+        <div class="export-info">
+            <h3>Account Data</h3>
+            <p>Profile, settings, and preferences</p>
+        </div>
+        <span class="export-action">→</span>
+    </div>
+
+    <div class="export-card">
+        <div class="export-icon-sm">🔑</div>
+        <div class="export-info">
+            <h3>Wallet Keys</h3>
+            <p>Export private keys (use caution)</p>
+        </div>
+        <span class="export-action">→</span>
+    </div>
+
+    <div class="info-card">
+        <div class="info-item">
+            <span class="icon">🔒</span>
+            <span>Your data is encrypted and secure</span>
+        </div>
+        <div class="info-item">
+            <span class="icon">📧</span>
+            <span>Download link expires in 24 hours</span>
+        </div>
+        <div class="info-item">
+            <span class="icon">⏱️</span>
+            <span>Large exports may take a few minutes</span>
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="exportAll()">Export All Data</button>
+</body>
+</html>
