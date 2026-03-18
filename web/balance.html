@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Balance - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>Balance</h1>
   </header>
 
@@ -36,7 +37,9 @@
       <h3 class="section-title">Tokens</h3>
       <div class="card">
         <div class="list-item">
-          <div style="width: 36px; height: 36px; background: #2775CA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">💵</div>
+          <div class="list-item-icon" style="background:#2775CA20;">
+            <i data-lucide="circle" style="color:#2775CA;"></i>
+          </div>
           <div class="list-item-content">
             <div class="list-item-title">USD Coin</div>
             <div class="list-item-subtitle">USDC</div>
@@ -49,15 +52,17 @@
       </div>
     </div>
 
-    <a href="send.html" class="btn btn-primary">Send</a>
-    <a href="receive.html" class="btn btn-secondary mt-md">Receive</a>
+    <a href="send.html" class="btn btn-primary"><i data-lucide="send" style="width:18px;height:18px;margin-right:8px;"></i>Send</a>
+    <a href="receive.html" class="btn btn-secondary mt-md"><i data-lucide="download" style="width:18px;height:18px;margin-right:8px;"></i>Receive</a>
   </main>
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     const phone = getPhoneFromUrl();
 
-    async function loadBalance() {
+    async function loadBalanceData() {
       const balance = await loadBalance(phone);
       document.getElementById('balance').textContent = parseFloat(balance).toFixed(2);
       document.getElementById('usdc-balance').textContent = parseFloat(balance).toFixed(2);
@@ -74,7 +79,7 @@
       document.getElementById('month-sent').textContent = `-$${sent.toFixed(2)}`;
     }
 
-    loadBalance();
+    loadBalanceData();
   </script>
 </body>
 </html>

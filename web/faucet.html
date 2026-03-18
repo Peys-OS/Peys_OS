@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Faucet - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>Faucet</h1>
   </header>
 
   <main class="container">
     <div class="card text-center">
-      <div style="font-size: 4rem; margin-bottom: var(--space-md);">🚰</div>
+      <div style="padding: var(--space-lg);">
+        <i data-lucide="droplet" style="width:64px;height:64px;color:var(--accent);"></i>
+      </div>
       <h2>Get Test ETH</h2>
       <p class="text-muted">Get free ETH on Base Sepolia testnet to pay for gas</p>
     </div>
@@ -25,15 +28,19 @@
         <input type="text" class="input font-mono" id="wallet" placeholder="0x...">
       </div>
       <div id="faucet-result"></div>
-      <button class="btn btn-primary" onclick="getFunds()">Get 0.1 ETH</button>
+      <button class="btn btn-primary" onclick="getFunds()"><i data-lucide="zap" style="width:18px;height:18px;margin-right:8px;"></i>Get 0.1 ETH</button>
     </div>
 
     <div class="alert alert-warning">
+      <i data-lucide="alert-triangle" style="width:16px;height:16px;margin-right:8px;vertical-align:middle;"></i>
       <strong>Testnet only</strong> - This faucet gives fake ETH for testing
     </div>
   </main>
 
+  <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     async function getFunds() {
       const wallet = document.getElementById('wallet').value.trim();
       if (!wallet) {
@@ -43,6 +50,7 @@
       document.getElementById('faucet-result').innerHTML = '<div class="alert alert-warning">Requesting... (Demo)</div>';
       setTimeout(() => {
         document.getElementById('faucet-result').innerHTML = '<div class="alert alert-success">Sent 0.1 ETH!</div>';
+        lucide.createIcons();
       }, 1500);
     }
   </script>

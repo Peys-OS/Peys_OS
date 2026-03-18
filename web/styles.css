@@ -47,6 +47,15 @@
   padding: 0;
 }
 
+/* Grid Background */
+.grid-bg {
+  background-color: var(--bg);
+  background-image: 
+    linear-gradient(rgba(37, 211, 102, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 211, 102, 0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;

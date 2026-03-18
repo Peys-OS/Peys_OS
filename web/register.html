@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
     <h1>Create Account</h1>
   </header>
 
   <main class="container">
     <div class="text-center mb-md">
-      <div style="font-size: 4rem; margin-bottom: var(--space-md);">💸</div>
+      <i data-lucide="wallet" style="width:64px;height:64px;color:var(--accent);margin-bottom:var(--space-md);"></i>
       <p class="text-muted">Send and receive USDC via WhatsApp</p>
     </div>
 
@@ -30,14 +31,14 @@
 
       <div class="input-group">
         <label class="input-label">PIN (4 digits)</label>
-        <input type="password" class="input" id="pin" placeholder="••••" maxlength="4">
+        <input type="password" class="input" id="pin" placeholder="****" maxlength="4">
       </div>
 
       <div id="error-msg" class="alert alert-danger" style="display: none;"></div>
       <div id="success-msg" class="alert alert-success" style="display: none;"></div>
     </div>
 
-    <button class="btn btn-primary" onclick="register()">Create Account</button>
+    <button class="btn btn-primary" onclick="register()"><i data-lucide="user-plus" style="width:18px;height:18px;margin-right:8px;"></i>Create Account</button>
 
     <p class="text-center text-sm text-muted mt-md">
       By creating an account, you agree to our Terms of Service
@@ -46,6 +47,8 @@
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     async function register() {
       const phone = document.getElementById('phone').value.trim();
       const name = document.getElementById('name').value.trim();

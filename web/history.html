@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>History - Peys</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="grid-bg">
   <header class="header">
-    <a href="index.html" class="btn btn-ghost btn-icon">←</a>
+    <a href="index.html" class="btn btn-ghost btn-icon"><i data-lucide="arrow-left"></i></a>
     <h1>History</h1>
   </header>
 
@@ -26,6 +27,8 @@
 
   <script src="api.js"></script>
   <script>
+    lucide.createIcons();
+    
     const phone = getPhoneFromUrl();
     let allTxs = [];
 
@@ -51,16 +54,19 @@
       if (txs.length === 0) {
         list.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">📜</div>
+            <i data-lucide="inbox" style="width:48px;height:48px;opacity:0.3;"></i>
             <p>No transactions</p>
           </div>
         `;
+        lucide.createIcons();
         return;
       }
 
       list.innerHTML = txs.map(tx => `
         <a href="transaction.html?id=${tx.id}" class="list-item">
-          <div class="list-item-icon">${tx.type === 'sent' ? '📤' : '📥'}</div>
+          <div class="list-item-icon">
+            <i data-lucide="${tx.type === 'sent' ? 'arrow-up-right' : 'arrow-down-left'}"></i>
+          </div>
           <div class="list-item-content">
             <div class="list-item-title">${tx.type === 'sent' ? 'Sent to' : 'Received from'}</div>
             <div class="list-item-subtitle">
@@ -74,6 +80,7 @@
           </div>
         </a>
       `).join('');
+      lucide.createIcons();
     }
 
     loadHistory();
