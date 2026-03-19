@@ -14,7 +14,7 @@ const celoRpcs = [
 ];
 
 const polkadotRpcs = [
-  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
+  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-rpc-testnet.polkadot.io',
   'https://eth-asset-hub-paseo.dotters.network',
   'https://paseo-rpc.dotters.network',
   'https://westend-asset-hub-eth-rpc.polkadot.io',

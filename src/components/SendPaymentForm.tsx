@@ -730,8 +730,7 @@ export default function SendPaymentForm() {
                         return selectedNetwork === 420420417 || selectedNetwork === 420420421;
                       }
                       if (t === "USDT") {
-                        // Show USDT for all networks (it may not have balance but should be selectable)
-                        return true;
+                        return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
                       }
                       return true;
                     })

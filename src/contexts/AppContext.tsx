@@ -165,25 +165,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
         
         const isPolkadot = config.name.includes("Polkadot");
         
-        const [usdcBalance, usdtBalance, nativeBalance] = await Promise.all([
+        const [usdcBalance, usdtBalance, nativeBalance, passBalance] = await Promise.all([
           readBalance(client, config.usdcAddress),
           readBalance(client, config.usdtAddress),
           readNativeBalance(client, config),
+          isPolkadot && config.passAddress ? readBalance(client, config.passAddress) : Promise.resolve(0),
         ]);
 
         // For Polkadot, native token IS the asset (PASS), not an ERC20
-        const passBalance = isPolkadot 
-          ? nativeBalance 
-          : (config.passAddress && !config.passAddress.startsWith("0x0000000000000000000000000000000000000001") 
-            ? await readBalance(client, config.passAddress) 
-            : 0);
-
+        // But we also check the ERC20 address if provided
+        let finalPassBalance = passBalance || 0;
+        if (isPolkadot && nativeBalance > finalPassBalance) {
+          finalPassBalance = nativeBalance;
+        }
         netBalances.push({
           chainId: Number(chainId),
           networkName: config.name,
           usdc: usdcBalance,
           usdt: usdtBalance,
-          pass: passBalance,
+          pass: finalPassBalance || 0,
           nativeToken: nativeBalance,
           nativeSymbol: config.nativeSymbol || "ETH",
         });
@@ -323,7 +323,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     address: shortAddr,
     balanceUSDC,
     balanceUSDT,
-    balancePASS: networkBalances.find(nb => nb.chainId === 420420421)?.pass || networkBalances.find(nb => nb.chainId === 420420417)?.pass || 0,
+    balancePASS: networkBalances.find(nb => nb.chainId === 420420417)?.pass || networkBalances.find(nb => nb.chainId === 420420421)?.pass || 0,
     totalBalanceUSD,
     networkBalances,
   };
