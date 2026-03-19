@@ -48,6 +48,9 @@ import AccountRecoveryPage from "./pages/AccountRecoveryPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
 import WhitelabelPage from "./pages/WhitelabelPage";
 import TaxReportPage from "./pages/TaxReportPage";
+import InvoicePage from "./pages/InvoicePage";
+import DonationPage from "./pages/DonationPage";
+import SplitBillPage from "./pages/SplitBillPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -129,6 +132,9 @@ const App = () => (
                   <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/whitelabel" element={<WhitelabelPage />} />
                   <Route path="/tax-report" element={<TaxReportPage />} />
+                  <Route path="/invoice" element={<InvoicePage />} />
+                  <Route path="/donation" element={<DonationPage />} />
+                  <Route path="/split-bill" element={<SplitBillPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
