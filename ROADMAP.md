@@ -26,7 +26,7 @@
 
 ### 1.1 Core Stability Fixes
 - [ ] Fix wallet transaction nonce issues (BitGet, MetaMask)
-- [ ] Deploy contracts to all supported testnets
+- [x] Deploy contracts to all supported testnets (Paseo, Base Sepolia, Celo Alfajores)
 - [ ] Add comprehensive error handling & user feedback
 - [ ] Implement proper transaction status tracking
 

@@ -89,9 +89,10 @@ export default function ContactsPage() {
       setNewEmail("");
       setShowAdd(false);
       fetchContacts();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error:", err);
-      toast.error(err?.message || "Failed to add contact");
+      const error = err as Error;
+      toast.error(error?.message || "Failed to add contact");
     }
   };
 

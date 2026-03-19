@@ -223,6 +223,7 @@ export default function ClaimPage() {
       if (errorMessage.includes("0x144354df") || errorMessage.includes("InvalidClaimHash")) {
         toast.error("Invalid claim. The claim link may be incorrect or the payment may be invalid.");
       } else if (errorMessage.includes("0xe4cb8f8c") || errorMessage.includes("PaymentNotFound")) {
+        toast.error("Payment not found. The claim link may be incorrect or the payment may have expired.");
       } else if (errorMessage.includes("0x") || errorMessage.includes("reverted")) {
         toast.error("Transaction reverted. The payment may be invalid, already claimed, or expired.");
       } else if (errorMessage.includes("403") || errorMessage.includes("403 (Forbidden)")) {
