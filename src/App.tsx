@@ -69,6 +69,11 @@ import ScheduledPaymentsPage from "./pages/ScheduledPaymentsPage";
 import BulkSendPage from "./pages/BulkSendPage";
 import ImportExportPage from "./pages/ImportExportPage";
 import QRScannerPage from "./pages/QRScannerPage";
+import ReceiptPage from "./pages/ReceiptPage";
+import NetworkGasPage from "./pages/NetworkGasPage";
+import SecurityPage from "./pages/SecurityPage";
+import HelpFAQPage from "./pages/HelpFAQPage";
+import WalletAddressPage from "./pages/WalletAddressPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PendingTransactionsPage from "./pages/PendingTransactionsPage";
 import AddressBookPage from "./pages/AddressBookPage";
@@ -174,6 +179,11 @@ const App = () => (
                   <Route path="/bulk-send" element={<BulkSendPage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />
                   <Route path="/qr-scanner" element={<QRScannerPage />} />
+                  <Route path="/receipt/:id" element={<ReceiptPage />} />
+                  <Route path="/network-gas" element={<NetworkGasPage />} />
+                  <Route path="/security" element={<SecurityPage />} />
+                  <Route path="/help-faq" element={<HelpFAQPage />} />
+                  <Route path="/wallet-address" element={<WalletAddressPage />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/pending" element={<PendingTransactionsPage />} />
                   <Route path="/address-book" element={<AddressBookPage />} />
