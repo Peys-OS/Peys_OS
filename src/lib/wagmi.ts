@@ -77,6 +77,10 @@ export const celoAlfajores = {
 
 export const config = createConfig({
   chains: [polkadotAssetHub, celoAlfajores, celo, base, baseSepolia, mainnet, polygon, arbitrum],
+  connectors: [
+    injected(),
+    coinbaseWallet(),
+  ],
   transports: {
     [polkadotAssetHub.id]: fallback(polkadotRpcs.map(rpc => http(rpc)), { rank: true }),
     [celoAlfajores.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
@@ -87,10 +91,6 @@ export const config = createConfig({
     [polygon.id]: http(),
     [arbitrum.id]: http(),
   },
-  connectors: [
-    injected(),
-    coinbaseWallet(),
-  ],
 });
 
 export const ESCROW_CONTRACT_ADDRESS = import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000001';
