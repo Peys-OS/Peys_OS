@@ -69,6 +69,9 @@ import ScheduledPaymentsPage from "./pages/ScheduledPaymentsPage";
 import BulkSendPage from "./pages/BulkSendPage";
 import ImportExportPage from "./pages/ImportExportPage";
 import QRScannerPage from "./pages/QRScannerPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import PendingTransactionsPage from "./pages/PendingTransactionsPage";
+import AddressBookPage from "./pages/AddressBookPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -171,6 +174,9 @@ const App = () => (
                   <Route path="/bulk-send" element={<BulkSendPage />} />
                   <Route path="/import-export" element={<ImportExportPage />} />
                   <Route path="/qr-scanner" element={<QRScannerPage />} />
+                  <Route path="/notifications" element={<NotificationsPage />} />
+                  <Route path="/pending" element={<PendingTransactionsPage />} />
+                  <Route path="/address-book" element={<AddressBookPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
