@@ -156,8 +156,8 @@ sequenceDiagram
 **Cost**: $5-10/month (small VPS)
 
 **Responsibilities:**
-- **QR Code Generation**: Scan to authenticate WhatsApp Web
-- **WhatsApp Web Automation**: Using `whatsapp-web.js`
+- **QR Code Generation**: Scan to authenticate WhatsApp
+- **WhatsApp Automation**: Using `@whiskeysockets/baileys`
 - **Session Management**: Persistent WhatsApp sessions
 - **Event Forwarding**: Send WhatsApp events to Supabase
 
@@ -265,7 +265,7 @@ VITE_USDC_ADDRESS=0x...
 ### WhatsApp Service (.env)
 ```
 # WhatsApp Session
-WHATSAPP_SESSION_PATH=.wwebjs-auth
+WHATSAPP_SESSION_PATH=.baileys_auth
 
 # Supabase Integration
 SUPABASE_URL=https://xxx.supabase.co
