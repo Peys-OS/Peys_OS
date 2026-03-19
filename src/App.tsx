@@ -51,6 +51,11 @@ import TaxReportPage from "./pages/TaxReportPage";
 import InvoicePage from "./pages/InvoicePage";
 import DonationPage from "./pages/DonationPage";
 import SplitBillPage from "./pages/SplitBillPage";
+import StatementPage from "./pages/StatementPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import ReferralPage from "./pages/ReferralPage";
+import ReminderPage from "./pages/ReminderPage";
+import TemplatesPage from "./pages/TemplatesPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -135,6 +140,11 @@ const App = () => (
                   <Route path="/invoice" element={<InvoicePage />} />
                   <Route path="/donation" element={<DonationPage />} />
                   <Route path="/split-bill" element={<SplitBillPage />} />
+                  <Route path="/statement" element={<StatementPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/referral" element={<ReferralPage />} />
+                  <Route path="/budget" element={<ReminderPage />} />
+                  <Route path="/templates" element={<TemplatesPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
