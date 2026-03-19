@@ -56,6 +56,10 @@ import PrivacyPage from "./pages/PrivacyPage";
 import ReferralPage from "./pages/ReferralPage";
 import ReminderPage from "./pages/ReminderPage";
 import TemplatesPage from "./pages/TemplatesPage";
+import MerchantToolsPage from "./pages/MerchantToolsPage";
+import VerificationPage from "./pages/VerificationPage";
+import LoyaltyPage from "./pages/LoyaltyPage";
+import LimitsPage from "./pages/LimitsPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -145,6 +149,10 @@ const App = () => (
                   <Route path="/referral" element={<ReferralPage />} />
                   <Route path="/budget" element={<ReminderPage />} />
                   <Route path="/templates" element={<TemplatesPage />} />
+                  <Route path="/merchant" element={<MerchantToolsPage />} />
+                  <Route path="/verification" element={<VerificationPage />} />
+                  <Route path="/loyalty" element={<LoyaltyPage />} />
+                  <Route path="/limits" element={<LimitsPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
