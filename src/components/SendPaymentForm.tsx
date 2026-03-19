@@ -963,15 +963,6 @@ export default function SendPaymentForm() {
                   onLocationChange={(loc) => setSelectedLocation(loc)}
                 />
                 
-                <div className="rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 p-3">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                    <p className="text-xs text-foreground">
-                      <span className="font-medium">Tip:</span> You can also send directly via WhatsApp. Just message @Peys with "send [amount] to [phone]"
-                    </p>
-                  </div>
-                </div>
-                
                 <button
                   onClick={handleSend}
                   disabled={!amount || Number(amount) <= 0 || !recipient}
