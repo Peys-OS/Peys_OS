@@ -17,7 +17,8 @@ export default function AppHeader() {
   const [devOpen, setDevOpen] = useState(false);
 
   const personalItems = [
-    { to: "/send", label: "Send Money", desc: "Send via link, email, phone, or wallet", icon: Send },
+    { to: "/pay", label: "Pay Someone", desc: "Pay without account", icon: Send },
+    { to: "/send", label: "Send Money", desc: "Send via link or address", icon: Send },
     { to: "/request", label: "Request", desc: "Create payment request", icon: FileText },
     { to: "/contacts", label: "Contacts", desc: "Manage recipients", icon: Users },
     { to: "/whatsapp", label: "WhatsApp", desc: "Pay via chat", icon: MessageCircle },
@@ -33,11 +34,11 @@ export default function AppHeader() {
   ];
 
   const devItems = [
-    { to: "#", label: "Documentation", desc: "Full developer docs", icon: Globe, coming: true },
-    { to: "#", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: true },
-    { to: "#", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: true },
-    { to: "#", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: true },
-    { to: "#", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: true },
+    { to: "/docs", label: "Documentation", desc: "Full developer docs", icon: Globe, coming: false },
+    { to: "/docs/quickstart", label: "Quick Start", desc: "Get started in 5 min", icon: Zap, coming: false },
+    { to: "/docs/api/payments", label: "API Reference", desc: "REST API endpoints", icon: Code, coming: false },
+    { to: "/docs/sdks/javascript", label: "SDKs", desc: "JS, Python, Go", icon: Terminal, coming: false },
+    { to: "/docs/sdks/pricing", label: "SDK Pricing", desc: "Pricing for SDKs", icon: CreditCard, coming: true },
   ];
 
   const handleLogin = () => {
@@ -482,6 +483,7 @@ export default function AppHeader() {
                     >
                       <div className="grid grid-cols-1 gap-1 p-1">
                         {devItems.map((item) => {
+                          const Icon = item.icon;
                           const handleClick = (e: React.MouseEvent) => {
                             if (item.coming) {
                               e.preventDefault();
@@ -505,7 +507,7 @@ export default function AppHeader() {
                               }`}
                             >
                               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
-                                <item.icon className="h-4 w-4" />
+                                <Icon className="h-4 w-4" />
                               </div>
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">

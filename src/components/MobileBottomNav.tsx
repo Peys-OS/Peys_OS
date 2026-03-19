@@ -6,8 +6,8 @@ import { toast } from "sonner";
 
 const primaryItems = [
   { to: "/", label: "Home", icon: Home },
+  { to: "/pay", label: "Pay", icon: Send },
   { to: "/send", label: "Send", icon: Send },
-  { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
 
 const moreItems = [
@@ -80,10 +80,10 @@ const moreItems = [
 ];
 
 const devItems = [
-  { to: "#", label: "Docs", icon: Globe, coming: true },
-  { to: "#", label: "Quick Start", icon: Zap, coming: true },
-  { to: "#", label: "API", icon: Code, coming: true },
-  { to: "#", label: "SDKs", icon: Code, coming: true },
+  { to: "/docs", label: "Docs", icon: Globe, coming: false },
+  { to: "/docs/quickstart", label: "Quick Start", icon: Zap, coming: false },
+  { to: "/docs/api/payments", label: "API", icon: Code, coming: false },
+  { to: "/docs/sdks/javascript", label: "SDKs", icon: Code, coming: false },
 ];
 
 export default function MobileBottomNav() {
