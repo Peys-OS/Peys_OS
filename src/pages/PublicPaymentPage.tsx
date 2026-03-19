@@ -158,7 +158,6 @@ export default function PublicPaymentPage() {
 
         const chainId = selectedNetwork;
         const chainConfig = getChainConfig(chainId);
-        
         let tokenAddress: string;
         if (token === "PASS") {
           tokenAddress = chainConfig.passAddress;
@@ -204,7 +203,7 @@ export default function PublicPaymentPage() {
         
         const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
         
-        const log = receipt?.logs ? (receipt.logs as Array<{ topics: string[], data: string }>).find(l => l.topics[0] === paymentCreatedTopic) : null;
+        const log = receipt?.logs ? (receipt.logs as any[]).find(l => l.topics[0] === paymentCreatedTopic) : null;
         
         let blockchainPaymentId: string | null = null;
         
@@ -212,8 +211,8 @@ export default function PublicPaymentPage() {
           try {
             const decoded = decodeEventLog({
               abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
-              data: log.data,
-              topics: log.topics,
+              data: log.data as `0x${string}`,
+              topics: log.topics as [signature: `0x${string}`, ...args: `0x${string}`[]],
             }) as { args: { paymentId: string } };
             blockchainPaymentId = decoded.args.paymentId;
           } catch (decodeError) {

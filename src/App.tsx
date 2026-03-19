@@ -140,6 +140,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/send" element={<SendPage />} />
                   <Route path="/public" element={<PublicPaymentPage />} />
+                  <Route path="/pay" element={<PublicPaymentPage />} />
                   <Route path="/claim/:id" element={<ClaimPage />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/assets" element={<AssetsPage />} />
