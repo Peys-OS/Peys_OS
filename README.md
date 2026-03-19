@@ -469,6 +469,9 @@ Watch our demo: [Peys Demo Video](./docs/demo-video.md)
 |---------|-----------------|
 | Polkadot (Paseo) | `0x802a6843516f52144b3f1d04e5447a085d34af37` |
 | Base Sepolia | `0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c` |
+| Celo Alfajores | `0xc880AF5d5aC3ea27c26C47D132661A710C245ea5` |
+
+> Note: PeyStreaming and PeyBatchPayroll contracts pending deployment.
 
 ---
 

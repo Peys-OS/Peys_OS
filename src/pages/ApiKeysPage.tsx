@@ -100,10 +100,11 @@ export default function ApiKeysPage() {
         description: "Make sure to copy your API key now. You won't be able to see it again!",
         variant: "default",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     } finally {
@@ -125,10 +126,11 @@ export default function ApiKeysPage() {
         title: "API Key Revoked",
         description: "The API key has been deleted.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     }

@@ -1,5 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 
+interface PaymentRecord {
+  id: string;
+  payment_id: string;
+  amount: number;
+  token: string;
+  status: string;
+  created_at: string;
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const API_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : 'http://localhost:54321/functions/v1';
 
@@ -94,7 +103,7 @@ class ApiClient {
   }
 
   async getUserPayments(walletAddress: string) {
-    return this.request<any[]>('/get-user-payments', {
+    return this.request<PaymentRecord[]>('/get-user-payments', {
       method: 'POST',
       body: JSON.stringify({ walletAddress }),
     });

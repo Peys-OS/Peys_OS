@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -13,9 +13,29 @@ const primaryItems = [
 const moreItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/contacts", label: "Contacts", icon: Users },
+  { to: "/affiliate", label: "Affiliate", icon: Users },
+  { to: "/games", label: "Games", icon: Trophy },
+  { to: "/giftcards", label: "Gift Cards", icon: Gift },
+  { to: "/feed", label: "Feed", icon: Heart },
+  { to: "/timelock", label: "Time-Lock", icon: Vault },
+  { to: "/nfc", label: "NFC", icon: Smartphone },
+  { to: "/account-recovery", label: "Recovery", icon: ShieldCheck },
+  { to: "/approvals", label: "Approvals", icon: ShieldCheck },
+  { to: "/disputes", label: "Disputes", icon: AlertTriangle },
+  { to: "/subscriptions", label: "Subscriptions", icon: Clock },
+  { to: "/cashback", label: "Cashback", icon: Gift },
+  { to: "/tipjar", label: "Tip Jar", icon: Coffee },
+  { to: "/bundle", label: "Bundle", icon: Package },
+  { to: "/explorer", label: "Explorer", icon: Activity },
+  { to: "/labels", label: "Labels", icon: Tag },
+  { to: "/recurring", label: "Recurring", icon: RefreshCw },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/badges", label: "Badges", icon: Shield },
   { to: "/streaming", label: "Stream", icon: Zap },
+  { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/organizations", label: "Orgs", icon: Building2 },
+  { to: "/whitelabel", label: "Whitelabel", icon: Palette },
+  { to: "/tax-report", label: "Tax Report", icon: Receipt },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];

@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Building2, Save, Loader2, ArrowLeft } from "lucide-react";
+import { User, Building2, Save, Loader2, ArrowLeft, Fingerprint, Shield, CheckCircle, X, Volume2, VolumeX } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import WalletReceiveCard from "@/components/WalletReceiveCard";
+import BiometricAuthModal from "@/components/ui/BiometricAuthModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSound } from "@/hooks/useSound";
+import { useHaptic } from "@/hooks/useHaptic";
+import { useWakeLock } from "@/hooks/useWakeLock";
 
 type AccountType = "individual" | "organization";
 
@@ -22,8 +26,13 @@ const ORG_TYPES = ["NGO / Non-profit", "DAO", "Company", "Freelancer", "Governme
 
 export default function ProfilePage() {
   const { isLoggedIn, login, wallet, walletAddress } = useApp();
+  const { soundsEnabled, setSoundsEnabled, playSound } = useSound();
+  const { hapticsEnabled, setHapticsEnabled, triggerHaptic } = useHaptic();
+  const { wakeLockEnabled, setWakeLockEnabled, isSupported: wakeLockSupported, isWakeLockActive } = useWakeLock();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     display_name: "",
     account_type: "individual",
@@ -49,6 +58,7 @@ export default function ProfilePage() {
           organization_type: data.organization_type || "",
         });
       }
+      setBiometricEnabled(localStorage.getItem("peys_biometric_enabled") === "true");
       setLoading(false);
     })();
   }, [isLoggedIn]);
@@ -168,12 +178,178 @@ export default function ProfilePage() {
               </button>
             </div>
 
+            {/* Security Settings */}
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg text-foreground">Security</h3>
+                  <p className="text-xs text-muted-foreground">Protect your transactions with PIN & biometric</p>
+                </div>
+              </div>
+              
+              {biometricEnabled ? (
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Authentication Enabled</p>
+                      <p className="text-xs text-muted-foreground">PIN + Biometric required for transactions</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowBiometricSetup(true)}
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                  >
+                    Manage
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowBiometricSetup(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border py-4 text-sm font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                >
+                  <Fingerprint className="h-5 w-5" />
+                  Set Up Authentication
+                </button>
+              )}
+            </div>
+
+            {/* Sound Settings */}
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  {soundsEnabled ? <Volume2 className="h-5 w-5 text-primary" /> : <VolumeX className="h-5 w-5 text-primary" />}
+                </div>
+                <div>
+                  <h3 className="font-display text-lg text-foreground">Sound Effects</h3>
+                  <p className="text-xs text-muted-foreground">Audio feedback for transactions</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between rounded-lg border border-border bg-background p-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Transaction Sounds</p>
+                  <p className="text-xs text-muted-foreground">Play sounds on send, success, and error</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const newVal = !soundsEnabled;
+                    setSoundsEnabled(newVal);
+                    if (newVal) playSound("notification");
+                  }}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${
+                    soundsEnabled ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      soundsEnabled ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Haptic Settings */}
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">📳</span>
+                </div>
+                <div>
+                  <h3 className="font-display text-lg text-foreground">Haptic Feedback</h3>
+                  <p className="text-xs text-muted-foreground">Vibration feedback for mobile devices</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between rounded-lg border border-border bg-background p-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Vibration Feedback</p>
+                  <p className="text-xs text-muted-foreground">Feel feedback on actions and errors</p>
+                </div>
+                <button
+                  onClick={() => {
+                    const newVal = !hapticsEnabled;
+                    setHapticsEnabled(newVal);
+                    if (newVal) triggerHaptic("toggle");
+                  }}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${
+                    hapticsEnabled ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      hapticsEnabled ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Wake Lock Settings */}
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-lg">☀️</span>
+                </div>
+                <div>
+                  <h3 className="font-display text-lg text-foreground">Screen Wake Lock</h3>
+                  <p className="text-xs text-muted-foreground">Keep screen on during transactions</p>
+                </div>
+              </div>
+              
+              {!wakeLockSupported ? (
+                <div className="rounded-lg border border-border bg-background/50 p-4 text-center">
+                  <p className="text-sm text-muted-foreground">Screen wake lock not supported in this browser</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-background p-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Auto Wake Lock</p>
+                      <p className="text-xs text-muted-foreground">Keep screen on during transactions</p>
+                    </div>
+                    <button
+                      onClick={() => setWakeLockEnabled(!wakeLockEnabled)}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${
+                        wakeLockEnabled ? "bg-primary" : "bg-muted"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          wakeLockEnabled ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  
+                  {wakeLockEnabled && (
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-background/50 p-3">
+                      <span className={`h-2 w-2 rounded-full ${isWakeLockActive ? "bg-green-500 animate-pulse" : "bg-muted-foreground"}`} />
+                      <p className="text-xs text-muted-foreground">
+                        {isWakeLockActive ? "Screen wake lock active" : "Wake lock inactive (screen may sleep)"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Wallet receive */}
             <WalletReceiveCard address={walletAddress || wallet.address} />
           </div>
         )}
       </div>
       <Footer />
+      <BiometricAuthModal
+        open={showBiometricSetup}
+        onClose={() => setShowBiometricSetup(false)}
+        onSuccess={() => setBiometricEnabled(true)}
+        reason="Manage your authentication settings"
+      />
     </div>
   );
 }

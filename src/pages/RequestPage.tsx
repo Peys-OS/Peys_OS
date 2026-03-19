@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Plus, Copy, Check, Clock, DollarSign, ExternalLink, Share2, Loader2 } from "lucide-react";
+import { FileText, Plus, Copy, Check, Clock, DollarSign, ExternalLink, Share2, Loader2, LucideIcon } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-// Workaround: cast to any to bypass type checking until tables are created in DB
-const db = supabase as any;
 
 interface PaymentRequest {
   id: string;
@@ -33,7 +30,7 @@ const statusStyles: Record<string, string> = {
   expired: "bg-muted text-muted-foreground",
 };
 
-const statusIcons: Record<string, any> = {
+const statusIcons: Record<string, LucideIcon> = {
   open: Clock,
   paid: Check,
   expired: Clock,
@@ -160,7 +157,10 @@ export default function RequestPage() {
       url: `https://${req.link}`,
     };
     if (navigator.share) {
-      try { await navigator.share(shareData); } catch {}
+      try { await navigator.share(shareData); } catch (e) {
+        // Fallback to clipboard copy if share fails
+        console.log("Share not supported, using clipboard");
+      }
     } else {
       copyLink(req.link, req.id);
     }

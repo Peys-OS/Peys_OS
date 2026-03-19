@@ -13,6 +13,10 @@ import { v4 as uuidv4 } from "uuid";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
+import { useSound } from "@/hooks/useSound";
+import { useHaptic } from "@/hooks/useHaptic";
+import { useWakeLock } from "@/hooks/useWakeLock";
+import { LocationTagging, useLocation } from "@/hooks/useLocation";
 
 interface Contact {
   id: string;
@@ -40,6 +44,9 @@ const networks: NetworkOption[] = [
 
 export default function SendPaymentForm() {
   const { isLoggedIn, login, wallet, walletAddress } = useApp();
+  const { playSound } = useSound();
+  const { triggerHaptic } = useHaptic();
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
   const [searchParams] = useSearchParams();
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
@@ -54,19 +61,91 @@ export default function SendPaymentForm() {
   const [showCard, setShowCard] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
   const [showNetworkSelector, setShowNetworkSelector] = useState(false);
+  const [showAddChainModal, setShowAddChainModal] = useState(false);
   const [recentRecipients, setRecentRecipients] = useState<Contact[]>([]);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
   const [claimId, setClaimId] = useState("");
-  const [txHash, setTxHash] = useState("");
+  const [txHash, setTxHash] = useState<`0x${string}` | "">("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [fullLink, setFullLink] = useState("");
+  const [gasEstimate, setGasEstimate] = useState<bigint | null>(null);
+  const [gasLoading, setGasLoading] = useState(false);
+  const [showMemoTemplates, setShowMemoTemplates] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const recipientRef = useRef<HTMLDivElement>(null);
+
+  const memoTemplates = [
+    "Lunch money 🍕",
+    "Thanks for the help! 🙏",
+    "Project payment",
+    "Freelance work",
+    "Birthday gift 🎁",
+    "Monthly allowance",
+    "Coffee ☕",
+    "Rent",
+  ];
   const qrRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<HTMLDivElement>(null);
 
-  const { createPayment } = useEscrow();
+  const { createPayment, estimateGas } = useEscrow();
   const publicClient = usePublicClient();
   const { chain: connectedChain } = useAccount();
+
+  // Estimate gas when entering confirm step
+  useEffect(() => {
+    if (step === "confirm" && amount && recipient) {
+      const estimate = async () => {
+        setGasLoading(true);
+        try {
+          const chainConfig = getChainConfig(selectedNetwork);
+          const tokenAddress = token === "USDC" ? chainConfig.usdcAddress : chainConfig.usdtAddress;
+          const amountBigInt = BigInt(Number(amount) * 1000000);
+          const dummySecret = "estimate_gas_dummy_secret";
+          
+          const estimated = await estimateGas(
+            tokenAddress as `0x${string}`,
+            amountBigInt,
+            dummySecret,
+            memo || "",
+            7
+          );
+          setGasEstimate(estimated);
+        } catch (error) {
+          console.error("Failed to estimate gas:", error);
+          setGasEstimate(null);
+        } finally {
+          setGasLoading(false);
+        }
+      };
+      estimate();
+    } else {
+      setGasEstimate(null);
+      setGasLoading(false);
+    }
+  }, [step, amount, recipient, selectedNetwork, token, memo, estimateGas]);
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    const draft = { amount, recipient, memo, recipientType };
+    localStorage.setItem("peys_send_draft", JSON.stringify(draft));
+  }, [amount, recipient, memo, recipientType]);
+
+  // Restore draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("peys_send_draft");
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        if (draft.amount) setAmount(draft.amount);
+        if (draft.recipient) setRecipient(draft.recipient);
+        if (draft.memo) setMemo(draft.memo);
+        if (draft.recipientType) setRecipientType(draft.recipientType);
+      } catch (e) {
+        console.warn("Failed to restore draft:", e);
+      }
+    }
+  }, []);
+
   const { switchChain } = useSwitchChain();
   const walletChainId = useChainId();
 
@@ -188,6 +267,9 @@ export default function SendPaymentForm() {
 
   const handleSend = async () => {
     if (!isLoggedIn) { login(); return; }
+    playSound("send");
+    triggerHaptic("navigation");
+    requestWakeLock();
     if (step === "form") {
       if (!recipient) {
         if (recipientType === "email") toast.error("Please enter a recipient email");
@@ -453,10 +535,17 @@ export default function SendPaymentForm() {
         setFullLink(link);
         setStep("done");
         fireBurst();
+        playSound("success");
+        triggerHaptic("success");
+        releaseWakeLock();
+        localStorage.removeItem("peys_send_draft");
         toast.success("Payment created! Share the link to get paid 🎉");
       } catch (err: unknown) {
         console.error("Payment creation failed:", err);
         const errorMessage = (err as Error).message || "Failed to create payment";
+        playSound("error");
+        triggerHaptic("error");
+        releaseWakeLock();
         
         // Check for nonce-related errors
         if (errorMessage.includes('nonce') || errorMessage.includes('Nonce too low')) {
@@ -556,14 +645,18 @@ export default function SendPaymentForm() {
                   >
                     <div className="flex items-center gap-3">
                       <div 
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white relative"
                         style={{ backgroundColor: currentNetwork.color }}
                       >
                         {currentNetwork.shortName.slice(0, 2)}
+                        <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card" />
                       </div>
                       <div className="text-left">
                         <p className="text-xs text-muted-foreground">Network</p>
-                        <p className="font-medium text-foreground">{currentNetwork.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">{currentNetwork.name}</p>
+                          <span className="text-xs text-green-600 font-medium">Online</span>
+                        </div>
                       </div>
                     </div>
                     <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${showNetworkSelector ? 'rotate-180' : ''}`} />
@@ -577,27 +670,52 @@ export default function SendPaymentForm() {
                         exit={{ opacity: 0, y: -8 }}
                         className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-card shadow-elevated"
                       >
-                        {networks.map((network) => (
-                          <button
-                            key={network.id}
-                            type="button"
-                            onClick={() => handleNetworkChange(network.id)}
-                            className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 ${selectedNetwork === network.id ? 'bg-primary/10' : ''}`}
-                          >
-                            <div 
-                              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
-                              style={{ backgroundColor: network.color }}
+                        {networks.map((network) => {
+                          const networkBalance = wallet.networkBalances?.find(nb => nb.chainId === network.id);
+                          const totalBalance = networkBalance ? (networkBalance.usdc + networkBalance.usdt + networkBalance.pass) : 0;
+                          
+                          return (
+                            <button
+                              key={network.id}
+                              type="button"
+                              onClick={() => handleNetworkChange(network.id)}
+                              className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/60 ${selectedNetwork === network.id ? 'bg-primary/10' : ''}`}
                             >
-                              {network.shortName.slice(0, 2)}
-                            </div>
-                            <div className="flex-1">
-                              <p className="font-medium text-foreground">{network.name}</p>
-                            </div>
-                            {selectedNetwork === network.id && (
-                              <Check className="h-4 w-4 text-primary" />
-                            )}
-                          </button>
-                        ))}
+                              <div 
+                                className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white relative"
+                                style={{ backgroundColor: network.color }}
+                              >
+                                {network.shortName.slice(0, 2)}
+                                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-card" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-medium text-foreground">{network.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {totalBalance > 0 ? `$${totalBalance.toFixed(2)}` : 'No balance'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-green-600 font-medium">Online</p>
+                              </div>
+                              {selectedNetwork === network.id && (
+                                <Check className="h-4 w-4 text-primary" />
+                              )}
+                            </button>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => setShowAddChainModal(true)}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-left text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/50 text-xs">
+                            +
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">Add Custom Chain</p>
+                            <p className="text-xs text-muted-foreground">Enter RPC URL and chain ID</p>
+                          </div>
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -790,6 +908,48 @@ export default function SendPaymentForm() {
                   placeholder="Add a note (optional)"
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                 />
+
+                <div className="flex flex-wrap gap-2">
+                  {memoTemplates.slice(0, 4).map((template) => (
+                    <button
+                      key={template}
+                      onClick={() => setMemo(template)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        memo === template
+                          ? "bg-primary/10 border-primary text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      }`}
+                    >
+                      {template}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setShowMemoTemplates(!showMemoTemplates)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-dashed border-muted-foreground/50 text-muted-foreground hover:border-muted-foreground"
+                  >
+                    + More
+                  </button>
+                </div>
+
+                {showMemoTemplates && (
+                  <div className="p-3 rounded-xl border border-border bg-card">
+                    <p className="text-xs text-muted-foreground mb-2">More templates:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {memoTemplates.slice(4).map((template) => (
+                        <button
+                          key={template}
+                          onClick={() => {
+                            setMemo(template);
+                            setShowMemoTemplates(false);
+                          }}
+                          className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+                        >
+                          {template}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 p-3">
                   <div className="flex items-center gap-2">
@@ -799,6 +959,10 @@ export default function SendPaymentForm() {
                     </p>
                   </div>
                 </div>
+                
+                <LocationTagging 
+                  onLocationChange={(loc) => setSelectedLocation(loc)}
+                />
                 
                 <button
                   onClick={handleSend}
@@ -813,6 +977,13 @@ export default function SendPaymentForm() {
 
             {step === "confirm" && (
               <motion.div key="confirm" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="space-y-4 sm:space-y-6">
+                <button
+                  onClick={() => setStep("form")}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  ← Back to edit
+                </button>
+
                 <div className="space-y-3 rounded-xl border border-border bg-secondary/50 p-4 sm:space-y-4 sm:p-5 md:p-6">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground sm:text-base">Amount</span>
@@ -832,7 +1003,10 @@ export default function SendPaymentForm() {
                   <div className="h-px bg-border" />
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-sm text-muted-foreground sm:text-base">To ({recipientType})</span>
-                    <span className="text-foreground font-medium break-all sm:text-base">{recipient}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-foreground font-medium break-all sm:text-base">{recipient}</span>
+                      <Check className="h-4 w-4 text-green-500 shrink-0" />
+                    </div>
                   </div>
                   {memo && (
                     <>
@@ -851,7 +1025,20 @@ export default function SendPaymentForm() {
                   <div className="h-px bg-border" />
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground sm:text-base">Network fee</span>
-                    <span className="font-medium text-primary sm:text-base">~$0.01</span>
+                    <span className="font-medium text-primary sm:text-base">
+                      {gasLoading ? (
+                        <span className="animate-pulse">Estimating...</span>
+                      ) : gasEstimate ? (
+                        `~${(Number(gasEstimate) / 1e18).toFixed(6)} ${selectedNetwork === 420420417 ? "PAS" : "ETH"}`
+                      ) : (
+                        "Unavailable"
+                      )}
+                    </span>
+                  </div>
+                  <div className="h-px bg-border" />
+                  <div className="flex items-center justify-between bg-primary/5 -mx-4 -mb-4 px-4 py-3 rounded-b-xl">
+                    <span className="text-sm font-medium text-foreground sm:text-base">Total</span>
+                    <span className="font-bold text-primary sm:text-lg">{Number(amount).toFixed(2)} {token}</span>
                   </div>
                 </div>
                 
@@ -953,7 +1140,7 @@ export default function SendPaymentForm() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
-              className="relative rounded-2xl bg-card p-6"
+              className="relative w-full max-w-sm rounded-2xl bg-card p-6 sm:max-w-md sm:p-8"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -963,7 +1150,7 @@ export default function SendPaymentForm() {
                 <X className="h-5 w-5" />
               </button>
               <div ref={qrRef} className="p-2">
-                <QRCodeSVG value={fullLink} size={200} />
+                <QRCodeSVG value={fullLink} size={Math.min(window.innerWidth > 640 ? 280 : 200, 280)} />
               </div>
               <p className="mt-3 text-center text-xs text-muted-foreground">Scan to claim payment</p>
             </motion.div>
@@ -987,6 +1174,79 @@ export default function SendPaymentForm() {
             link={fullLink}
             onClose={() => setShowCard(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Add Custom Chain Modal */}
+      <AnimatePresence>
+        {showAddChainModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setShowAddChainModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-elevated"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-lg text-foreground">Add Custom Chain</h3>
+                <button onClick={() => setShowAddChainModal(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground">Chain Name</label>
+                  <input
+                    type="text"
+                    placeholder="My Custom Chain"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Chain ID</label>
+                  <input
+                    type="number"
+                    placeholder="12345"
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">RPC URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://..."
+                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => setShowAddChainModal(false)}
+                  className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success("Custom chain added! (Feature coming soon)");
+                    setShowAddChainModal(false);
+                  }}
+                  className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  Add Chain
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

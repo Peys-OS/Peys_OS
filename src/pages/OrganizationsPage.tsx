@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -15,7 +16,23 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-const db = supabase as any;
+interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  owner_id: string | null;
+  logo_url: string | null;
+  description: string | null;
+  website: string | null;
+  created_at: string;
+}
+
+interface TeamMember {
+  id: string;
+  email: string;
+  role: string;
+  joined_at: string;
+}
 
 type TabType = "overview" | "team" | "approvals" | "stores" | "links" | "contractors" | "templates" | "settings";
 
@@ -40,8 +57,8 @@ export default function OrganizationsPage() {
   const { walletAddress, user: privyUser } = usePrivyAuth();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [showCreateOrg, setShowCreateOrg] = useState(false);
-  const [organizations, setOrganizations] = useState<any[]>([]);
-  const [currentOrg, setCurrentOrg] = useState<any>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [currentOrg, setCurrentOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [useLocalStorage, setUseLocalStorage] = useState(false);
 
@@ -77,7 +94,7 @@ export default function OrganizationsPage() {
         console.log("Database not available, using localStorage fallback");
         const localOrgs = JSON.parse(localStorage.getItem("organizations") || "[]");
         // Filter by wallet address or user id
-        const userOrgs = localOrgs.filter((o: any) => 
+        const userOrgs = localOrgs.filter((o: Organization) => 
           o.owner_id === walletAddress || 
           o.owner_id === user?.id ||
           o.owner_id === privyUser?.id

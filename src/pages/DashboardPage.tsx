@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle, Wallet, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle, Wallet, Plus, Star } from "lucide-react";
 import WalletReceiveCard from "@/components/WalletReceiveCard";
 import { useApp } from "@/contexts/AppContext";
+import { useFavorites } from "@/hooks/useFavorites";
 import type { Transaction } from "@/hooks/useMockData";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
@@ -26,11 +27,12 @@ function TxIcon({ type }: { type: Transaction["type"] }) {
   return <Clock className="h-4 w-4" />;
 }
 
-type StatusFilter = "all" | "sent" | "claimed" | "pending";
+type StatusFilter = "all" | "sent" | "claimed" | "pending" | "starred";
 type TokenFilter = "all" | "USDC" | "USDT";
 
 export default function DashboardPage() {
   const { isLoggedIn, login, wallet, walletAddress, transactions, transactionsLoading, refreshTransactions } = useApp();
+  const { isTransactionStarred, toggleStarTransaction } = useFavorites();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [tokenFilter, setTokenFilter] = useState<TokenFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,6 +85,9 @@ export default function DashboardPage() {
   }
 
   const filtered = transactions.filter((tx) => {
+    if (statusFilter === "starred") {
+      return isTransactionStarred(tx.id);
+    }
     if (statusFilter !== "all" && tx.type !== statusFilter) return false;
     if (tokenFilter !== "all" && tx.token !== tokenFilter) return false;
     if (searchQuery) {
@@ -109,6 +114,7 @@ export default function DashboardPage() {
 
   const statusFilters: { label: string; value: StatusFilter }[] = [
     { label: "All", value: "all" },
+    { label: "Starred", value: "starred" },
     { label: "Sent", value: "sent" },
     { label: "Claimed", value: "claimed" },
     { label: "Pending", value: "pending" },
@@ -314,29 +320,46 @@ export default function DashboardPage() {
               )}
             </motion.div>
           ) : (
-            filtered.map((tx, i) => (
+            filtered.map((tx, i) => {
+              const starred = isTransactionStarred(tx.id);
+              return (
               <motion.div key={tx.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }}
-                onClick={() => setSelectedTx(tx)}
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
+                className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary/30 sm:rounded-xl sm:p-4"
               >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBg[tx.type]}`}>
+                <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full sm:h-9 sm:w-9 ${iconBg[tx.type]}`}>
                   <TxIcon type={tx.type} />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div 
+                  className="min-w-0 flex-1 cursor-pointer"
+                  onClick={() => setSelectedTx(tx)}
+                >
                   <div className="flex items-center gap-2">
                     <p className="truncate text-sm font-medium text-foreground">{tx.counterparty}</p>
                     <span className={`hidden rounded-full px-2 py-0.5 text-xs font-medium capitalize sm:inline-block ${badgeStyles[tx.type]}`}>{tx.type}</span>
+                    {starred && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
                   </div>
                   <p className="text-xs text-muted-foreground">{tx.memo || formatTime(tx.timestamp)}</p>
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-semibold ${tx.type === "claimed" ? "text-primary" : "text-foreground"}`}>
-                    {tx.type === "claimed" ? "+" : "-"}{tx.amount} {tx.token}
-                  </p>
-                  <span className={`text-xs capitalize sm:hidden ${badgeStyles[tx.type]}`}>{tx.type}</span>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <p className={`text-sm font-semibold ${tx.type === "claimed" ? "text-primary" : "text-foreground"}`}>
+                      {tx.type === "claimed" ? "+" : "-"}{tx.amount} {tx.token}
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStarTransaction(tx.id);
+                      toast.success(starred ? "Removed from favorites" : "Added to favorites");
+                    }}
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-yellow-500"
+                  >
+                    <Star className={`h-4 w-4 ${starred ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                  </button>
                 </div>
               </motion.div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

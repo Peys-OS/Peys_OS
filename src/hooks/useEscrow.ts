@@ -1,8 +1,9 @@
-import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
+import { useSendTransaction, useWallets } from '@privy-io/react-auth';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
 import { useCallback } from 'react';
-import { keccak256, toBytes, Address, Hex, PublicClient } from 'viem';
+import { keccak256, toBytes, Address, Hex, encodeFunctionData } from 'viem';
 
 export interface Payment {
   sender: string;
@@ -18,8 +19,9 @@ export { getChainConfig };
 
 export function useEscrow() {
   const { chain, address } = useAccount();
-  const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { sendTransaction } = useSendTransaction();
+  const { wallets } = useWallets();
 
   const getContractAddresses = useCallback(() => {
     const chainId = chain?.id || 84532;
@@ -66,73 +68,76 @@ export function useEscrow() {
     onApprovalRequested?: () => void,
     onCreatingPayment?: () => void
   ): Promise<Hex | undefined> => {
-    if (!walletClient) {
-      throw new Error("Wallet not connected. Please connect your wallet first.");
-    }
-
     if (!address) {
-      throw new Error("No wallet address found");
+      throw new Error("Wallet not connected. Please connect your wallet first.");
     }
 
     const claimHash = keccak256(toBytes(secret));
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
-    const { escrowContract, usdcAddress } = getContractAddresses();
+    const { escrowContract } = getContractAddresses();
 
     console.log("createPayment called", { tokenAddress, amount, escrowContract, chainId: chain?.id });
     
-    // Check allowance
-    console.log("Checking allowance for token:", tokenAddress);
+    const isNativeToken = tokenAddress.startsWith("0x00000001") || tokenAddress.startsWith("0x0000000100000000");
+    console.log("Is native token:", isNativeToken);
+    
     const pc = publicClient;
     
-    // Check allowance first
-    let hasAllowance = false;
-    try {
-      hasAllowance = await checkAllowance(tokenAddress, amount);
-      console.log("Allowance check result:", hasAllowance);
-    } catch (e) {
-      console.warn("Could not check allowance:", e);
-    }
-    
-    if (!hasAllowance) {
-      if (onApprovalRequested) {
-        onApprovalRequested();
+    // Native tokens don't need approval
+    if (!isNativeToken) {
+      let hasAllowance = false;
+      try {
+        hasAllowance = await checkAllowance(tokenAddress, amount);
+        console.log("Allowance check result:", hasAllowance);
+      } catch (e) {
+        console.warn("Could not check allowance:", e);
       }
       
-      console.log("Sending approval transaction...");
-      
-      try {
-        const simulation = await pc.simulateContract({
-          address: tokenAddress,
-          abi: ERC20_ABI,
-          functionName: 'approve',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          args: [escrowContract, amount] as any,
-          account: address,
-        });
-        
-        const approvalHash = await walletClient.writeContract(simulation.request);
-        console.log("Approval tx hash:", approvalHash);
-        
-        const receipt = await pc.waitForTransactionReceipt({ hash: approvalHash });
-        console.log("Approval receipt:", receipt);
-        
-        if (receipt.status === 'reverted') {
-          throw new Error("Approval transaction was reverted");
-        }
-      } catch (approveError: any) {
-        console.error("Approval error:", approveError);
-        
-        const errorMsg = approveError?.message || '';
-        const isRejected = errorMsg.includes('user rejected') || errorMsg.includes('cancelled') || errorMsg.includes('rejected');
-        
-        if (isRejected) {
-          throw new Error("Transaction was cancelled. Please try again.");
+      if (!hasAllowance) {
+        if (onApprovalRequested) {
+          onApprovalRequested();
         }
         
-        console.log("Continuing despite approval error");
+        console.log("Sending approval transaction...");
+        
+        try {
+          const approvalData = encodeFunctionData({
+            abi: ERC20_ABI,
+            functionName: 'approve',
+            args: [escrowContract, amount],
+          });
+          
+          const approvalTx = {
+            to: tokenAddress,
+            data: approvalData,
+            value: BigInt(0),
+          };
+          
+          const result = await sendTransaction(approvalTx);
+          console.log("Approval tx hash:", result.hash);
+          
+          if (result.hash) {
+            if (pc) {
+              await pc.waitForTransactionReceipt({ hash: result.hash });
+            }
+          }
+        } catch (approveError: unknown) {
+          console.error("Approval error:", approveError);
+          
+          const errorMsg = approveError?.message || '';
+          const isRejected = errorMsg.includes('user rejected') || errorMsg.includes('cancelled') || errorMsg.includes('rejected');
+          
+          if (isRejected) {
+            throw new Error("Transaction was cancelled. Please try again.");
+          }
+          
+          console.log("Continuing despite approval error");
+        }
+      } else {
+        console.log("Already have sufficient allowance, skipping approval");
       }
     } else {
-      console.log("Already have sufficient allowance, skipping approval");
+      console.log("Native token - skipping approval step");
     }
 
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -141,43 +146,41 @@ export function useEscrow() {
       onCreatingPayment();
     }
 
-    // Log all parameters for debugging
     console.log("=== Create Payment Parameters ===");
     console.log("Token Address:", tokenAddress);
     console.log("Amount:", amount.toString());
     console.log("Escrow Contract:", escrowContract);
     console.log("Chain:", chain?.id, chain?.name);
-    console.log("Chain from selectedNetwork:", chainId);
+    console.log("Is Native Token:", isNativeToken);
     
-    // Check if contract is paused - skip for now
-    // Check token address is valid
     if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
       throw new Error(`Invalid token address: ${tokenAddress}. Please select a valid token.`);
     }
     
     try {
-      const simulation = await pc.simulateContract({
-        address: escrowContract,
+      const createPaymentData = encodeFunctionData({
         abi: ESCROW_ABI,
         functionName: 'createPaymentExternal',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args: [tokenAddress, amount, claimHash, expiry, memo] as any,
-        account: address,
+        args: [tokenAddress, amount, claimHash, expiry, memo],
       });
       
-      const txHash = await walletClient.writeContract(simulation.request);
+      const tx = {
+        to: escrowContract,
+        data: createPaymentData,
+        value: BigInt(0),
+      };
       
+      const result = await sendTransaction(tx);
       console.log("=== Payment Transaction Submitted ===");
-      console.log("Transaction hash:", txHash);
-      console.log("Transaction hash type:", typeof txHash);
+      console.log("Transaction hash:", result.hash);
       
-      if (!txHash) {
+      if (!result.hash) {
         throw new Error("Transaction was submitted but no hash was returned");
       }
       
-      return txHash;
+      return result.hash as Hex;
       
-    } catch (createError: any) {
+    } catch (createError: unknown) {
       console.error("=== Create Payment Error ===");
       console.error("Full error object:", createError);
       console.error("Error message:", createError?.message);
@@ -192,7 +195,6 @@ export function useEscrow() {
       }
       
       if (errorMsg.includes('execution reverted') || errorMsg.includes('reverted')) {
-        // Try to extract the actual revert reason
         const revertReason = createError?.details || createError?.cause?.message || errorMsg;
         throw new Error(`Transaction reverted: ${revertReason}`);
       }
@@ -203,7 +205,7 @@ export function useEscrow() {
       
       throw new Error(`Failed to create payment: ${errorMsg || 'Unknown error'}`);
     }
-  }, [walletClient, address, chain, publicClient, checkAllowance, getContractAddresses]);
+  }, [address, chain, publicClient, checkAllowance, getContractAddresses, sendTransaction]);
 
   const getPayment = useCallback(async (paymentId: Hex): Promise<{
     sender: string;
@@ -248,7 +250,7 @@ export function useEscrow() {
     paymentId: Hex,
     secret: string
   ): Promise<Hex | undefined> => {
-    if (!walletClient) {
+    if (!address) {
       throw new Error("Wallet not connected");
     }
 
@@ -260,25 +262,29 @@ export function useEscrow() {
     const secretHash = keccak256(toBytes(secret));
 
     try {
-      const simulation = await publicClient.simulateContract({
-        address: escrowContract,
+      const claimData = encodeFunctionData({
         abi: ESCROW_ABI,
         functionName: 'claim',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args: [paymentId, secretHash, address as Address] as any,
-        account: address,
+        args: [paymentId, secretHash],
       });
-
-      const txHash = await walletClient.writeContract(simulation.request);
-      return txHash;
-    } catch (error: any) {
+      
+      const tx = {
+        to: escrowContract,
+        data: claimData,
+        value: BigInt(0),
+      };
+      
+      const result = await sendTransaction(tx);
+      return result.hash as Hex;
+    } catch (error: unknown) {
       console.error("Claim error:", error);
-      throw new Error(`Failed to claim: ${error.message}`);
+      const err = error as Error;
+      throw new Error(`Failed to claim: ${err.message}`);
     }
-  }, [walletClient, address, publicClient, getContractAddresses]);
+  }, [address, publicClient, getContractAddresses, sendTransaction]);
 
   const refundPayment = useCallback(async (paymentId: Hex): Promise<Hex | undefined> => {
-    if (!walletClient) {
+    if (!address) {
       throw new Error("Wallet not connected");
     }
 
@@ -289,27 +295,64 @@ export function useEscrow() {
     const { escrowContract } = getContractAddresses();
 
     try {
-      const simulation = await publicClient.simulateContract({
-        address: escrowContract,
+      const refundData = encodeFunctionData({
         abi: ESCROW_ABI,
         functionName: 'refundAfterExpiry',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args: [paymentId] as any,
+        args: [paymentId],
+      });
+      
+      const tx = {
+        to: escrowContract,
+        data: refundData,
+        value: BigInt(0),
+      };
+      
+      const result = await sendTransaction(tx);
+      return result.hash as Hex;
+    } catch (error: unknown) {
+      console.error("Refund error:", error);
+      const err = error as Error;
+      throw new Error(`Failed to refund: ${err.message}`);
+    }
+  }, [address, publicClient, getContractAddresses, sendTransaction]);
+
+  const estimateGas = useCallback(async (
+    tokenAddress: Address,
+    amount: bigint,
+    secret: string,
+    memo: string,
+    expiryDays: number = 7
+  ): Promise<bigint | undefined> => {
+    if (!address || !publicClient) {
+      throw new Error("Wallet not connected or public client not available");
+    }
+
+    const claimHash = keccak256(toBytes(secret));
+    const expiry = BigInt(expiryDays * 24 * 60 * 60);
+    const { escrowContract } = getContractAddresses();
+
+    try {
+      const gasEstimate = await publicClient.estimateContractGas({
+        address: escrowContract,
+        abi: ESCROW_ABI,
+        functionName: 'createPaymentExternal',
+        args: [tokenAddress, amount, claimHash, expiry, memo] as readonly [Address, bigint, Hex, bigint, string],
         account: address,
       });
 
-      const txHash = await walletClient.writeContract(simulation.request);
-      return txHash;
-    } catch (error: any) {
-      console.error("Refund error:", error);
-      throw new Error(`Failed to refund: ${error.message}`);
+      return gasEstimate;
+    } catch (error: unknown) {
+      console.error("Gas estimation error:", error);
+      const err = error as Error;
+      throw new Error(`Failed to estimate gas: ${err.message}`);
     }
-  }, [walletClient, address, publicClient, getContractAddresses]);
+  }, [address, publicClient, getContractAddresses]);
 
   return {
     createPayment,
     claimPayment,
     refundPayment,
     getPayment,
+    estimateGas,
   };
 }

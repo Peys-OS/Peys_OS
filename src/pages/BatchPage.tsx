@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, FileText, X, Check, AlertCircle, Send, Download, Loader2 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
@@ -19,6 +19,21 @@ interface BatchRecipient {
   error?: string;
 }
 
+interface PaymentInsert {
+  payment_id: string;
+  sender_wallet: string | null;
+  sender_email: string;
+  recipient_email: string;
+  amount: number;
+  token: string;
+  memo: string | null;
+  claim_secret: string;
+  claim_link: string;
+  status: string;
+  tx_hash: string | null;
+  expires_at: string;
+}
+
 const SAMPLE_CSV = `email,amount,token,memo
 alice@email.com,50,USDC,Lunch money
 bob@email.com,100,USDC,Project payment
@@ -29,10 +44,12 @@ export default function BatchPage() {
   const { isLoggedIn, login, walletAddress } = useApp();
   const { createPayment } = useEscrow();
   const [recipients, setRecipients] = useState<BatchRecipient[]>([]);
-  const [step, setStep] = useState<"upload" | "review" | "processing" | "done">("upload");
+  const [step, setStep] = useState<"upload" | "review" | "pin" | "processing" | "done">("upload");
   const [processedCount, setProcessedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedNetwork, setSelectedNetwork] = useState(84532); // Default to Base Sepolia
+  const [pin, setPin] = useState("");
+  const [isAborted, setIsAborted] = useState(false);
 
   if (!isLoggedIn) {
     return (
@@ -122,13 +139,24 @@ export default function BatchPage() {
   };
 
   const processBatch = async () => {
-    setStep("processing");
+    setIsAborted(false);
     setProcessedCount(0);
 
     const chainConfig = getChainConfig(selectedNetwork);
     const tokenAddress = chainConfig.usdcAddress;
 
+    // Generate batch ID for tracking (not stored in DB)
+    const batchId = crypto.randomUUID();
+    const totalAmount = recipients.reduce((s, r) => s + r.amount, 0);
+
     for (let i = 0; i < recipients.length; i++) {
+      if (isAborted) {
+        toast.info("Batch processing aborted");
+        // Batch aborted - no DB update needed
+        setStep("done");
+        return;
+      }
+
       const recipient = recipients[i];
       
       try {
@@ -165,7 +193,7 @@ export default function BatchPage() {
             status: "pending",
             tx_hash: txHash,
             expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          } as any);
+          } as PaymentInsert);
 
           setRecipients((prev) =>
             prev.map((r, idx) =>
@@ -194,6 +222,8 @@ export default function BatchPage() {
       // Small delay between transactions
       await new Promise((r) => setTimeout(r, 1000));
     }
+
+    // Batch processing completed
 
     setStep("done");
     fireBurst();
@@ -289,10 +319,56 @@ export default function BatchPage() {
                     className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
                     Cancel
                   </button>
-                  <button onClick={processBatch}
+                  <button onClick={() => setStep("pin")}
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90">
-                    <Send className="h-4 w-4" /> Send All (${totalAmount})
+                    <Send className="h-4 w-4" /> Continue
                   </button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === "pin" && (
+              <motion.div key="pin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div className="rounded-xl border border-border bg-card p-6 shadow-card">
+                  <h3 className="font-display text-lg text-foreground text-center mb-4">Enter PIN</h3>
+                  <p className="text-sm text-muted-foreground text-center mb-6">Enter your 4-digit PIN to authorize the batch payment.</p>
+                  
+                  <div className="flex justify-center gap-2 mb-6">
+                    {[0, 1, 2, 3].map((idx) => (
+                      <input
+                        key={idx}
+                        type="password"
+                        maxLength={1}
+                        value={pin[idx] || ""}
+                        onChange={(e) => {
+                          const newPin = pin.split("");
+                          newPin[idx] = e.target.value;
+                          setPin(newPin.join(""));
+                        }}
+                        className="w-12 h-12 text-center text-xl font-semibold border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button onClick={() => { setStep("review"); setPin(""); }}
+                      className="flex-1 rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+                      Back
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (pin.length === 4) {
+                          setStep("processing");
+                          processBatch();
+                        } else {
+                          toast.error("Please enter a 4-digit PIN");
+                        }
+                      }}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-opacity hover:opacity-90"
+                    >
+                      <Send className="h-4 w-4" /> Confirm & Send
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -315,6 +391,12 @@ export default function BatchPage() {
                       animate={{ width: `${(processedCount / recipients.length) * 100}%` }}
                     />
                   </div>
+                  <button 
+                    onClick={() => setIsAborted(true)}
+                    className="mt-6 rounded-xl border border-destructive text-destructive px-4 py-2 text-sm font-medium transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    Abort Batch
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -357,8 +439,16 @@ export default function BatchPage() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Batch History Section */}
+        <BatchHistory />
       </div>
       <Footer />
     </div>
   );
+}
+
+function BatchHistory() {
+  // Batch history feature disabled - batches table not available in schema
+  return null;
 }

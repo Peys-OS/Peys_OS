@@ -25,6 +25,7 @@ export default function AppHeader() {
 
   const orgItems = [
     { to: "/batch", label: "Batch Payments", desc: "Pay multiple people", icon: CreditCard },
+    { to: "/escrow", label: "Escrow", desc: "Manage pending payments", icon: Lock },
     { to: "/streaming", label: "Streaming", desc: "Stream payments", icon: Zap },
     { to: "/analytics", label: "Analytics", desc: "Track & report", icon: BarChart3 },
     { to: "/dashboard", label: "Dashboard", desc: "Overview", icon: Building2 },
