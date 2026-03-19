@@ -82,6 +82,9 @@ import MultiLanguagePage from "./pages/MultiLanguagePage";
 import WebSocketSettingsPage from "./pages/WebSocketSettingsPage";
 import CachingPage from "./pages/CachingPage";
 import RateLimitingPage from "./pages/RateLimitingPage";
+import GestureControlsPage from "./pages/GestureControlsPage";
+import UndoFunctionalityPage from "./pages/UndoFunctionalityPage";
+import VoiceInputPage from "./pages/VoiceInputPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PendingTransactionsPage from "./pages/PendingTransactionsPage";
 import AddressBookPage from "./pages/AddressBookPage";
@@ -200,6 +203,9 @@ const App = () => (
                   <Route path="/websocket" element={<WebSocketSettingsPage />} />
                   <Route path="/cache" element={<CachingPage />} />
                   <Route path="/rate-limit" element={<RateLimitingPage />} />
+                  <Route path="/gesture-controls" element={<GestureControlsPage />} />
+                  <Route path="/undo" element={<UndoFunctionalityPage />} />
+                  <Route path="/voice-input" element={<VoiceInputPage />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/pending" element={<PendingTransactionsPage />} />
                   <Route path="/address-book" element={<AddressBookPage />} />
