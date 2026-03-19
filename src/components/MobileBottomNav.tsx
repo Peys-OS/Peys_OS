@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -44,6 +44,10 @@ const moreItems = [
   { to: "/referral", label: "Referral", icon: Gift },
   { to: "/budget", label: "Budget", icon: PiggyBank },
   { to: "/templates", label: "Templates", icon: LayoutTemplate },
+  { to: "/merchant", label: "Merchant", icon: Store },
+  { to: "/verification", label: "Verify", icon: BadgeCheck },
+  { to: "/loyalty", label: "Loyalty", icon: Trophy },
+  { to: "/limits", label: "Limits", icon: TrendingUp },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
