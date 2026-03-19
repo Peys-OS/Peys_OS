@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Peys <peys.xyz@gmail.com>",
+            from: Deno.env.get("RESEND_FROM_EMAIL") || "Peys <onboarding@resend.dev>",
             to: [recipientEmail],
             subject: `You've received ${amount.toFixed(2)} ${token} on Peys!`,
             html: htmlContent,
@@ -243,7 +243,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Error processing notification:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: (error as Error).message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

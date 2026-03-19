@@ -1,7 +1,7 @@
 // Send Payment Form — wired to Supabase
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet, MessageCircle } from "lucide-react";
+import { Send, Copy, Check, ArrowLeft, Download, X, Share2, Users, Loader2, Network, ChevronDown, AlertCircle, Mail, Phone, Wallet, MessageCircle, CreditCard, Zap } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp } from "@/contexts/AppContext";
 import { fireBurst } from "@/utils/confetti";
@@ -10,6 +10,8 @@ import PaymentCard from "@/components/PaymentCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import FiatOnRamp from "./FiatOnRamp";
+import { isPvmSupported } from "@/lib/polkadotPvm";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
@@ -71,6 +73,7 @@ export default function SendPaymentForm() {
   const [gasEstimate, setGasEstimate] = useState<bigint | null>(null);
   const [gasLoading, setGasLoading] = useState(false);
   const [showMemoTemplates, setShowMemoTemplates] = useState(false);
+  const [showOnRamp, setShowOnRamp] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const recipientRef = useRef<HTMLDivElement>(null);
 
@@ -464,8 +467,8 @@ export default function SendPaymentForm() {
           try {
             const decoded = decodeEventLog({
               abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
-              data: log.data,
-              topics: log.topics,
+              data: log.data as `0x${string}`,
+              topics: log.topics as [`0x${string}`, ...`0x${string}`[]],
             }) as { args: { paymentId: string } };
             
             blockchainPaymentId = decoded.args.paymentId;
@@ -628,6 +631,12 @@ export default function SendPaymentForm() {
               </button>
             )}
             <h2 className="font-display text-lg text-foreground sm:text-xl">Send Payment</h2>
+            {isPvmSupported(selectedNetwork) && (
+              <div className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold text-orange-500 border border-orange-500/20">
+                <Zap className="h-3 w-3" />
+                PVM MODE
+              </div>
+            )}
           </div>
         </div>
 
@@ -730,7 +739,7 @@ export default function SendPaymentForm() {
                         return selectedNetwork === 420420417 || selectedNetwork === 420420421;
                       }
                       if (t === "USDT") {
-                        return !!chainConfig.usdtAddress && chainConfig.usdtAddress !== "";
+                        return !!chainConfig.usdtAddress && (chainConfig.usdtAddress as string) !== "";
                       }
                       return true;
                     })
@@ -750,9 +759,19 @@ export default function SendPaymentForm() {
                 </div>
                 
                 {isLoggedIn && (
-                  <p className="text-xs text-muted-foreground">
-                    Balance: {balance.toFixed(2)} {token} on {currentNetwork.shortName}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      Balance: {balance.toFixed(2)} {token} on {currentNetwork.shortName}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowOnRamp(true)}
+                      className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+                    >
+                      <CreditCard className="h-3 w-3" />
+                      Add Funds
+                    </button>
+                  </div>
                 )}
                 
                 <div className="relative">
@@ -960,7 +979,7 @@ export default function SendPaymentForm() {
                 </div>
                 
                 <LocationTagging 
-                  onLocationChange={(loc) => setSelectedLocation(loc)}
+                  onLocationChange={(loc: any) => setSelectedLocation(loc)}
                 />
                 
                 <button
@@ -1248,6 +1267,13 @@ export default function SendPaymentForm() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FiatOnRamp 
+        isOpen={showOnRamp} 
+        onClose={() => setShowOnRamp(false)} 
+        token={token}
+        network={currentNetwork.name}
+      />
     </div>
   );
 }
