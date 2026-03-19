@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon, Camera, ArrowDownToLine, ArrowUpFromLine, Bell, UsersRound, AlertCircle, Fuel, HelpCircle, KeyRound, Keyboard, Accessibility as AccessibilityIcon, Fingerprint, Languages, Wifi, Database, Gauge } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon, Camera, ArrowDownToLine, ArrowUpFromLine, Bell, UsersRound, AlertCircle, Fuel, HelpCircle, KeyRound, Keyboard, Accessibility as AccessibilityIcon, Fingerprint, Languages, Wifi, Database, Gauge, Hand, Undo2, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -72,6 +72,9 @@ const moreItems = [
   { to: "/websocket", label: "WebSocket", icon: Wifi },
   { to: "/cache", label: "Cache", icon: Database },
   { to: "/rate-limit", label: "Rate", icon: Gauge },
+  { to: "/gesture-controls", label: "Gestures", icon: Hand },
+  { to: "/undo", label: "Undo", icon: Undo2 },
+  { to: "/voice-input", label: "Voice", icon: Mic },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
