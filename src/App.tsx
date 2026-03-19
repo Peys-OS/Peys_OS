@@ -67,6 +67,8 @@ import ClipboardPage from "./pages/ClipboardPage";
 import BiometricPage from "./pages/BiometricPage";
 import ScheduledPaymentsPage from "./pages/ScheduledPaymentsPage";
 import BulkSendPage from "./pages/BulkSendPage";
+import ImportExportPage from "./pages/ImportExportPage";
+import QRScannerPage from "./pages/QRScannerPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -167,6 +169,8 @@ const App = () => (
                   <Route path="/biometric" element={<BiometricPage />} />
                   <Route path="/scheduled" element={<ScheduledPaymentsPage />} />
                   <Route path="/bulk-send" element={<BulkSendPage />} />
+                  <Route path="/import-export" element={<ImportExportPage />} />
+                  <Route path="/qr-scanner" element={<QRScannerPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />

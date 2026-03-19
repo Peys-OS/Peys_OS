@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon, Camera, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -55,6 +55,8 @@ const moreItems = [
   { to: "/biometric", label: "Security", icon: ShieldIcon },
   { to: "/scheduled", label: "Scheduled", icon: ClockIcon },
   { to: "/bulk-send", label: "Bulk Send", icon: UsersIcon },
+  { to: "/import-export", label: "Import/Export", icon: ArrowDownToLine },
+  { to: "/qr-scanner", label: "QR Scanner", icon: Camera },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
