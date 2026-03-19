@@ -80,6 +80,8 @@ import AccessibilityPage from "./pages/AccessibilityPage";
 import SessionManagementPage from "./pages/SessionManagementPage";
 import MultiLanguagePage from "./pages/MultiLanguagePage";
 import WebSocketSettingsPage from "./pages/WebSocketSettingsPage";
+import CachingPage from "./pages/CachingPage";
+import RateLimitingPage from "./pages/RateLimitingPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PendingTransactionsPage from "./pages/PendingTransactionsPage";
 import AddressBookPage from "./pages/AddressBookPage";
@@ -196,6 +198,8 @@ const App = () => (
                   <Route path="/sessions" element={<SessionManagementPage />} />
                   <Route path="/language" element={<MultiLanguagePage />} />
                   <Route path="/websocket" element={<WebSocketSettingsPage />} />
+                  <Route path="/cache" element={<CachingPage />} />
+                  <Route path="/rate-limit" element={<RateLimitingPage />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/pending" element={<PendingTransactionsPage />} />
                   <Route path="/address-book" element={<AddressBookPage />} />
