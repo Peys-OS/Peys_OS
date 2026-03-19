@@ -74,6 +74,10 @@ import NetworkGasPage from "./pages/NetworkGasPage";
 import SecurityPage from "./pages/SecurityPage";
 import HelpFAQPage from "./pages/HelpFAQPage";
 import WalletAddressPage from "./pages/WalletAddressPage";
+import WaitingRoomPage from "./pages/WaitingRoomPage";
+import KeyboardShortcutsPage from "./pages/KeyboardShortcutsPage";
+import AccessibilityPage from "./pages/AccessibilityPage";
+import SessionManagementPage from "./pages/SessionManagementPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PendingTransactionsPage from "./pages/PendingTransactionsPage";
 import AddressBookPage from "./pages/AddressBookPage";
@@ -184,6 +188,10 @@ const App = () => (
                   <Route path="/security" element={<SecurityPage />} />
                   <Route path="/help-faq" element={<HelpFAQPage />} />
                   <Route path="/wallet-address" element={<WalletAddressPage />} />
+                  <Route path="/waiting-room" element={<WaitingRoomPage />} />
+                  <Route path="/keyboard-shortcuts" element={<KeyboardShortcutsPage />} />
+                  <Route path="/accessibility" element={<AccessibilityPage />} />
+                  <Route path="/sessions" element={<SessionManagementPage />} />
                   <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/pending" element={<PendingTransactionsPage />} />
                   <Route path="/address-book" element={<AddressBookPage />} />

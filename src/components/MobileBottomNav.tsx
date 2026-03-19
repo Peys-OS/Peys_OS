@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon, Camera, ArrowDownToLine, ArrowUpFromLine, Bell, UsersRound, AlertCircle, Fuel, HelpCircle, KeyRound } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon, Camera, ArrowDownToLine, ArrowUpFromLine, Bell, UsersRound, AlertCircle, Fuel, HelpCircle, KeyRound, Keyboard, Accessibility as AccessibilityIcon, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -64,6 +64,10 @@ const moreItems = [
   { to: "/network-gas", label: "Network", icon: Fuel },
   { to: "/security", label: "Security", icon: ShieldIcon },
   { to: "/help-faq", label: "Help", icon: HelpCircle },
+  { to: "/waiting-room", label: "Queue", icon: Clock },
+  { to: "/keyboard-shortcuts", label: "Keys", icon: Keyboard },
+  { to: "/accessibility", label: "A11y", icon: AccessibilityIcon },
+  { to: "/sessions", label: "Sessions", icon: Fingerprint },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
