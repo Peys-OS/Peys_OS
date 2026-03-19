@@ -1,0 +1,25 @@
+{
+  "name": "peys-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "Peys WhatsApp bot — Baileys-based bot for sending/receiving USDC via WhatsApp",
+  "type": "module",
+  "main": "server/index.mjs",
+  "scripts": {
+    "start": "node server/index.mjs",
+    "dev": "node --watch server/index.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.98.0",
+    "@whiskeysockets/baileys": "^6.7.18",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.16.0",
+    "express": "^4.18.2",
+    "sequelize": "^6.37.7",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "qrcode-terminal": "^0.12.0",
+    "uuid": "^9.0.0"
+  }
+}
