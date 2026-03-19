@@ -14,7 +14,7 @@ import FiatOnRamp from "./FiatOnRamp";
 import { isPvmSupported } from "@/lib/polkadotPvm";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
-import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
+import { usePublicClient, useAccount, useChainId } from "wagmi";
 import { useSound } from "@/hooks/useSound";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -90,7 +90,7 @@ export default function SendPaymentForm() {
   const qrRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<HTMLDivElement>(null);
 
-  const { createPayment, estimateGas } = useEscrow();
+  const { createPayment, estimateGas, switchNetwork } = useEscrow();
   const publicClient = usePublicClient();
   const { chain: connectedChain } = useAccount();
 
@@ -149,10 +149,7 @@ export default function SendPaymentForm() {
     }
   }, []);
 
-  const { switchChain } = useSwitchChain();
   const walletChainId = useChainId();
-
-  // Auto-detect network from connected wallet
   useEffect(() => {
     if (connectedChain?.id && networks.find(n => n.id === connectedChain.id)) {
       setSelectedNetwork(connectedChain.id);
@@ -257,13 +254,11 @@ export default function SendPaymentForm() {
   const handleNetworkChange = async (networkId: number) => {
     setSelectedNetwork(networkId);
     setShowNetworkSelector(false);
-    
-    // Switch wallet to selected network
-    if (switchChain && networkId !== walletChainId) {
+    if (networkId !== walletChainId) {
       try {
-        switchChain({ chainId: networkId });
+        await switchNetwork(networkId);
       } catch (err) {
-        console.log("Wallet switch rejected, will use selected network");
+        console.log("Wallet switch rejected, will attempt again on send");
       }
     }
   };
@@ -354,17 +349,23 @@ export default function SendPaymentForm() {
             claim_link: newClaimId,
             status: "pending",
             expires_at: expiresAt,
+            chain_id: selectedNetwork,
           })
           .select()
           .single();
 
         if (error) throw error;
 
-        // 2. Validate wallet is on correct network before creating payment
+        // 2. Ensure wallet is on the correct network — auto-switch via wallet provider
         if (selectedNetwork !== walletChainId) {
-          toast.error(`Please switch your wallet to ${currentNetwork.name} network first.`);
-          setStep("form");
-          return;
+          try {
+            toast.info(`Switching to ${currentNetwork.name}...`);
+            await switchNetwork(selectedNetwork);
+          } catch (switchErr) {
+            toast.error(`Could not switch to ${currentNetwork.name}. Please switch manually in your wallet.`);
+            setStep("form");
+            return;
+          }
         }
 
         // 3. Create payment on blockchain

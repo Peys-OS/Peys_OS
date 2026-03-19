@@ -25,12 +25,13 @@ interface PaymentData {
   created_at: string;
   blockchain_payment_id?: string;
   claim_secret?: string;
+  chain_id?: number;
 }
 
 export default function ClaimPage() {
   const { id } = useParams<{ id: string }>();
   const { isLoggedIn, login, logout } = useApp();
-  const { user: privyUser } = usePrivyAuth();
+  const { user: privyUser, loginWithEmailOnly } = usePrivyAuth();
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -78,7 +79,7 @@ export default function ClaimPage() {
     fetchPayment();
   }, [fetchPayment]);
   
-  const { claimPayment, getPayment } = useEscrow();
+  const { claimPayment, getPayment, switchNetwork } = useEscrow();
 
   // Check if logged in user's email matches payment email
   const isEmailMatching = privyUser?.email?.toLowerCase() === payment?.recipient_email?.toLowerCase();
@@ -105,14 +106,14 @@ export default function ClaimPage() {
       return;
     }
     
-    // Not logged in - prompt to login via Privy (email/OTP)
-    login();
+    // Not logged in - prompt to login via Privy (email only, pre-filled)
+    loginWithEmailOnly(payment?.recipient_email);
   };
 
   const handleSignOutAndClaim = async () => {
     await logout();
     setLoginError(null);
-    login(); // Prompt to sign in with correct email
+    loginWithEmailOnly(payment?.recipient_email); // Prompt to sign in with correct email
   };
   
   const handleClaim = async () => {
@@ -144,6 +145,15 @@ export default function ClaimPage() {
 
       if (!payment.blockchain_payment_id) {
         throw new Error("Payment not found on blockchain - no blockchain_payment_id");
+      }
+
+      // Switch to the chain the payment was created on
+      if (payment.chain_id) {
+        try {
+          await switchNetwork(payment.chain_id);
+        } catch (switchErr) {
+          throw new Error(`Please switch your wallet to the correct network (chain ID: ${payment.chain_id}) to claim this payment.`);
+        }
       }
 
       const onChainPayment = await getPayment(payment.blockchain_payment_id as `0x${string}`);
