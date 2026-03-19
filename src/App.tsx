@@ -60,6 +60,10 @@ import MerchantToolsPage from "./pages/MerchantToolsPage";
 import VerificationPage from "./pages/VerificationPage";
 import LoyaltyPage from "./pages/LoyaltyPage";
 import LimitsPage from "./pages/LimitsPage";
+import QRServicePage from "./pages/QRServicePage";
+import RoundUpSavingsPage from "./pages/RoundUpSavingsPage";
+import AutoReceivePage from "./pages/AutoReceivePage";
+import ClipboardPage from "./pages/ClipboardPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -153,6 +157,10 @@ const App = () => (
                   <Route path="/verification" element={<VerificationPage />} />
                   <Route path="/loyalty" element={<LoyaltyPage />} />
                   <Route path="/limits" element={<LimitsPage />} />
+                  <Route path="/qr-service" element={<QRServicePage />} />
+                  <Route path="/roundup" element={<RoundUpSavingsPage />} />
+                  <Route path="/auto-receive" element={<AutoReceivePage />} />
+                  <Route path="/clipboard" element={<ClipboardPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
