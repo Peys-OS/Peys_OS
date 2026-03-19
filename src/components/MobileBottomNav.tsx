@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard } from "lucide-react";
+import { Home, Send, LayoutDashboard, Users, BarChart3, MessageCircle, MoreHorizontal, Zap, Building2, Wallet, FileText, Code, ChevronDown, ChevronRight, Globe, Calendar, Shield, RefreshCw, Coffee, Package, Activity, Tag, Gift, ShieldCheck, AlertTriangle, Clock, Trophy, Heart, Smartphone, Vault, Palette, Receipt, Split, HandHeart, FileSpreadsheet, PiggyBank, LayoutTemplate, UserCircle, Store, BadgeCheck, TrendingUp, CreditCard, QrCode, Settings, Clipboard, ShieldIcon, ClockIcon, UsersIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
@@ -52,6 +52,9 @@ const moreItems = [
   { to: "/roundup", label: "Round-Up", icon: PiggyBank },
   { to: "/auto-receive", label: "Auto-Recv", icon: Settings },
   { to: "/clipboard", label: "Clipboard", icon: Clipboard },
+  { to: "/biometric", label: "Security", icon: ShieldIcon },
+  { to: "/scheduled", label: "Scheduled", icon: ClockIcon },
+  { to: "/bulk-send", label: "Bulk Send", icon: UsersIcon },
   { to: "/request", label: "Request", icon: Wallet },
   { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];

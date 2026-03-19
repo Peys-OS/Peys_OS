@@ -64,6 +64,9 @@ import QRServicePage from "./pages/QRServicePage";
 import RoundUpSavingsPage from "./pages/RoundUpSavingsPage";
 import AutoReceivePage from "./pages/AutoReceivePage";
 import ClipboardPage from "./pages/ClipboardPage";
+import BiometricPage from "./pages/BiometricPage";
+import ScheduledPaymentsPage from "./pages/ScheduledPaymentsPage";
+import BulkSendPage from "./pages/BulkSendPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -161,6 +164,9 @@ const App = () => (
                   <Route path="/roundup" element={<RoundUpSavingsPage />} />
                   <Route path="/auto-receive" element={<AutoReceivePage />} />
                   <Route path="/clipboard" element={<ClipboardPage />} />
+                  <Route path="/biometric" element={<BiometricPage />} />
+                  <Route path="/scheduled" element={<ScheduledPaymentsPage />} />
+                  <Route path="/bulk-send" element={<BulkSendPage />} />
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
