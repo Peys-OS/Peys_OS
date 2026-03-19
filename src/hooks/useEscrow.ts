@@ -1,8 +1,8 @@
-import { useAccount, usePublicClient } from 'wagmi';
-import { useSendTransaction, useWallets } from '@privy-io/react-auth';
+import { usePublicClient, useChainId } from 'wagmi';
+import { useWallets } from '@privy-io/react-auth';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { keccak256, toBytes, Address, Hex, encodeFunctionData } from 'viem';
 
 export interface Payment {
@@ -17,21 +17,73 @@ export interface Payment {
 
 export { getChainConfig };
 
+type EIP1193Provider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+};
+
+// Switch the wallet's network via EIP-1193 — works for Privy embedded + external wallets
+async function switchWalletNetwork(
+  wallet: { getEthereumProvider: () => Promise<unknown> },
+  chainId: number
+): Promise<void> {
+  const provider = await wallet.getEthereumProvider() as EIP1193Provider;
+  const hexChainId = `0x${chainId.toString(16)}`;
+  try {
+    await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: hexChainId }] });
+  } catch (err: unknown) {
+    // Error code 4902 = chain not added to wallet yet
+    const code = (err as { code?: number })?.code;
+    if (code === 4902) {
+      throw new Error(`Chain ${chainId} is not added to your wallet. Please add it manually.`);
+    }
+    throw err;
+  }
+}
+
+// Send a transaction using the connected wallet's EIP-1193 provider directly.
+// Bypasses viem's chain requirement — works for Privy embedded + external wallets.
+async function sendViaTx(
+  wallet: { address: string; getEthereumProvider: () => Promise<unknown> },
+  address: string,
+  tx: { to: Address; data: Hex; value: bigint }
+): Promise<{ hash: Hex }> {
+  const provider = await wallet.getEthereumProvider() as EIP1193Provider;
+
+  const hash = await provider.request({
+    method: 'eth_sendTransaction',
+    params: [{
+      from: address,
+      to: tx.to,
+      data: tx.data,
+      value: `0x${tx.value.toString(16)}`,
+    }],
+  }) as Hex;
+
+  return { hash };
+}
+
 export function useEscrow() {
-  const { chain, address } = useAccount();
   const publicClient = usePublicClient();
-  const { sendTransaction } = useSendTransaction();
   const { wallets } = useWallets();
+  const wagmiChainId = useChainId();
+
+  // Get the active wallet from Privy — works for both embedded and external wallets
+  const activeWallet = useMemo(() => {
+    if (!wallets || wallets.length === 0) return null;
+    return wallets.find(w => w.walletClientType === 'privy') ?? wallets[0];
+  }, [wallets]);
+
+  const address = activeWallet?.address as Address | undefined;
+  const chainId = wagmiChainId || 84532;
 
   const getContractAddresses = useCallback(() => {
-    const chainId = chain?.id || 84532;
     const config = getChainConfig(chainId);
     return {
       escrowContract: config.escrowContract,
       usdcAddress: config.usdcAddress,
       usdtAddress: config.usdtAddress,
     };
-  }, [chain]);
+  }, [chainId]);
 
   const checkAllowance = useCallback(async (
     tokenAddress: Address,
@@ -42,7 +94,7 @@ export function useEscrow() {
     try {
       const { escrowContract } = getContractAddresses();
       
-      const allowanceData = await publicClient.readContract({
+      const allowanceData = await (publicClient as any).readContract({
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: 'allowance',
@@ -68,7 +120,7 @@ export function useEscrow() {
     onApprovalRequested?: () => void,
     onCreatingPayment?: () => void
   ): Promise<Hex | undefined> => {
-    if (!address) {
+    if (!address || !activeWallet) {
       throw new Error("Wallet not connected. Please connect your wallet first.");
     }
 
@@ -76,29 +128,22 @@ export function useEscrow() {
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
     const { escrowContract } = getContractAddresses();
 
-    console.log("createPayment called", { tokenAddress, amount, escrowContract, chainId: chain?.id });
+    console.log("createPayment called", { tokenAddress, amount, escrowContract, chainId });
     
     const isNativeToken = tokenAddress.startsWith("0x00000001") || tokenAddress.startsWith("0x0000000100000000");
-    console.log("Is native token:", isNativeToken);
     
     const pc = publicClient;
     
-    // Native tokens don't need approval
     if (!isNativeToken) {
       let hasAllowance = false;
       try {
         hasAllowance = await checkAllowance(tokenAddress, amount);
-        console.log("Allowance check result:", hasAllowance);
       } catch (e) {
         console.warn("Could not check allowance:", e);
       }
       
       if (!hasAllowance) {
-        if (onApprovalRequested) {
-          onApprovalRequested();
-        }
-        
-        console.log("Sending approval transaction...");
+        if (onApprovalRequested) onApprovalRequested();
         
         try {
           const approvalData = encodeFunctionData({
@@ -107,52 +152,29 @@ export function useEscrow() {
             args: [escrowContract, amount],
           });
           
-          const approvalTx = {
+          const result = await sendViaTx(activeWallet, address, {
             to: tokenAddress,
             data: approvalData,
             value: BigInt(0),
-          };
-          
-          const result = await sendTransaction(approvalTx);
-          console.log("Approval tx hash:", result.hash);
-          
-          if (result.hash) {
-            if (pc) {
-              await pc.waitForTransactionReceipt({ hash: result.hash });
-            }
+          });
+
+          if (result.hash && pc) {
+            await pc.waitForTransactionReceipt({ hash: result.hash });
           }
         } catch (approveError: unknown) {
-          console.error("Approval error:", approveError);
-          
-          const errorMsg = approveError?.message || '';
-          const isRejected = errorMsg.includes('user rejected') || errorMsg.includes('cancelled') || errorMsg.includes('rejected');
-          
-          if (isRejected) {
+          const errorMsg = (approveError as Error)?.message || '';
+          if (errorMsg.includes('user rejected') || errorMsg.includes('cancelled') || errorMsg.includes('rejected')) {
             throw new Error("Transaction was cancelled. Please try again.");
           }
-          
-          console.log("Continuing despite approval error");
+          console.log("Continuing despite approval error:", errorMsg);
         }
-      } else {
-        console.log("Already have sufficient allowance, skipping approval");
       }
-    } else {
-      console.log("Native token - skipping approval step");
     }
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    if (onCreatingPayment) {
-      onCreatingPayment();
-    }
+    if (onCreatingPayment) onCreatingPayment();
 
-    console.log("=== Create Payment Parameters ===");
-    console.log("Token Address:", tokenAddress);
-    console.log("Amount:", amount.toString());
-    console.log("Escrow Contract:", escrowContract);
-    console.log("Chain:", chain?.id, chain?.name);
-    console.log("Is Native Token:", isNativeToken);
-    
     if (!tokenAddress || tokenAddress === '0x0000000000000000000000000000000000000000') {
       throw new Error(`Invalid token address: ${tokenAddress}. Please select a valid token.`);
     }
@@ -164,16 +186,12 @@ export function useEscrow() {
         args: [tokenAddress, amount, claimHash, expiry, memo],
       });
       
-      const tx = {
+      const result = await sendViaTx(activeWallet, address, {
         to: escrowContract,
         data: createPaymentData,
         value: BigInt(0),
-      };
-      
-      const result = await sendTransaction(tx);
-      console.log("=== Payment Transaction Submitted ===");
-      console.log("Transaction hash:", result.hash);
-      
+      });
+
       if (!result.hash) {
         throw new Error("Transaction was submitted but no hash was returned");
       }
@@ -181,31 +199,18 @@ export function useEscrow() {
       return result.hash as Hex;
       
     } catch (createError: unknown) {
-      console.error("=== Create Payment Error ===");
-      console.error("Full error object:", createError);
-      console.error("Error message:", createError?.message);
-      console.error("Error shortMessage:", createError?.shortMessage);
-      console.error("Error cause:", createError?.cause);
-      console.error("Error details:", createError?.details);
-      
-      const errorMsg = createError?.message || '';
+      const errorMsg = (createError as Error)?.message || '';
       
       if (errorMsg.includes('user rejected') || errorMsg.includes('cancelled') || errorMsg.includes('rejected')) {
         throw new Error("Transaction was cancelled. Please try again.");
       }
-      
       if (errorMsg.includes('execution reverted') || errorMsg.includes('reverted')) {
-        const revertReason = createError?.details || createError?.cause?.message || errorMsg;
-        throw new Error(`Transaction reverted: ${revertReason}`);
-      }
-      
-      if (errorMsg.includes('chain')) {
-        throw new Error("Network mismatch. Please switch to the correct network.");
+        throw new Error(`Transaction reverted: ${errorMsg}`);
       }
       
       throw new Error(`Failed to create payment: ${errorMsg || 'Unknown error'}`);
     }
-  }, [address, chain, publicClient, checkAllowance, getContractAddresses, sendTransaction]);
+  }, [address, activeWallet, chainId, publicClient, checkAllowance, getContractAddresses]);
 
   const getPayment = useCallback(async (paymentId: Hex): Promise<{
     sender: string;
@@ -216,20 +221,17 @@ export function useEscrow() {
     refunded: boolean;
     memo: string;
   } | null> => {
-    if (!publicClient) {
-      console.error("Public client not available");
-      return null;
-    }
+    if (!publicClient) return null;
 
     const { escrowContract } = getContractAddresses();
 
     try {
-      const result = await publicClient.readContract({
+      const result = await (publicClient as any).readContract({
         address: escrowContract,
         abi: ESCROW_ABI,
         functionName: 'getPayment',
         args: [paymentId],
-      });
+      }) as [string, string, bigint, bigint, boolean, boolean, string];
       
       return {
         sender: result[0],
@@ -250,13 +252,8 @@ export function useEscrow() {
     paymentId: Hex,
     secret: string
   ): Promise<Hex | undefined> => {
-    if (!address) {
-      throw new Error("Wallet not connected");
-    }
-
-    if (!publicClient) {
-      throw new Error("Public client not available");
-    }
+    if (!address || !activeWallet) throw new Error("Wallet not connected");
+    if (!publicClient) throw new Error("Public client not available");
 
     const { escrowContract } = getContractAddresses();
     const secretHash = keccak256(toBytes(secret));
@@ -265,32 +262,23 @@ export function useEscrow() {
       const claimData = encodeFunctionData({
         abi: ESCROW_ABI,
         functionName: 'claim',
-        args: [paymentId, secretHash],
+        args: [paymentId, secretHash, address as Address],
       });
       
-      const tx = {
+      const result = await sendViaTx(activeWallet, address, {
         to: escrowContract,
         data: claimData,
         value: BigInt(0),
-      };
-      
-      const result = await sendTransaction(tx);
+      });
       return result.hash as Hex;
     } catch (error: unknown) {
-      console.error("Claim error:", error);
-      const err = error as Error;
-      throw new Error(`Failed to claim: ${err.message}`);
+      throw new Error(`Failed to claim: ${(error as Error).message}`);
     }
-  }, [address, publicClient, getContractAddresses, sendTransaction]);
+  }, [address, activeWallet, publicClient, getContractAddresses]);
 
   const refundPayment = useCallback(async (paymentId: Hex): Promise<Hex | undefined> => {
-    if (!address) {
-      throw new Error("Wallet not connected");
-    }
-
-    if (!publicClient) {
-      throw new Error("Public client not available");
-    }
+    if (!address || !activeWallet) throw new Error("Wallet not connected");
+    if (!publicClient) throw new Error("Public client not available");
 
     const { escrowContract } = getContractAddresses();
 
@@ -301,20 +289,16 @@ export function useEscrow() {
         args: [paymentId],
       });
       
-      const tx = {
+      const result = await sendViaTx(activeWallet, address, {
         to: escrowContract,
         data: refundData,
         value: BigInt(0),
-      };
-      
-      const result = await sendTransaction(tx);
+      });
       return result.hash as Hex;
     } catch (error: unknown) {
-      console.error("Refund error:", error);
-      const err = error as Error;
-      throw new Error(`Failed to refund: ${err.message}`);
+      throw new Error(`Failed to refund: ${(error as Error).message}`);
     }
-  }, [address, publicClient, getContractAddresses, sendTransaction]);
+  }, [address, activeWallet, publicClient, getContractAddresses]);
 
   const estimateGas = useCallback(async (
     tokenAddress: Address,
@@ -323,30 +307,31 @@ export function useEscrow() {
     memo: string,
     expiryDays: number = 7
   ): Promise<bigint | undefined> => {
-    if (!address || !publicClient) {
-      throw new Error("Wallet not connected or public client not available");
-    }
+    if (!address || !publicClient) throw new Error("Wallet not connected");
 
     const claimHash = keccak256(toBytes(secret));
     const expiry = BigInt(expiryDays * 24 * 60 * 60);
     const { escrowContract } = getContractAddresses();
 
     try {
-      const gasEstimate = await publicClient.estimateContractGas({
+      return await (publicClient as any).estimateContractGas({
         address: escrowContract,
         abi: ESCROW_ABI,
         functionName: 'createPaymentExternal',
-        args: [tokenAddress, amount, claimHash, expiry, memo] as readonly [Address, bigint, Hex, bigint, string],
+        args: [tokenAddress, amount, claimHash, expiry, memo],
         account: address,
       });
-
-      return gasEstimate;
     } catch (error: unknown) {
-      console.error("Gas estimation error:", error);
-      const err = error as Error;
-      throw new Error(`Failed to estimate gas: ${err.message}`);
+      throw new Error(`Failed to estimate gas: ${(error as Error).message}`);
     }
   }, [address, publicClient, getContractAddresses]);
+
+  const switchNetwork = useCallback(async (targetChainId: number): Promise<void> => {
+    if (!activeWallet) throw new Error("No wallet connected");
+    await switchWalletNetwork(activeWallet, targetChainId);
+    // Wait for the chain change to propagate
+    await new Promise(resolve => setTimeout(resolve, 600));
+  }, [activeWallet]);
 
   return {
     createPayment,
@@ -354,5 +339,6 @@ export function useEscrow() {
     refundPayment,
     getPayment,
     estimateGas,
+    switchNetwork,
   };
 }

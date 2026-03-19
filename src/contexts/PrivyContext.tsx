@@ -37,6 +37,7 @@ interface PrivyAuthContextType {
   isLoading: boolean;
   ready: boolean;
   login: () => void;
+  loginWithEmailOnly: (prefillEmail?: string) => void;
   logout: () => Promise<void>;
   walletAddress: string;
 }
@@ -69,6 +70,15 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
     // isLoading will be reset once `authenticated` changes
   }, [login, ready]);
 
+  const handleLoginWithEmailOnly = useCallback((prefillEmail?: string) => {
+    if (!ready) return;
+    setIsLoading(true);
+    login({
+      loginMethods: ['email'],
+      ...(prefillEmail && { prefill: { type: 'email', value: prefillEmail } }),
+    });
+  }, [login, ready]);
+
   useEffect(() => {
     if (ready) setIsLoading(false);
   }, [authenticated, ready]);
@@ -99,6 +109,7 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
         isLoading,
         ready,
         login: handleLogin,
+        loginWithEmailOnly: handleLoginWithEmailOnly,
         logout: handleLogout,
         walletAddress,
       }}
