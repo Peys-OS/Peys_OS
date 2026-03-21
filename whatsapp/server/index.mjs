@@ -534,19 +534,38 @@ async function handleBalance(chatId, phone, wallet) {
     return;
   }
 
-  // Get balance from blockchain
-  const balance = await escrowService.getTokenBalance(null, wallet);
+  // Get profile for network info
+  const profile = await db.getProfileByWhatsappId(chatId);
   
+  // Get balances for multiple tokens
+  const usdcBalance = await escrowService.getUSDCBalance(wallet);
+  const usdtBalance = await escrowService.getUSDTBalance(wallet);
+  
+  // Determine network (default to base_sepolia)
+  const network = profile?.network || 'base_sepolia';
+  const networkName = network === 'base_sepolia' ? 'Base Sepolia' : 
+                     network === 'celo' ? 'Celo' : 
+                     network === 'polkadot' ? 'Polkadot' : network;
+
   const walletTrunc = `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
 
   await sendMessage(chatId,
-    `💰 *Wallet Balance*\n\n` +
-    `USDC: ${balance}\n` +
-    `Wallet: \`${walletTrunc}\`\n\n` +
-    `_Send "send [amount] USDC to [email]"_`
+    `💰 *Your Wallet*\n\n` +
+    `Wallet: \`${walletTrunc}\`\n` +
+    `Network: ${networkName}\n\n` +
+    `*Balances:*\n` +
+    `• USDC: ${usdcBalance} ($${usdcBalance})\n` +
+    `• USDT: ${usdtBalance} ($${usdtBalance})\n\n` +
+    `*Total:* $${parseFloat(usdcBalance) + parseFloat(usdtBalance)}\n\n` +
+    `_Send "send [amount] [TOKEN] to [recipient]"_`
   );
-  
-  await db.logCommand(null, phone, 'balance', { wallet: walletTrunc }, 'success');
+
+  await db.logCommand(null, phone, 'balance', { 
+    wallet: walletTrunc, 
+    usdc: usdcBalance, 
+    usdt: usdtBalance,
+    network 
+  }, 'success');
 }
 
 async function handleHistory(chatId, phone) {

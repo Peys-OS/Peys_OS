@@ -162,6 +162,18 @@ class BlockchainService {
     return this.getTokenBalance(usdcAddress, walletAddress, network);
   }
 
+  /**
+   * Get USDT balance
+   */
+  async getUSDTBalance(walletAddress, network = 'base_sepolia') {
+    // For now, USDT contract address would be different
+    // In a real implementation, you'd have USDT_ADDRESS in your NETWORKS config
+    // For demo, we'll return 0 or use USDC as placeholder
+    const usdtAddress = this.networks[network]?.usdtAddress;
+    if (!usdtAddress) return '0';
+    return this.getTokenBalance(usdtAddress, walletAddress, network);
+  }
+
   // ========================================================================
   // Direct Transfer Operations
   // ========================================================================

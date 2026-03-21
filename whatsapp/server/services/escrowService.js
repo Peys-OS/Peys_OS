@@ -273,11 +273,31 @@ class EscrowService {
    */
   async getTokenBalance(tokenAddress, walletAddress) {
     try {
-      return await blockchainService.getUSDCBalance(walletAddress);
+      return await blockchainService.getTokenBalance(tokenAddress, walletAddress);
     } catch (error) {
       console.error('[EscrowService] Error getting balance:', error.message);
       return '0.00';
     }
+  }
+
+  /**
+   * Get USDC balance
+   */
+  async getUSDCBalance(walletAddress) {
+    return this.getTokenBalance(
+      '0x036CbD53842c5426634e7929541eC2318f3dCF7e',  // Base Sepolia USDC
+      walletAddress
+    );
+  }
+
+  /**
+   * Get USDT balance
+   */
+  async getUSDTBalance(walletAddress) {
+    return this.getTokenBalance(
+      '0x...',  // Would be USDT contract address
+      walletAddress
+    );
   }
 
   // ========================================================================
