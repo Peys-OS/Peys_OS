@@ -580,8 +580,11 @@ async function handleSend(chatId, phone, text, wallet) {
   if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
     await sendMessage(chatId,
       '❌ *Invalid Amount*\n\n' +
-      'Example: `send 50 USDC to alice@email.com`\n' +
-      'Or: `send 50 USDC to 0x1234...abcd`'
+      'Examples:\n' +
+      '• `send 50 USDC to alice@email.com`\n' +
+      '• `send 50 USDC to 0x1234...abcd`\n' +
+      '• `send 50 USDC to @timothy`\n' +
+      '• `send 50 USDC to +2348123456789`'
     );
     return;
   }
@@ -611,16 +614,94 @@ async function handleSend(chatId, phone, text, wallet) {
     return;
   }
 
-  // Detect transfer type based on recipient
-  const isWalletAddress = /^0x[a-fA-F0-9]{40}$/.test(recipient);
-  const transferType = isWalletAddress ? 'direct' : 'escrow';
+  // Resolve recipient (handle @mentions and phone numbers)
+  let resolvedRecipient = recipient;
+  let recipientWallet = null;
+  let recipientName = null;
+  let transferType = 'escrow';
+
+  // Check if @mention (username lookup)
+  if (recipient.startsWith('@')) {
+    const username = recipient.slice(1); // Remove @
+    await sendMessage(chatId, '🔍 Looking up @' + username + '...');
+    
+    const lookupUser = await db.lookupUserByUsername(username);
+    if (lookupUser) {
+      recipientWallet = lookupUser.primary_wallet_address || lookupUser.wallet_address;
+      recipientName = lookupUser.username || username;
+      
+      if (recipientWallet) {
+        resolvedRecipient = recipientWallet;
+        transferType = 'direct';
+      } else {
+        await sendMessage(chatId,
+          '❌ *User Found But No Wallet*\n\n' +
+          `@${username} is registered but has no wallet yet.\n` +
+          'Ask them to complete registration first.'
+        );
+        return;
+      }
+    } else {
+      await sendMessage(chatId,
+        '❌ *User Not Found*\n\n' +
+        `No Peys user found with username @${username}.\n\n` +
+        'Try their:\n' +
+        '• Email: `send 50 USDC to user@email.com`\n' +
+        '• Phone: `send 50 USDC to +234...`\n' +
+        '• Wallet: `send 50 USDC to 0x...`'
+      );
+      return;
+    }
+  }
+  // Check if phone number (starts with + or is all digits)
+  else if (recipient.startsWith('+') || /^\d{10,15}$/.test(recipient)) {
+    await sendMessage(chatId, '🔍 Looking up phone number...');
+    
+    const lookupUser = await db.lookupUserByPhone(recipient);
+    if (lookupUser) {
+      recipientWallet = lookupUser.primary_wallet_address || lookupUser.wallet_address;
+      recipientName = lookupUser.phone || recipient;
+      
+      if (recipientWallet) {
+        resolvedRecipient = recipientWallet;
+        transferType = 'direct';
+      } else {
+        await sendMessage(chatId,
+          '❌ *User Found But No Wallet*\n\n' +
+          'This phone number is registered but has no wallet yet.\n' +
+          'Ask them to complete registration first.'
+        );
+        return;
+      }
+    } else {
+      // Phone not registered, treat as email-style recipient
+      await sendMessage(chatId,
+        '⚠️ *Phone Not Registered*\n\n' +
+        'This phone number is not on Peys yet.\n' +
+        'The funds will be held in escrow until they register.'
+      );
+      // Continue with escrow flow
+    }
+  }
+  // Check if wallet address
+  else if (/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+    resolvedRecipient = recipient;
+    transferType = 'direct';
+  }
+  // Otherwise treat as email (escrow)
+  else {
+    resolvedRecipient = recipient;
+    transferType = 'escrow';
+  }
 
   // Store pending transaction
   userSessions.set(chatId, {
     pendingTransaction: {
       amount: parseFloat(amount),
       token,
-      recipient,
+      recipient: resolvedRecipient,
+      originalRecipient: recipient,
+      recipientName,
       wallet,
       transferType,
       timestamp: Date.now()
