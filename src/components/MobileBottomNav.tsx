@@ -76,7 +76,6 @@ const moreItems = [
   { to: "/undo", label: "Undo", icon: Undo2 },
   { to: "/voice-input", label: "Voice", icon: Mic },
   { to: "/request", label: "Request", icon: Wallet },
-  { to: "/whatsapp", label: "Chat", icon: MessageCircle },
 ];
 
 const devItems = [

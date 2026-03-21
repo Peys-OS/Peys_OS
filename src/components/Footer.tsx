@@ -36,7 +36,6 @@ export default function Footer() {
                 <Link to="/claim/demo" className="block text-muted-foreground transition-colors hover:text-foreground">Claim</Link>
                 <Link to="/request" className="block text-muted-foreground transition-colors hover:text-foreground">Request</Link>
                 <Link to="/contacts" className="block text-muted-foreground transition-colors hover:text-foreground">Contacts</Link>
-                <Link to="/whatsapp" className="block text-muted-foreground transition-colors hover:text-foreground">WhatsApp</Link>
               </div>
             </div>
             <div>

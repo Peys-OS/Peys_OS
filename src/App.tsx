@@ -91,8 +91,7 @@ import AddressBookPage from "./pages/AddressBookPage";
 import RequestPage from "./pages/RequestPage";
 import ContactsPage from "./pages/ContactsPage";
 import ProfilePage from "./pages/ProfilePage";
-import WhatsAppPage from "./pages/WhatsAppPage";
-import WhatsAppRegisterPage from "./pages/WhatsAppRegisterPage";
+import RegisterPage from "./pages/RegisterPage";
 import DevelopersPage from "./pages/DevelopersPage";
 import ApiKeysPage from "./pages/ApiKeysPage";
 import NotFound from "./pages/NotFound";
@@ -214,8 +213,7 @@ const App = () => (
                   <Route path="/request" element={<RequestPage />} />
                   <Route path="/contacts" element={<ContactsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
-                  <Route path="/whatsapp" element={<WhatsAppPage />} />
-                  <Route path="/whatsapp-register" element={<WhatsAppRegisterPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
                   <Route path="/developers" element={<DevelopersPage />} />
                   <Route path="/api-keys" element={<ApiKeysPage />} />
                   <Route path="/docs" element={<DocsPage />} />

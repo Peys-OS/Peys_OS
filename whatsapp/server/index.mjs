@@ -51,6 +51,9 @@ let currentQr = null;
 let isConnected = false;
 let connectedNumber = null;
 let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+let healthCheckInterval = null;
+let lastSuccessfulOperation = Date.now();
 
 // User session state for multi-step interactions
 const userSessions = new Map();
@@ -136,6 +139,8 @@ async function initializeWhatsApp() {
   client.on('ready', async () => {
     isConnected = true;
     currentQr = null;
+    reconnectAttempts = 0; // Reset reconnect attempts
+    lastSuccessfulOperation = Date.now();
     const info = client.info;
     connectedNumber = info?.wid?.user || 'Unknown';
     
@@ -147,6 +152,9 @@ async function initializeWhatsApp() {
     console.log('  🤖 Bot is ready to receive messages');
     console.log('═'.repeat(60) + '\n');
 
+    // Start health check after successful connection
+    startHealthCheck();
+    
     // Save session to database
     await db.saveWhatsappSession(null, connectedNumber, info?.wid?.user, null);
   });
@@ -164,11 +172,10 @@ async function initializeWhatsApp() {
     console.log('  Reason: ' + reason);
     console.log('═'.repeat(60) + '\n');
     
+    // Use the robust restart function
     if (reason !== 'NAVIGATION') {
-      console.log('🔄 Reconnecting in 5 seconds...\n');
-      setTimeout(() => {
-        initializeWhatsApp().catch(e => console.error('❌ Reconnect failed:', e.message));
-      }, 5000);
+      console.log('🔄 Scheduling reconnection...');
+      restartClient();
     }
   });
 
@@ -184,11 +191,13 @@ async function initializeWhatsApp() {
       console.log('─'.repeat(50));
       
       await handleMessage(message);
+      lastSuccessfulOperation = Date.now();
     } catch (error) {
       if (error.message.includes('Execution context') || 
           error.message.includes('navigation') ||
           error.message.includes('detached')) {
         console.log('⚠️ Navigation error during message handling (ignoring)');
+        scheduleHealthCheckRestart();
         return;
       }
       console.error('❌ Message handler error:', error.message);
@@ -205,12 +214,12 @@ async function initializeWhatsApp() {
     await client.initialize();
   } catch (error) {
     if (error.message.includes('Execution context was destroyed') || 
-        error.message.includes('navigation')) {
+        error.message.includes('navigation') ||
+        error.message.includes('detached')) {
       console.log('\n⚠️ Browser navigation during auth - this is normal');
-      console.log('🔄 Restarting client in 3 seconds...\n');
-      // Clean up and restart
-      try { await client.destroy(); } catch (e) {}
-      setTimeout(initializeWhatsApp, 3000);
+      console.log('🔄 Restarting client...\n');
+      // Clean up and restart using the robust restart function
+      await restartClient();
     } else {
       console.error('❌ Initialization failed:', error.message);
       console.log('🔄 Retrying in 10 seconds...');
@@ -225,10 +234,88 @@ process.on('uncaughtException', (error) => {
       error.message.includes('navigation') ||
       error.message.includes('detached')) {
     console.log('⚠️ Puppeteer navigation error (non-fatal) - continuing...');
+    // Schedule a health check restart if this happens frequently
+    scheduleHealthCheckRestart();
     return; // Don't crash
   }
   console.error('❌ Uncaught exception:', error);
 });
+
+// ============================================================================
+// Health Check and Auto-Restart
+// ============================================================================
+
+function scheduleHealthCheckRestart() {
+  // If we've had multiple frame errors recently, restart the client
+  const now = Date.now();
+  const timeSinceLastSuccess = now - lastSuccessfulOperation;
+  
+  if (timeSinceLastSuccess > 30000) { // 30 seconds without success
+    console.log('🔄 Multiple frame errors detected, scheduling client restart...');
+    restartClient();
+  }
+}
+
+async function restartClient() {
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    console.log('❌ Max reconnect attempts reached. Please check the bot manually.');
+    return;
+  }
+  
+  reconnectAttempts++;
+  console.log(`🔄 Restarting WhatsApp client (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+  
+  try {
+    if (client) {
+      await client.destroy();
+    }
+  } catch (e) {
+    console.log('⚠️ Error destroying client:', e.message);
+  }
+  
+  // Clear state
+  client = null;
+  isConnected = false;
+  connectedNumber = null;
+  currentQr = null;
+  
+  // Wait and restart
+  const delay = Math.min(5000 * reconnectAttempts, 30000); // Exponential backoff, max 30s
+  console.log(`⏳ Waiting ${delay/1000}s before restart...`);
+  
+  setTimeout(async () => {
+    try {
+      await initializeWhatsApp();
+      reconnectAttempts = 0; // Reset on successful initialization
+    } catch (error) {
+      console.error('❌ Restart failed:', error.message);
+      // Try again with longer delay
+      setTimeout(() => restartClient(), delay * 2);
+    }
+  }, delay);
+}
+
+// Periodic health check
+function startHealthCheck() {
+  if (healthCheckInterval) {
+    clearInterval(healthCheckInterval);
+  }
+  
+  healthCheckInterval = setInterval(async () => {
+    if (!isConnected || !client) {
+      return;
+    }
+    
+    const now = Date.now();
+    const timeSinceLastSuccess = now - lastSuccessfulOperation;
+    
+    // If no successful operation in 60 seconds, restart
+    if (timeSinceLastSuccess > 60000) {
+      console.log('⚠️ No successful operations in 60 seconds, restarting client...');
+      restartClient();
+    }
+  }, 30000); // Check every 30 seconds
+}
 
 // ============================================================================
 // Message Handler
@@ -281,18 +368,18 @@ async function handleMessage(message) {
       return;
     }
 
-    // Peys registration URL with WhatsApp number
-    const appUrl = process.env.APP_URL || 'https://peys-bot.vercel.app';
-    const registerUrl = `${appUrl}/whatsapp-register?wa=${phone}`;
+    // Peys registration URL - short and branded
+    const appUrl = process.env.APP_URL || 'https://peys.xyz';
+    const registerUrl = `${appUrl}/register?wa=${phone}`;
     
     const registerMsg = 
       '🔐 *Create Your Peys Account*\n\n' +
-      'Tap the link below to register:\n\n' +
+      'Tap to register:\n' +
       registerUrl + '\n\n' +
-      '✅ Wallet for your WhatsApp number\n' +
-      '✅ Send & receive USDC/USDT\n' +
-      '✅ Instant payments\n\n' +
-      'After registering, send "menu" here.';
+      '✓ Wallet for WhatsApp\n' +
+      '✓ Send & receive USDC/USDT\n' +
+      '✓ Instant payments\n\n' +
+      '_After registering, send "menu" here._';
 
     await sendMessage(chatId, registerMsg);
     await db.logCommand(null, phone, 'register_link_sent', null, 'success');
@@ -612,10 +699,20 @@ async function sendMessage(chatId, text, showTypingIndicator = true) {
       console.log('📤 SENT → +' + phone);
       console.log('   ' + text.substring(0, 60) + (text.length > 60 ? '...' : ''));
       
+      lastSuccessfulOperation = Date.now();
       return true;
     } catch (error) {
       lastError = error;
       console.error('❌ Send failed:', error.message);
+      
+      // Check if it's a frame detachment error
+      if (error.message.includes('Execution context') || 
+          error.message.includes('navigation') ||
+          error.message.includes('detached')) {
+        console.log('⚠️ Frame detachment error during send');
+        scheduleHealthCheckRestart();
+        break; // Don't retry on frame errors
+      }
       
       if (attempt < maxRetries) {
         await new Promise(r => setTimeout(r, 1000 * attempt));
@@ -672,7 +769,11 @@ app.get('/health', async (req, res) => {
     whatsapp: {
       connected: isConnected,
       qrAvailable: !!currentQr,
-      number: connectedNumber
+      number: connectedNumber,
+      reconnectAttempts,
+      maxReconnectAttempts: MAX_RECONNECT_ATTEMPTS,
+      lastSuccessfulOperation: new Date(lastSuccessfulOperation).toISOString(),
+      timeSinceLastSuccess: Math.round((Date.now() - lastSuccessfulOperation) / 1000) + 's'
     },
     services: escrowHealth,
     framework: 'whatsapp-web.js'
