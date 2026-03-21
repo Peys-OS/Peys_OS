@@ -133,7 +133,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
           accentColor: '#10b981',
           logo: undefined,
         },
-        loginMethods: ['email', 'google', 'apple', 'twitter', 'wallet'],
+        loginMethods: ['email', 'phone', 'google', 'apple', 'twitter', 'wallet'],
         embeddedWallets: {
           ethereum: {
             createOnLogin: 'users-without-wallets',  // Fixed: was 'users-without-wallet'
