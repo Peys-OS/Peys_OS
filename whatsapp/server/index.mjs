@@ -26,6 +26,7 @@ import { existsSync, mkdirSync } from 'fs';
 
 // Import services
 import escrowService from './services/escrowService.js';
+import blockchainService from './services/blockchainService.js';
 import dbService from './services/databaseService.js';
 const db = dbService;
 
@@ -506,18 +507,22 @@ async function sendMainMenu(chatId, isRegistered) {
   
   if (isRegistered) {
     menu += '✅ Your wallet is ready\n\n';
-    menu += '*Commands:*\n';
-    menu += '• `balance` - Check wallet balance\n';
-    menu += '• `send [amount] [TOKEN] to [email/phone]` - Send payment\n';
-    menu += '• `history` - View transactions\n';
-    menu += '• `claim` - Check pending payments\n\n';
+    menu += '*Payments:*\n';
+    menu += '• `send [amt] [TOKEN] to [email]` - Escrow payment\n';
+    menu += '• `send [amt] [TOKEN] to 0x...` - Direct transfer\n';
+    menu += '• `balance` - Check wallet\n';
+    menu += '• `history` - Transactions\n';
+    menu += '• `claim` - Pending claims\n\n';
   } else {
     menu += '⚠️ Register to get started\n\n';
     menu += '*Commands:*\n';
     menu += '• `register` - Create your account\n\n';
   }
   
-  menu += '*Supported Tokens:* USDC, USDT\n\n';
+  menu += '*Supported Tokens:* USDC, USDT\n';
+  menu += '*Transfer Types:*\n';
+  menu += '• Email → Escrow (recipient claims)\n';
+  menu += '• Wallet → Direct (instant)\n\n';
   menu += '_Powered by Peys Protocol_';
   
   await sendMessage(chatId, menu);
@@ -575,7 +580,8 @@ async function handleSend(chatId, phone, text, wallet) {
   if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
     await sendMessage(chatId,
       '❌ *Invalid Amount*\n\n' +
-      'Example: `send 50 USDC to alice@email.com`'
+      'Example: `send 50 USDC to alice@email.com`\n' +
+      'Or: `send 50 USDC to 0x1234...abcd`'
     );
     return;
   }
@@ -589,7 +595,8 @@ async function handleSend(chatId, phone, text, wallet) {
   if (!recipient) {
     await sendMessage(chatId,
       '❌ *Missing Recipient*\n\n' +
-      'Example: `send 50 USDC to alice@email.com`'
+      'Example: `send 50 USDC to alice@email.com`\n' +
+      'Or: `send 50 USDC to 0x1234...abcd`'
     );
     return;
   }
@@ -604,6 +611,10 @@ async function handleSend(chatId, phone, text, wallet) {
     return;
   }
 
+  // Detect transfer type based on recipient
+  const isWalletAddress = /^0x[a-fA-F0-9]{40}$/.test(recipient);
+  const transferType = isWalletAddress ? 'direct' : 'escrow';
+
   // Store pending transaction
   userSessions.set(chatId, {
     pendingTransaction: {
@@ -611,75 +622,146 @@ async function handleSend(chatId, phone, text, wallet) {
       token,
       recipient,
       wallet,
+      transferType,
       timestamp: Date.now()
     }
   });
 
-  // Send confirmation
+  // Send confirmation based on transfer type
   const fee = '0.0005';
   const total = parseFloat(amount) + parseFloat(fee);
 
-  await sendMessage(chatId,
-    `📤 *Confirm Payment*\n\n` +
-    `Amount: ${amount} ${token}\n` +
-    `To: ${recipient}\n` +
-    `Network Fee: ${fee} ETH\n` +
-    `Total: ${total} ${token}\n\n` +
-    `Reply *"confirm"* or *"cancel"*`
-  );
+  if (isWalletAddress) {
+    // Direct transfer confirmation
+    const recipientTrunc = `${recipient.slice(0, 6)}...${recipient.slice(-4)}`;
+    await sendMessage(chatId,
+      `📤 *Confirm Direct Transfer*\n\n` +
+      `Amount: ${amount} ${token}\n` +
+      `To: \`${recipientTrunc}\`\n` +
+      `Type: Direct Transfer (instant)\n` +
+      `Network Fee: ~${fee} ETH\n\n` +
+      `Reply *"confirm"* or *"cancel"*`
+    );
+  } else {
+    // Escrow confirmation
+    await sendMessage(chatId,
+      `📤 *Confirm Escrow Payment*\n\n` +
+      `Amount: ${amount} ${token}\n` +
+      `To: ${recipient}\n` +
+      `Type: Escrow (recipient must claim)\n` +
+      `Network Fee: ~${fee} ETH\n\n` +
+      `Reply *"confirm"* or *"cancel"*`
+    );
+  }
   
-  await db.logCommand(null, phone, 'send_prepare', { amount, token, recipient }, 'success');
+  await db.logCommand(null, phone, 'send_prepare', { amount, token, recipient, transferType }, 'success');
 }
 
 async function confirmTransaction(chatId, phone, session) {
-  const { amount, token, recipient, wallet } = session.pendingTransaction;
+  const { amount, token, recipient, wallet, transferType } = session.pendingTransaction;
   
   // Clear pending transaction
   userSessions.delete(chatId);
 
-  // Create escrow payment
-  const result = await escrowService.createPayment({
-    senderWhatsappId: chatId,
-    senderWallet: wallet,
-    recipientEmail: recipient,
-    amount: amount.toString(),
-    token
-  });
+  if (transferType === 'direct') {
+    // Direct wallet-to-wallet transfer
+    await sendMessage(chatId,
+      '⏳ *Processing Direct Transfer...*\n\n' +
+      'Sending to blockchain...'
+    );
 
-  if (result.success) {
-    // Create transaction record
-    await db.createTransaction({
-      type: 'escrow_create',
-      amount: blockchainService.formatAmount(amount),
-      amountUsd: amount,
+    // For demo, we simulate the transfer
+    // In production, this would use blockchainService.directTransfer()
+    const result = await blockchainService.directTransfer({
+      fromWallet: wallet,
+      toAddress: recipient,
+      amount: amount.toString(),
       token,
-      senderWallet: wallet,
-      recipientPhone: recipient,
-      escrowId: result.paymentId,
-      status: 'confirmed',
-      metadata: {
-        sender_whatsapp_id: chatId,
-        claim_code: result.claimCode
-      }
+      network: 'base_sepolia'
     });
 
-    await sendMessage(chatId,
-      `✅ *Payment Created!*\n\n` +
-      `Amount: ${amount} ${token}\n` +
-      `To: ${recipient}\n\n` +
-      `Claim Code: \`${result.claimCode}\`\n` +
-      `Claim Link: ${result.claimLink}\n\n` +
-      `_Share the claim code with the recipient_`
-    );
-    
-    await db.logCommand(null, phone, 'send_confirm', { amount, token, recipient, paymentId: result.paymentId }, 'success');
+    if (result.success) {
+      const recipientTrunc = `${recipient.slice(0, 6)}...${recipient.slice(-4)}`;
+      
+      // Create transaction record
+      await db.createTransaction({
+        type: 'direct_transfer',
+        amount: amount.toString(),
+        amountUsd: amount,
+        token,
+        senderWallet: wallet,
+        recipientAddress: recipient,
+        txHash: result.txHash,
+        status: 'confirmed',
+        metadata: {
+          sender_whatsapp_id: chatId,
+          transfer_type: 'direct'
+        }
+      });
+
+      await sendMessage(chatId,
+        `✅ *Direct Transfer Complete!*\n\n` +
+        `Amount: ${amount} ${token}\n` +
+        `To: \`${recipientTrunc}\`\n` +
+        `Tx Hash: \`${result.txHash.slice(0, 10)}...${result.txHash.slice(-8)}\`\n\n` +
+        `_The funds have been sent directly._`
+      );
+      
+      await db.logCommand(null, phone, 'send_direct', { amount, token, recipient, txHash: result.txHash }, 'success');
+    } else {
+      await sendMessage(chatId,
+        '❌ *Transfer Failed*\n\n' +
+        `${result.error || 'Please try again later.'}\n\n` +
+        '_Your funds are safe. No transaction was made._'
+      );
+      
+      await db.logCommand(null, phone, 'send_failed', { amount, token, recipient }, 'failed', result.error);
+    }
   } else {
-    await sendMessage(chatId,
-      '❌ *Payment Failed*\n\n' +
-      `${result.error || 'Please try again later.'}`
-    );
-    
-    await db.logCommand(null, phone, 'send_failed', { amount, token, recipient }, 'failed', result.error);
+    // Escrow payment (existing flow)
+    const result = await escrowService.createPayment({
+      senderWhatsappId: chatId,
+      senderWallet: wallet,
+      recipientEmail: recipient,
+      amount: amount.toString(),
+      token
+    });
+
+    if (result.success) {
+      // Create transaction record
+      await db.createTransaction({
+        type: 'escrow_create',
+        amount: amount.toString(),
+        amountUsd: amount,
+        token,
+        senderWallet: wallet,
+        recipientEmail: recipient,
+        escrowId: result.paymentId,
+        status: 'confirmed',
+        metadata: {
+          sender_whatsapp_id: chatId,
+          claim_code: result.claimCode
+        }
+      });
+
+      await sendMessage(chatId,
+        `✅ *Escrow Payment Created!*\n\n` +
+        `Amount: ${amount} ${token}\n` +
+        `To: ${recipient}\n\n` +
+        `Claim Code: \`${result.claimCode}\`\n` +
+        `Claim Link: ${result.claimLink}\n\n` +
+        `_Share the claim code with the recipient_`
+      );
+      
+      await db.logCommand(null, phone, 'send_escrow', { amount, token, recipient, paymentId: result.paymentId }, 'success');
+    } else {
+      await sendMessage(chatId,
+        '❌ *Payment Failed*\n\n' +
+        `${result.error || 'Please try again later.'}`
+      );
+      
+      await db.logCommand(null, phone, 'send_failed', { amount, token, recipient }, 'failed', result.error);
+    }
   }
 }
 
