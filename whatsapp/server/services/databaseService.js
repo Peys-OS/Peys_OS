@@ -150,6 +150,103 @@ export async function getUserWallet(whatsappId) {
   return profile?.primary_wallet_address || profile?.wallet_address || null;
 }
 
+/**
+ * Lookup user by username
+ */
+export async function lookupUserByUsername(username) {
+  const client = getSupabase();
+  
+  if (!client) {
+    // Mock mode - search by username in mock profiles
+    for (const [_, profile] of mockStore.profiles) {
+      if (profile.username?.toLowerCase() === username.toLowerCase()) {
+        return profile;
+      }
+    }
+    return null;
+  }
+
+  const { data, error } = await client
+    .from('profiles')
+    .select('id, whatsapp_id, username, wallet_address, primary_wallet_address, phone, email')
+    .ilike('username', username)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error looking up user by username:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Lookup user by phone number (with or without + prefix)
+ */
+export async function lookupUserByPhone(phone) {
+  const client = getSupabase();
+  
+  // Normalize phone - remove + prefix and any spaces
+  const normalizedPhone = phone.replace(/[\+\s-]/g, '');
+  
+  if (!client) {
+    // Mock mode - search by phone in mock profiles
+    for (const [_, profile] of mockStore.profiles) {
+      const profilePhone = profile.phone_number?.replace(/[\+\s-]/g, '');
+      if (profilePhone === normalizedPhone) {
+        return profile;
+      }
+    }
+    return null;
+  }
+
+  // Search with and without + prefix
+  const { data, error } = await client
+    .from('profiles')
+    .select('id, whatsapp_id, username, wallet_address, primary_wallet_address, phone, email')
+    .or(`phone.eq.+${normalizedPhone},phone.eq.${normalizedPhone},phone.eq.${normalizedPhone}`)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error looking up user by phone:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Update user's username
+ */
+export async function updateUsername(whatsappId, username) {
+  const client = getSupabase();
+  
+  if (!client) {
+    // Mock mode
+    const profile = mockStore.profiles.get(whatsappId);
+    if (profile) {
+      profile.username = username;
+      profile.updated_at = new Date().toISOString();
+      return profile;
+    }
+    return null;
+  }
+
+  const { data, error } = await client
+    .from('profiles')
+    .update({ username, updated_at: new Date().toISOString() })
+    .eq('whatsapp_id', whatsappId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating username:', error.message);
+    return null;
+  }
+
+  return data;
+}
+
 // ============================================================================
 // WhatsApp Session Operations (whatsapp_sessions table)
 // ============================================================================
