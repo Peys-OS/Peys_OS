@@ -357,32 +357,78 @@ async function handleMessage(message) {
     return;
   }
 
-  // Register - Show Luma registration link
+  // Register - Show registration link
   if (lowerText === 'register' || lowerText === 'sign up' || lowerText.startsWith('register')) {
     // Check if already registered
     if (isRegistered) {
+      const profile = await db.getProfileByWhatsappId(chatId);
+      const walletTrunc = profile?.wallet_address 
+        ? `${profile.wallet_address.slice(0, 6)}...${profile.wallet_address.slice(-4)}`
+        : 'Not set';
+      
       await sendMessage(chatId,
-        '⚠️ *Already Registered*\n\n' +
-        'You already have an account. Send "menu" to see options.'
+        '✅ *Already Registered*\n\n' +
+        `Wallet: \`${walletTrunc}\`\n` +
+        `Email: ${profile?.email || 'Not linked'}\n\n` +
+        'Send *menu* to see available commands.'
       );
+      await db.logCommand(null, phone, 'register_already', null, 'success');
       return;
     }
 
-    // Peys registration URL - short and branded
-    const appUrl = process.env.APP_URL || 'https://peys.xyz';
+    // Send welcome message first
+    const welcomeMsg = 
+      '👋 *Welcome to Peys!*\n\n' +
+      'Peys is a stablecoin wallet that works right here in WhatsApp.\n\n' +
+      '✨ *What you can do:*\n' +
+      '• Send & receive USDC/USDT\n' +
+      '• Pay anyone by email or wallet\n' +
+      '• Check your balance anytime\n' +
+      '• No apps to download\n\n' +
+      'Let\'s create your account...';
+    
+    await sendMessage(chatId, welcomeMsg);
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Peys registration URL
+    const appUrl = process.env.APP_URL || 'https://bot-frontend-inky.vercel.app';
     const registerUrl = `${appUrl}/register?wa=${phone}`;
     
     const registerMsg = 
-      '🔐 *Create Your Peys Account*\n\n' +
-      'Tap to register:\n' +
+      '🔐 *Create Your Account*\n\n' +
+      'Tap the link below to register:\n' +
       registerUrl + '\n\n' +
-      '✓ Wallet for WhatsApp\n' +
-      '✓ Send & receive USDC/USDT\n' +
-      '✓ Instant payments\n\n' +
-      '_After registering, send "menu" here._';
+      '📋 *Steps:*\n' +
+      '1. Tap the link above\n' +
+      '2. Sign in with phone or email\n' +
+      '3. Your wallet is created automatically\n' +
+      '4. Come back here and send *menu*\n\n' +
+      '_It takes less than 30 seconds!_';
 
     await sendMessage(chatId, registerMsg);
     await db.logCommand(null, phone, 'register_link_sent', null, 'success');
+    return;
+  }
+
+  // Check registration status
+  if (lowerText === 'check' || lowerText === 'status') {
+    const profile = await db.getProfileByWhatsappId(chatId);
+    
+    if (profile?.wallet_address) {
+      const walletTrunc = `${profile.wallet_address.slice(0, 6)}...${profile.wallet_address.slice(-4)}`;
+      await sendMessage(chatId,
+        '✅ *You\'re Registered!*\n\n' +
+        `Wallet: \`${walletTrunc}\`\n` +
+        `Email: ${profile.email || 'Not linked'}\n` +
+        `Phone: ${profile.phone || 'Not linked'}\n\n` +
+        'Send *menu* to see commands.'
+      );
+    } else {
+      await sendMessage(chatId,
+        '⚠️ *Not Registered Yet*\n\n' +
+        'Send *register* to create your account.'
+      );
+    }
     return;
   }
 
@@ -855,6 +901,40 @@ app.post('/webhook/payment', async (req, res) => {
   }
   
   res.json({ received: true });
+});
+
+// Webhook for registration confirmation from bot-frontend
+app.post('/webhook/registration', async (req, res) => {
+  const { whatsapp_id, wallet_address, email, phone } = req.body;
+  
+  console.log(`[Webhook] Registration confirmed for: ${whatsapp_id}`);
+  
+  if (!whatsapp_id) {
+    return res.status(400).json({ error: 'Missing whatsapp_id' });
+  }
+  
+  const chatId = `${whatsapp_id}@c.us`;
+  const walletTrunc = wallet_address 
+    ? `${wallet_address.slice(0, 6)}...${wallet_address.slice(-4)}`
+    : 'Not set';
+  
+  // Send welcome message to user
+  if (isConnected) {
+    await sendMessage(chatId,
+      '🎉 *Welcome to Peys!*\n\n' +
+      'Your account is ready.\n\n' +
+      `💳 *Wallet:* \`${walletTrunc}\`\n` +
+      `📧 *Email:* ${email || 'Not linked'}\n\n` +
+      '*Quick Start:*\n' +
+      '• *balance* - Check your wallet\n' +
+      '• *send 10 USDC to friend@email.com*\n' +
+      '• *history* - View transactions\n' +
+      '• *help* - See all commands\n\n' +
+      '_Your wallet is secured by Privy._'
+    );
+  }
+  
+  res.json({ received: true, notified: isConnected });
 });
 
 // ============================================================================

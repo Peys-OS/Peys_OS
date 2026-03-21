@@ -34,6 +34,24 @@ export default function RegisterPage() {
         updated_at: new Date().toISOString()
       });
 
+      // Notify WhatsApp bot about registration
+      try {
+        const botUrl = import.meta.env.VITE_WHATSAPP_BOT_URL || 'https://peydot-whatsapp-bot.railway.app';
+        await fetch(`${botUrl}/webhook/registration`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            whatsapp_id: whatsappNumber,
+            wallet_address: user.wallet?.address,
+            email: user.email?.address,
+            phone: user.phone?.number
+          })
+        });
+      } catch (webhookError) {
+        console.error('Webhook notification failed:', webhookError);
+        // Don't fail registration if webhook fails
+      }
+
       // Redirect to success
       navigate('/success?registered=true');
     } catch (e) {
