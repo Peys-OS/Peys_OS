@@ -21,6 +21,10 @@ cache/
 .env
 .env.local
 
+# WhatsApp bot session data
+whatsapp/.waweb_auth/
+whatsapp/.wwebjs_cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -31,3 +35,4 @@ cache/
 *.njsproj
 *.sln
 *.sw?
+.vercel

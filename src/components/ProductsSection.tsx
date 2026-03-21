@@ -19,22 +19,6 @@ const products = [
     ],
   },
   {
-    id: "whatsapp",
-    label: "WhatsApp",
-    tagline: "Pay right from your chat",
-    description: "Send USDC instantly through WhatsApp. No apps to download — just message and money moves. Perfect for friends, family, and tips.",
-    icon: MessageCircle,
-    color: "accent",
-    link: "/whatsapp",
-    badge: "New",
-    features: [
-      { icon: MessageCircle, text: "Chat to pay" },
-      { icon: Globe, text: "Global coverage" },
-      { icon: Shield, text: "Secure & encrypted" },
-      { icon: Wallet, text: "Instant wallet" },
-    ],
-  },
-  {
     id: "business",
     label: "Business",
     tagline: "Scale payments for your organization",

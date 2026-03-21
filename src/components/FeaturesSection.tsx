@@ -30,13 +30,6 @@ const individualFeatures: Feature[] = [
     link: "/send",
   },
   {
-    icon: MessageCircle,
-    title: "WhatsApp Payments",
-    desc: "Send and receive USDC directly through WhatsApp. No app installation needed — just chat and pay.",
-    image: featureMagicLinks,
-    link: "/whatsapp",
-  },
-  {
     icon: Shield,
     title: "Escrow Protection",
     desc: "Funds are locked in audited smart contracts until claimed. If unclaimed after 7 days, they're automatically refunded.",
