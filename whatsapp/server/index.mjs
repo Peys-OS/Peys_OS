@@ -481,6 +481,17 @@ async function handleMessage(message) {
     return;
   }
 
+  // Transaction Details
+  if (lowerText.startsWith('details ') || lowerText.startsWith('detail ')) {
+    const txIndex = parseInt(text.split(' ')[1]) - 1;
+    if (!isNaN(txIndex)) {
+      await handleTransactionDetails(chatId, phone, txIndex);
+    } else {
+      await sendMessage(chatId, '❌ *Invalid command*\n\nUsage: `details 1` (where 1 is the transaction number)');
+    }
+    return;
+  }
+
   // Send/Pay
   if (lowerText.startsWith('send ') || lowerText.startsWith('pay ')) {
     await handleSend(chatId, phone, text, wallet);
@@ -634,14 +645,63 @@ async function handleHistory(chatId, phone) {
       '`send 10 USDC to friend@email.com`'
     );
   } else {
-    let msg = '📋 *Recent Transactions*\n\n';
-    transactions.slice(0, 5).forEach((tx, i) => {
-      msg += `${i + 1}. ${tx.amount || tx.amount_usd} ${tx.token} - ${tx.status}\n`;
+    let msg = '📋 *Your Transactions*\n\n';
+    
+    transactions.slice(0, 10).forEach((tx, i) => {
+      const status = tx.status === 'pending' ? '⏳' : tx.status === 'claimed' ? '✅' : tx.status === 'refunded' ? '🔄' : '❓';
+      const amount = tx.amount || tx.amount_usd;
+      const token = tx.token || 'USDC';
+      const direction = tx.is_sender ? '→' : '←';
+      const otherParty = tx.recipient_email || tx.sender_email || 'Unknown';
+      const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Unknown date';
+      
+      msg += `${i + 1}. ${status} ${amount} ${token} ${direction} ${otherParty}\n`;
+      msg += `   📅 ${date} | ID: ${tx.payment_id?.slice(0, 8) || 'N/A'}\n\n`;
     });
+    
+    msg += '_Reply "details [number]" for full transaction info_';
     await sendMessage(chatId, msg);
   }
   
   await db.logCommand(null, phone, 'history', { count: transactions.length }, 'success');
+}
+
+async function handleTransactionDetails(chatId, phone, txIndex) {
+  const transactions = await escrowService.getUserPayments(chatId);
+  const tx = transactions[txIndex];
+  
+  if (!tx) {
+    await sendMessage(chatId, '❌ *Transaction not found*\n\nPlease check the number and try again.');
+    return;
+  }
+  
+  const status = tx.status === 'pending' ? '⏳ Pending' : tx.status === 'claimed' ? '✅ Claimed' : tx.status === 'refunded' ? '🔄 Refunded' : '❓ Unknown';
+  const direction = tx.is_sender ? 'Sent' : 'Received';
+  const otherParty = tx.is_sender ? tx.recipient_email : tx.sender_email;
+  const amount = tx.amount || tx.amount_usd;
+  const token = tx.token || 'USDC';
+  const createdDate = tx.created_at ? new Date(tx.created_at).toLocaleString() : 'Unknown';
+  const expiryDate = tx.expiry ? new Date(tx.expiry).toLocaleString() : 'N/A';
+  
+  const message = 
+`📋 *Transaction Details #${txIndex + 1}*
+
+*Status:* ${status}
+*Type:* ${direction}
+*Amount:* ${amount} ${token}
+
+*${direction === 'Sent' ? 'To' : 'From'}:* ${otherParty || 'Unknown'}
+
+*Created:* ${createdDate}
+*Expires:* ${expiryDate}
+
+*Payment ID:* \`${tx.payment_id || 'N/A'}\`
+*Claim Code:* \`${tx.claim_code || 'N/A'}\`
+
+${tx.tx_hash ? `*Tx Hash:* \`${tx.tx_hash.slice(0, 10)}...${tx.tx_hash.slice(-4)}\`` : ''}`;
+
+  await sendMessage(chatId, message);
+  await db.logCommand(null, phone, 'details', { txIndex }, 'success');
 }
 
 async function handleSend(chatId, phone, text, wallet) {
