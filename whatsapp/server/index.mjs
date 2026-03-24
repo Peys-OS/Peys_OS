@@ -28,6 +28,7 @@ import { existsSync, mkdirSync } from 'fs';
 import escrowService from './services/escrowService.js';
 import blockchainService from './services/blockchainService.js';
 import dbService from './services/databaseService.js';
+import notificationService from './services/notificationService.js';
 const db = dbService;
 
 // ============================================================================
@@ -109,6 +110,9 @@ async function initializeWhatsApp() {
       ]
     }
   });
+
+  // Set client for notification service
+  notificationService.setClient(client);
 
   // QR Code event
   client.on('qr', (qr) => {
@@ -1241,19 +1245,13 @@ app.post('/webhook/payment', async (req, res) => {
   
   console.log(`[Webhook] ${event}:`, payload);
   
-  // Handle payment events
-  if (event === 'payment_created' && payload.recipient_whatsapp_id) {
-    const chatId = `${payload.recipient_whatsapp_id}@c.us`;
-    await sendMessage(chatId,
-      `💰 *Payment Received!*\n\n` +
-      `Amount: ${payload.amount} ${payload.token}\n` +
-      `From: ${payload.sender_name}\n\n` +
-      `Claim Code: \`${payload.claim_code}\`\n\n` +
-      `_Reply "claim" to see pending payments_`
-    );
+  try {
+    await notificationService.handlePaymentWebhook(event, payload);
+    res.json({ received: true, success: true });
+  } catch (error) {
+    console.error('[Webhook] Error handling payment:', error.message);
+    res.json({ received: true, success: false, error: error.message });
   }
-  
-  res.json({ received: true });
 });
 
 // Webhook for registration confirmation from bot-frontend
