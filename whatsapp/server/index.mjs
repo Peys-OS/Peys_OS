@@ -55,6 +55,8 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 let healthCheckInterval = null;
 let lastSuccessfulOperation = Date.now();
+let lastQrTime = 0;
+const QR_COOLDOWN_MS = 30000; // Only refresh QR every 30 seconds
 
 // User session state for multi-step interactions
 const userSessions = new Map();
@@ -82,6 +84,7 @@ async function initializeServices() {
 
 async function initializeWhatsApp() {
   const authPath = path.join(process.cwd(), '.waweb_auth');
+  const sessionId = 'peys-bot-' + Date.now();
   
   if (!existsSync(authPath)) {
     mkdirSync(authPath, { recursive: true });
@@ -92,10 +95,11 @@ async function initializeWhatsApp() {
   client = new Client({
     authStrategy: new LocalAuth({ 
       dataPath: authPath,
-      clientId: 'peys-bot'
+      clientId: sessionId
     }),
     puppeteer: {
       headless: true,
+      protocolTimeout: 120000,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -108,6 +112,12 @@ async function initializeWhatsApp() {
 
   // QR Code event
   client.on('qr', (qr) => {
+    const now = Date.now();
+    if (now - lastQrTime < QR_COOLDOWN_MS) {
+      console.log('[QR] Skipping QR refresh (cooldown active)');
+      return;
+    }
+    lastQrTime = now;
     currentQr = qr;
     isConnected = false;
     console.log('\n' + '═'.repeat(60));
@@ -274,11 +284,16 @@ async function restartClient() {
     console.log('⚠️ Error destroying client:', e.message);
   }
   
-  // Clear state
+  // Clear state but preserve session check
   client = null;
   isConnected = false;
   connectedNumber = null;
-  currentQr = null;
+  
+  // Only clear QR if it's been long enough - this prevents spam
+  const now = Date.now();
+  if (now - lastQrTime > QR_COOLDOWN_MS) {
+    currentQr = null;
+  }
   
   // Wait and restart
   const delay = Math.min(5000 * reconnectAttempts, 30000); // Exponential backoff, max 30s
@@ -487,6 +502,42 @@ async function handleMessage(message) {
       await sendMessage(chatId, '❌ Transaction cancelled.');
     } else {
       await sendMessage(chatId, 'No pending transaction to cancel.');
+    }
+    return;
+  }
+
+  // FAQ
+  if (['faq', 'help', '?'].includes(lowerText)) {
+    await sendFAQ(chatId);
+    await db.logCommand(null, phone, 'faq', null, 'success');
+    return;
+  }
+
+  // Profile
+  if (lowerText === 'profile' || lowerText === 'me' || lowerText === 'account') {
+    await handleProfile(chatId, phone);
+    await db.logCommand(null, phone, 'profile', null, 'success');
+    return;
+  }
+
+  // Support
+  if (lowerText === 'support' || lowerText === 'helpme' || lowerText === 'contact') {
+    await handleSupport(chatId, phone);
+    await db.logCommand(null, phone, 'support', null, 'success');
+    return;
+  }
+
+  // Status check for transactions
+  if (lowerText.startsWith('status ') || lowerText.startsWith('tx ')) {
+    const txId = lowerText.split(' ')[1];
+    if (txId) {
+      await handleStatus(chatId, phone, txId);
+      await db.logCommand(null, phone, 'status', { txId }, 'success');
+    } else {
+      await sendMessage(chatId,
+        '❓ *Please provide a transaction ID*\n\n' +
+        'Example: `status abc123`'
+      );
     }
     return;
   }
@@ -964,6 +1015,118 @@ async function sendPresenceAvailable() {
 }
 
 // ============================================================================
+// Customer Service Functions
+// ============================================================================
+
+/**
+ * Send FAQ response
+ */
+async function sendFAQ(chatId) {
+  const faqMsg = 
+    '❓ *Frequently Asked Questions*\n\n' +
+    '*Getting Started*\n' +
+    '• How do I register? Send "register"\n' +
+    '• How do I check balance? Send "balance"\n' +
+    '• How do I send money? Send "send 10 USDC to email@domain.com"\n\n' +
+    '*Payments & Transfers*\n' +
+    '• What is the difference between escrow and direct?\n' +
+    '  Escrow: For emails (recipient claims)\n' +
+    '  Direct: For wallet addresses (instant)\n' +
+    '• Are there fees? Network fees only (~$0.01)\n' +
+    '• How long do transfers take? Direct: Instant, Escrow: Upon claim\n\n' +
+    '*Security*\n' +
+    '• Is my wallet secure? Yes, non-custodial\n' +
+    '• What if I lose access? Use your Privy login\n' +
+    '• Are transactions private? Yes, peer-to-peer\n\n' +
+    '*Limits*\n' +
+    '• Minimum send: 0.01 USDC\n' +
+    '• Maximum send: No limit\n' +
+    '• Daily limit: None\n\n' +
+    'Still need help? Send "support"';
+  
+  await sendMessage(chatId, faqMsg);
+}
+
+/**
+ * Handle profile request
+ */
+async function handleProfile(chatId, phone) {
+  const profile = await db.getProfileByWhatsappId(chatId);
+  
+  if (!profile) {
+    await sendMessage(chatId,
+      '❌ *Profile Not Found*\n\n' +
+      'You are not registered. Send "register" to create your account.'
+    );
+    return;
+  }
+  
+  const walletTrunc = profile?.wallet_address 
+    ? `${profile.wallet_address.slice(0, 6)}...${profile.wallet_address.slice(-4)}`
+    : 'Not set';
+    
+  const profileMsg = 
+    '👤 *Your Profile*\n\n' +
+    `📱 WhatsApp: +${profile.whatsapp_id || 'Not linked'}\n` +
+    `📧 Email: ${profile.email || 'Not linked'}\n` +
+    `📞 Phone: ${profile.phone_number || 'Not linked'}\n` +
+    `💳 Wallet: \`${walletTrunc}\`\n` +
+    `🆔 User ID: ${profile.id || 'Not set'}\n\n` +
+    '_To update your username, contact support._';
+    
+  await sendMessage(chatId, profileMsg);
+}
+
+/**
+ * Handle support request
+ */
+async function handleSupport(chatId, phone) {
+  const supportMsg = 
+    '📞 *Peys Support*\n\n' +
+    'We are here to help! Please describe your issue:\n\n' +
+    '1. *Transaction problems*\n' +
+    '   - Payment not arriving\n' +
+    '   - Claim issues\n' +
+    '   - Wrong amount sent\n\n' +
+    '2. *Account issues*\n' +
+    '   - Cannot access wallet\n' +
+    '   - Registration problems\n' +
+    '   - Phone/email not linked\n\n' +
+    '3. *General questions*\n' +
+    '   - How Peys works\n' +
+    '   - Fees and limits\n' +
+    '   - Future features\n\n' +
+    '_Reply with your issue and we will get back to you soon._\n\n' +
+    '_Note: For urgent security concerns, contact us immediately._';
+    
+  await sendMessage(chatId, supportMsg);
+}
+
+/**
+ * Handle transaction status request
+ */
+async function handleStatus(chatId, phone, txId) {
+  // Validate transaction ID format
+  if (!txId || txId.length < 10) {
+    await sendMessage(chatId,
+      '❌ *Invalid Transaction ID*\n\n' +
+      'Please provide a valid transaction ID.\n' +
+      'Example: `status abc123def456`'
+    );
+    return;
+  }
+  
+  // In a real implementation, you would lookup the transaction
+  // For now, we'll provide a placeholder response
+  await sendMessage(chatId,
+    '🔍 *Transaction Status*\n\n' +
+    `Transaction ID: \`${txId}\`\n` +
+    'Status: Checking...\\n\n' +
+    '_This feature is coming soon. For now, please check your wallet balance or contact support if you have concerns about a specific transaction._'
+  );
+}
+
+// ============================================================================
 // API Routes
 // ============================================================================
 
@@ -1034,7 +1197,15 @@ app.post('/qr/refresh', async (req, res) => {
     return res.json({ connected: true, message: 'Already connected' });
   }
   
+  const now = Date.now();
+  if (now - lastQrTime < QR_COOLDOWN_MS) {
+    return res.json({ 
+      message: 'Please wait ' + Math.ceil((QR_COOLDOWN_MS - (now - lastQrTime))/1000) + 's before requesting new QR' 
+    });
+  }
+  
   console.log('[QR] Forcing new QR generation...');
+  lastQrTime = 0; // Reset to allow new QR
   currentQr = null;
   
   // The next qr event will provide a new code
