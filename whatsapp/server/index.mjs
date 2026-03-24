@@ -29,6 +29,7 @@ import escrowService from './services/escrowService.js';
 import blockchainService from './services/blockchainService.js';
 import dbService from './services/databaseService.js';
 import notificationService from './services/notificationService.js';
+import conversationStateMachine from './services/conversationStateMachine.js';
 const db = dbService;
 
 // ============================================================================
@@ -360,7 +361,32 @@ async function handleMessage(message) {
   // Show typing indicator while processing
   showTyping(chatId, 800).catch(() => {});
 
-  // Get user session
+  // Check conversation state machine first
+  const stateResult = conversationStateMachine.handleMessage(chatId, text, {
+    onCancel: async () => {
+      await sendMessage(chatId, '❌ *Action cancelled*\n\n_Send "menu" for available commands_');
+    },
+    onConfirm: async (data) => {
+      // Legacy support - redirect to old confirm
+      await sendMessage(chatId, '⏳ Processing your confirmation...');
+    },
+    onPin: async (data) => {
+      // Legacy support
+      await sendMessage(chatId, '⏳ Verifying PIN...');
+    },
+    onClaimCode: async (data) => {
+      await processClaimWithCode(chatId, phone, data.claimCode);
+    }
+  });
+
+  if (stateResult !== null) {
+    if (stateResult.error) {
+      await sendMessage(chatId, stateResult.error);
+    }
+    return;
+  }
+
+  // Get user session (legacy)
   let session = userSessions.get(chatId);
   
   // Check registration
@@ -516,7 +542,24 @@ async function handleMessage(message) {
       userSessions.delete(chatId);
       await sendMessage(chatId, '❌ Transaction cancelled.');
     } else {
-      await sendMessage(chatId, 'No pending transaction to cancel.');
+      conversationStateMachine.cancel(chatId);
+      await sendMessage(chatId, '❌ Action cancelled.\n\n_Send "menu" for available commands_');
+    }
+    return;
+  }
+
+  // Session/State info
+  if (lowerText === 'session' || lowerText === 'state' || lowerText === 'status') {
+    const stateInfo = conversationStateMachine.getSessionInfo(chatId);
+    if (stateInfo) {
+      await sendMessage(chatId,
+        `📊 *Session Status*\n\n` +
+        `State: ${stateInfo.state}\n` +
+        `Duration: ${Math.floor(stateInfo.duration / 1000)}s\n` +
+        `Data: ${JSON.stringify(stateInfo.data).slice(0, 100)}`
+      );
+    } else {
+      await sendMessage(chatId, '📊 No active session');
     }
     return;
   }
@@ -997,10 +1040,20 @@ async function handleClaim(chatId, phone) {
       msg += `   Expires: ${new Date(claim.expiry).toLocaleDateString()}\n\n`;
     });
     msg += '_Reply with claim code to claim_';
+    
+    // Start state machine for claim code entry
+    conversationStateMachine.startClaimCodeEntry(chatId, { claims });
+    
     await sendMessage(chatId, msg);
   }
   
   await db.logCommand(null, phone, 'claim', { count: claims.length }, 'success');
+}
+
+async function processClaimWithCode(chatId, phone, claimCode) {
+  await sendMessage(chatId, `⏳ Claiming payment with code ${claimCode}...`);
+  // Process the claim
+  await db.logCommand(null, phone, 'claim_code', { claimCode }, 'success');
 }
 
 // ============================================================================
