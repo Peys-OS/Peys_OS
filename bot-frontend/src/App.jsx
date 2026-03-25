@@ -3,13 +3,17 @@ import { PrivyProvider } from './components/PrivyProvider';
 import RegisterPage from './pages/RegisterPage';
 import ConfirmPage from './pages/ConfirmPage';
 import SuccessPage from './pages/SuccessPage';
+import WhatsAppRegisterPage from './pages/whatsapp/WhatsAppRegisterPage';
 
 export default function App() {
   return (
     <PrivyProvider>
       <BrowserRouter>
         <Routes>
-          {/* WhatsApp Registration */}
+          {/* WhatsApp Registration (for use inside WhatsApp browser) */}
+          <Route path="/register/whatsapp" element={<WhatsAppRegisterPage />} />
+          
+          {/* Standard Registration (for general use) */}
           <Route path="/register" element={<RegisterPage />} />
           
           {/* Transaction Confirmation */}
