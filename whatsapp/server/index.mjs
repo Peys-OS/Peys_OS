@@ -435,51 +435,24 @@ async function handleMessage(message) {
     
     await sendMessage(chatId, welcomeMsg);
     await new Promise(r => setTimeout(r, 1000));
-
+    
     // Peys registration URL
     const appUrl = process.env.APP_URL || 'https://bot-frontend-inky.vercel.app';
-    const registerUrl = `${appUrl}/register?wa=${phone}`;
-    
+    const registerUrl = `${appUrl}/register/whatsapp?wa=${phone}`;
     const registerMsg = 
-      '🔐 *Create Your Account*\n\n' +
-      'Tap the link below to register:\n' +
-      registerUrl + '\n\n' +
-      '📋 *Steps:*\n' +
-      '1. Tap the link above\n' +
-      '2. Sign in with phone or email\n' +
-      '3. Your wallet is created automatically\n' +
-      '4. Come back here and send *menu*\n\n' +
-      '_It takes less than 30 seconds!_';
-
-    await sendMessage(chatId, registerMsg);
-    await db.logCommand(null, phone, 'register_link_sent', null, 'success');
-    return;
-  }
-
-  // Check registration status
-  if (lowerText === 'check' || lowerText === 'status') {
-    const profile = await db.getProfileByWhatsappId(chatId);
-    
-    if (profile?.wallet_address) {
-      const walletTrunc = `${profile.wallet_address.slice(0, 6)}...${profile.wallet_address.slice(-4)}`;
-      await sendMessage(chatId,
-        '✅ *You\'re Registered!*\n\n' +
-        `Wallet: \`${walletTrunc}\`\n` +
-        `Email: ${profile.email || 'Not linked'}\n` +
-        `Phone: ${profile.phone || 'Not linked'}\n\n` +
-        'Send *menu* to see commands.'
-      );
-    } else {
-      await sendMessage(chatId,
-        '⚠️ *Not Registered Yet*\n\n' +
-        'Send *register* to create your account.'
-      );
+    '🔐 *Create Your Account*\n\n' + 
+    'Tap the link below to register:\n' + 
+    registerUrl + \n\n' + 
+    '📋 *Steps:*\n' + 
+    '1. Tap the link above\n' + 
+    '2. Sign in with phone or email\n' + 
+    '3. Your account is created (wallet setup comes next)\n' + 
+    '4. Come back here and send *menu* to finish setup\n\n' + 
+    '_It takes less than 30 seconds!_';
     }
-    return;
-  }
-
-  // ========================================================================
-  // Authenticated Commands (registration required)
+    
+    // ========================================================================
+    // Authenticated Commands (registration required)
   // ========================================================================
 
   if (!isRegistered) {
