@@ -15,7 +15,7 @@
         const stored = localStorage.getItem('pey-theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = stored ? stored === 'dark' : prefersDark;
-        document.getElementById('favicon').href = isDark ? '/peys_logo_on_transparent_background.png' : '/peys_logo_alone.png';
+        document.getElementById('favicon').href = isDark ? '/peys_black_background.png' : '/peys_logo_alone.png';
       })();
     </script>
 
