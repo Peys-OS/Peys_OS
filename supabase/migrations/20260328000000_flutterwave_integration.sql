@@ -184,6 +184,62 @@ CREATE POLICY "Users can create bill payments"
     ON bill_payments FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+-- Virtual accounts table
+CREATE TABLE IF NOT EXISTS virtual_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    flutterwave_ref VARCHAR(255),
+    account_number VARCHAR(50) NOT NULL UNIQUE,
+    bank_name VARCHAR(255),
+    frequency VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
+    currency VARCHAR(10) DEFAULT 'NGN',
+    is_primary BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Fiat deposits table
+CREATE TABLE IF NOT EXISTS fiat_deposits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    amount DECIMAL(18, 2) NOT NULL,
+    currency VARCHAR(10) NOT NULL,
+    reference VARCHAR(255) UNIQUE,
+    source VARCHAR(50) DEFAULT 'virtual_account',
+    account_number VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
+    metadata JSONB,
+    processed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Virtual accounts policies
+ALTER TABLE virtual_accounts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own virtual accounts"
+    ON virtual_accounts FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create virtual accounts"
+    ON virtual_accounts FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own virtual accounts"
+    ON virtual_accounts FOR UPDATE
+    USING (auth.uid() = user_id);
+
+-- Fiat deposits policies
+ALTER TABLE fiat_deposits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own deposits"
+    ON fiat_deposits FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "System can create deposits"
+    ON fiat_deposits FOR INSERT
+    WITH CHECK (true);
+
 -- Functions
 
 -- Function to get user's P2P rating
