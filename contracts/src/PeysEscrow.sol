@@ -108,6 +108,12 @@ contract PeysEscrow is ReentrancyGuard {
     /// @notice User's payment IDs
     mapping(address => uint256[]) public userPayments;
 
+    /// @notice Recipient's pending/committed payment IDs (optimized index)
+    mapping(address => uint256[]) public recipientPendingPayments;
+
+    /// @notice Count of pending payments for each recipient
+    mapping(address => uint256) public recipientPendingCount;
+
     /// @notice Events
     event PaymentCreated(
         uint256 indexed paymentId,
@@ -203,6 +209,9 @@ contract PeysEscrow is ReentrancyGuard {
 
         userPayments[msg.sender].push(paymentId);
 
+        recipientPendingPayments[_recipient].push(paymentId);
+        recipientPendingCount[_recipient]++;
+
         emit PaymentCreated(paymentId, msg.sender, _recipient, _amount, _token, expiresAt);
 
         return paymentId;
@@ -264,6 +273,8 @@ contract PeysEscrow is ReentrancyGuard {
         payment.status = PaymentStatus.Claimed;
         payment.claimedAt = block.timestamp;
 
+        recipientPendingCount[payment.recipient]--;
+
         usdc.safeTransfer(payment.recipient, payment.amount);
 
         emit PaymentClaimed(_paymentId, payment.recipient, payment.amount, payment.token);
@@ -284,6 +295,7 @@ contract PeysEscrow is ReentrancyGuard {
         require(block.timestamp > payment.expiresAt, "Cannot cancel before expiry");
 
         payment.status = PaymentStatus.Refunded;
+        recipientPendingCount[payment.recipient]--;
         usdc.safeTransfer(payment.sender, payment.amount);
 
         emit PaymentRefunded(_paymentId, payment.sender, payment.amount, payment.token);
@@ -303,7 +315,7 @@ contract PeysEscrow is ReentrancyGuard {
         require(block.timestamp > payment.expiresAt, "Not expired yet");
 
         payment.status = PaymentStatus.Refunded;
-
+        recipientPendingCount[payment.recipient]--;
         usdc.safeTransfer(payment.sender, payment.amount);
 
         emit PaymentRefunded(_paymentId, payment.sender, payment.amount, payment.token);
@@ -327,28 +339,25 @@ contract PeysEscrow is ReentrancyGuard {
     }
 
     /**
-     * @notice Get pending payments for a recipient
+     * @notice Get pending payments for a recipient (gas optimized)
      * @param _recipient Recipient address
      */
     function getPendingPaymentsForRecipient(address _recipient) external view returns (uint256[] memory) {
-        uint256 count = 0;
-        for (uint256 i = 1; i <= paymentCount; i++) {
-            if (payments[i].recipient == _recipient && 
-                (payments[i].status == PaymentStatus.Pending || payments[i].status == PaymentStatus.Committed)) {
-                count++;
-            }
-        }
-
+        uint256 count = recipientPendingCount[_recipient];
         uint256[] memory pendingIds = new uint256[](count);
         uint256 index = 0;
-        for (uint256 i = 1; i <= paymentCount; i++) {
-            if (payments[i].recipient == _recipient && 
-                (payments[i].status == PaymentStatus.Pending || payments[i].status == PaymentStatus.Committed)) {
-                pendingIds[index] = i;
+        
+        uint256[] storage allPayments = recipientPendingPayments[_recipient];
+        for (uint256 i = 0; i < allPayments.length; i++) {
+            uint256 paymentId = allPayments[i];
+            Payment storage payment = payments[paymentId];
+            if (payment.status == PaymentStatus.Pending || payment.status == PaymentStatus.Committed) {
+                pendingIds[index] = paymentId;
                 index++;
+                if (index >= count) break;
             }
         }
-
+        
         return pendingIds;
     }
 
