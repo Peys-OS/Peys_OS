@@ -75,7 +75,9 @@ export default function AIChatBubble() {
 ## Supported Networks
 - **Polkadot Asset Hub** (Chain ID: 420420417) - Native token PASS, lowest fees
 - **Base Sepolia** (Chain ID: 84532) - USDC available
-- **Celo Alfajores** (Chain ID: 44787) - USDC, USDT available
+- **Celo Alfajores** (Chain ID: 44787) - USDC available
+- **Polygon Amoy** (Chain ID: 80002) - USDC available
+- USDT support coming soon!
 
 ## Your Capabilities
 1. **Payment Creation** - Parse natural language like "send 10 USDC to john@email.com" and extract: amount, token, recipient

@@ -195,9 +195,7 @@ export default function TemplatesPage() {
                   className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="USDC">USDC</option>
-                  <option value="USDT">USDT</option>
-                  <option value="ETH">ETH</option>
-                  <option value="MATIC">MATIC</option>
+                  <option value="USDT" disabled>USDT (Coming Soon)</option>
                 </select>
               </div>
               <div className="sm:col-span-2">

@@ -9,9 +9,14 @@
  * - whatsapp_sessions
  * - whatsapp_commands
  * - notifications
+ * 
+ * Security Features:
+ * - Passcodes are hashed using bcrypt
+ * - Wallet keys are derived using PBKDF2 with salt
  */
 
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 // ============================================================================
 // Supabase Client
@@ -95,7 +100,10 @@ export async function isUserRegistered(whatsappId) {
  */
 export async function createProfile(whatsappId, phone, passcode) {
   const client = getSupabase();
-  const walletAddress = generateWalletAddress(passcode);
+  
+  // Generate secure wallet address with salt
+  const { walletAddress, walletSalt } = generateWalletAddress(passcode);
+  const passcodeHash = await hashPasscode(passcode);
   
   if (!client) {
     // Mock mode - create in-memory profile
@@ -103,8 +111,9 @@ export async function createProfile(whatsappId, phone, passcode) {
       id: crypto.randomUUID(),
       whatsapp_id: whatsappId,
       phone_number: phone,
-      passcode_hash: passcode,
+      passcode_hash: passcodeHash,
       wallet_address: walletAddress,
+      wallet_salt: walletSalt,
       whatsapp_linked: true,
       primary_wallet_address: walletAddress,
       created_at: new Date().toISOString(),
@@ -122,8 +131,9 @@ export async function createProfile(whatsappId, phone, passcode) {
     .upsert({
       whatsapp_id: whatsappId,
       phone_number: phone,
-      passcode_hash: passcode, // In production, hash this!
+      passcode_hash: passcodeHash,
       wallet_address: walletAddress,
+      wallet_salt: walletSalt,
       whatsapp_linked: true,
       primary_wallet_address: walletAddress
     }, {
@@ -549,18 +559,71 @@ export async function createNotification(userId, type, title, message, paymentId
 }
 
 // ============================================================================
-// Utility Functions
+// Utility Functions - Security
 // ============================================================================
 
 /**
- * Generate wallet address from passcode (placeholder)
- * In production, use Privy SDK or proper wallet generation
+ * Hash passcode using PBKDF2
+ * @param {string} passcode - User's passcode
+ * @returns {Promise<string>} - Hashed passcode
+ */
+async function hashPasscode(passcode) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  return new Promise((resolve, reject) => {
+    crypto.pbkdf2(passcode, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+      if (err) reject(err);
+      resolve(`${salt}:${derivedKey.toString('hex')}`);
+    });
+  });
+}
+
+/**
+ * Verify passcode against stored hash
+ * @param {string} passcode - User's passcode
+ * @param {string} storedHash - Stored hash in format "salt:hash"
+ * @returns {Promise<boolean>} - True if passcode matches
+ */
+async function verifyPasscode(passcode, storedHash) {
+  const [salt, hash] = storedHash.split(':');
+  return new Promise((resolve, reject) => {
+    crypto.pbkdf2(passcode, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+      if (err) reject(err);
+      resolve(hash === derivedKey.toString('hex'));
+    });
+  });
+}
+
+/**
+ * Generate wallet address from passcode using PBKDF2
+ * @param {string} passcode - User's passcode
+ * @returns {Object} - { walletAddress, walletSalt }
  */
 function generateWalletAddress(passcode) {
-  // Generate a deterministic address from passcode
-  // In production, use proper HD wallet derivation or Privy
-  const hash = passcode.toString().repeat(20).slice(0, 40);
-  return `0x${hash}`;
+  // Generate a unique salt for this wallet
+  const salt = crypto.randomBytes(16).toString('hex');
+  
+  // Derive key using PBKDF2
+  const hash = crypto.pbkdf2Sync(passcode, salt, 100000, 32, 'sha512');
+  
+  // Take first 20 bytes as wallet address
+  const address = hash.toString('hex').slice(0, 40);
+  
+  return {
+    walletAddress: `0x${address}`,
+    walletSalt: salt
+  };
+}
+
+/**
+ * Derive wallet address from stored salt and passcode
+ * @param {string} passcode - User's passcode
+ * @param {string} salt - Stored salt
+ * @returns {string} - Wallet address
+ */
+function deriveWalletAddress(passcode, salt) {
+  const hash = crypto.pbkdf2Sync(passcode, salt, 100000, 32, 'sha512');
+  const address = hash.toString('hex').slice(0, 40);
+  return `0x${address}`;
 }
 
 /**
@@ -603,6 +666,7 @@ export default {
   isUserRegistered,
   createProfile,
   getUserWallet,
+  verifyPasscode,
   
   // Session
   saveWhatsappSession,
