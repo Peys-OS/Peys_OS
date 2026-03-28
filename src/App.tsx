@@ -55,6 +55,9 @@ import HistoryPage from "./pages/HistoryPage";
 import BillsPage from "./pages/BillsPage";
 import FiatWithdrawalPage from "./pages/FiatWithdrawalPage";
 import ReceiveDepositsPage from "./pages/ReceiveDepositsPage";
+import BuyCryptoPage from "./pages/BuyCryptoPage";
+import SubscriptionsPage from "./pages/SubscriptionsPage";
+import QRPaymentsPage from "./pages/QRPaymentsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ReferralPage from "./pages/ReferralPage";
 import ReminderPage from "./pages/ReminderPage";
@@ -181,6 +184,9 @@ const App = () => (
                   <Route path="/bills" element={<BillsPage />} />
                   <Route path="/withdraw" element={<FiatWithdrawalPage />} />
                   <Route path="/deposit" element={<ReceiveDepositsPage />} />
+                  <Route path="/buy" element={<BuyCryptoPage />} />
+                  <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                  <Route path="/qr" element={<QRPaymentsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/referral" element={<ReferralPage />} />
                   <Route path="/budget" element={<ReminderPage />} />
