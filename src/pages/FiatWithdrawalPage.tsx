@@ -1,23 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Wallet,
   Building2,
   Plus,
   Trash2,
   ArrowRight,
   Loader2,
-  ChevronDown,
   Search,
   Check,
   AlertCircle,
-  Globe,
   Banknote,
   Users,
   Clock,
-  Star,
   X,
   RefreshCw,
+  Zap,
+  ShieldCheck,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
@@ -28,7 +26,6 @@ import {
   flutterwaveService,
   SUPPORTED_COUNTRIES,
   CURRENCY_SYMBOLS,
-  formatCurrency,
   getUserBankAccounts,
   saveBankAccount,
   deleteBankAccount,
@@ -42,6 +39,7 @@ import {
 interface BankAccount {
   id: string;
   bank_name: string;
+  bank_code: string;
   account_number: string;
   account_name: string;
   country: string;
@@ -59,12 +57,10 @@ interface Withdrawal {
 }
 
 type Tab = "withdraw" | "accounts" | "history" | "p2p";
-type WithdrawalType = "direct" | "p2p";
 
 export default function FiatWithdrawalPage() {
   const { isLoggedIn, login, walletAddress } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>("withdraw");
-  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("direct");
   
   const [country, setCountry] = useState("NG");
   const [currency, setCurrency] = useState("NGN");
@@ -72,14 +68,16 @@ export default function FiatWithdrawalPage() {
   const [usdcAmount, setUsdcAmount] = useState("");
   const [exchangeRate, setExchangeRate] = useState(1520);
   const [fee, setFee] = useState(0);
-  const [loadingRate, setLoadingRate] = useState(false);
   
   const [banks, setBanks] = useState<any[]>([]);
+  const [bankSearch, setBankSearch] = useState("");
+  const [showBankDropdown, setShowBankDropdown] = useState(false);
   const [selectedBank, setSelectedBank] = useState<any>(null);
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [accountVerified, setAccountVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
   
   const [savedAccounts, setSavedAccounts] = useState<BankAccount[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null);
@@ -94,7 +92,14 @@ export default function FiatWithdrawalPage() {
   const [p2pAmount, setP2pAmount] = useState("");
   const [creatingOrder, setCreatingOrder] = useState(false);
 
-  const selectedCountry = SUPPORTED_COUNTRIES.find((c) => c.code === country);
+  const filteredBanks = useMemo(() => {
+    if (!bankSearch) return banks;
+    const search = bankSearch.toLowerCase();
+    return banks.filter(bank => 
+      bank.name.toLowerCase().includes(search) || 
+      bank.code.toLowerCase().includes(search)
+    );
+  }, [banks, bankSearch]);
 
   useEffect(() => {
     if (isLoggedIn && walletAddress) {
@@ -109,23 +114,30 @@ export default function FiatWithdrawalPage() {
     if (countryObj) {
       setCurrency(countryObj.currency);
     }
+    setSelectedBank(null);
+    setBankSearch("");
   }, [country]);
 
   useEffect(() => {
-    if (fiatAmount) {
+    if (fiatAmount && parseFloat(fiatAmount) > 0) {
       fetchExchangeRate();
+    } else {
+      setUsdcAmount("");
     }
   }, [fiatAmount, currency]);
 
   useEffect(() => {
-    if (selectedCountry) {
-      fetchBanks();
-    }
+    fetchBanks();
   }, [country]);
+
+  useEffect(() => {
+    if (accountNumber.length >= 10 && selectedBank && !accountVerified) {
+      verifyAccount();
+    }
+  }, [accountNumber]);
 
   const fetchExchangeRate = async () => {
     if (!fiatAmount) return;
-    setLoadingRate(true);
     try {
       const rate = 1520;
       setExchangeRate(rate);
@@ -134,8 +146,6 @@ export default function FiatWithdrawalPage() {
       setFee(Math.max(parseFloat(fiatAmount) * 0.01, 50));
     } catch (error) {
       console.error("Failed to fetch rate:", error);
-    } finally {
-      setLoadingRate(false);
     }
   };
 
@@ -149,15 +159,6 @@ export default function FiatWithdrawalPage() {
     if (!user) return;
     const accounts = await getUserBankAccounts(user.id);
     setSavedAccounts(accounts);
-    if (accounts.length > 0) {
-      setSelectedAccount(accounts[0]);
-      const acc = accounts[0];
-      const countryObj = SUPPORTED_COUNTRIES.find((c) => c.code === acc.country);
-      if (countryObj) {
-        setCountry(acc.country);
-        setCurrency(countryObj.currency);
-      }
-    }
   };
 
   const fetchWithdrawals = async () => {
@@ -173,30 +174,56 @@ export default function FiatWithdrawalPage() {
   };
 
   const verifyAccount = async () => {
-    if (!selectedBank || !accountNumber) return;
+    if (!selectedBank || accountNumber.length < 10) return;
     setVerifying(true);
+    setVerificationError("");
     try {
       const result = await flutterwaveService.resolveAccount(
         selectedBank.code,
-        accountNumber
+        accountNumber,
+        country
       );
       if (result.is_valid) {
         setAccountName(result.account_name);
         setAccountVerified(true);
-        toast.success("Account verified!");
       } else {
-        toast.error("Could not verify account");
+        setAccountVerified(false);
+        setAccountName("");
+        setVerificationError("Could not verify account. Please check details.");
       }
     } catch (error) {
-      toast.error("Verification failed");
+      setVerificationError("Verification failed. Please try again.");
     } finally {
       setVerifying(false);
     }
   };
 
+  const handleSelectBank = (bank: any) => {
+    setSelectedBank(bank);
+    setShowBankDropdown(false);
+    setBankSearch("");
+    setAccountNumber("");
+    setAccountName("");
+    setAccountVerified(false);
+    setVerificationError("");
+  };
+
+  const handleSelectSavedAccount = (acc: BankAccount) => {
+    setSelectedAccount(acc);
+    const countryObj = SUPPORTED_COUNTRIES.find((c) => c.code === acc.country);
+    if (countryObj) {
+      setCountry(acc.country);
+      setCurrency(countryObj.currency);
+    }
+    setSelectedBank({ code: acc.bank_code, name: acc.bank_name });
+    setAccountNumber(acc.account_number);
+    setAccountName(acc.account_name);
+    setAccountVerified(true);
+  };
+
   const handleAddAccount = async () => {
     if (!selectedBank || !accountNumber || !accountName) {
-      toast.error("Please fill all fields");
+      toast.error("Please verify your account first");
       return;
     }
     const { data: { user } } = await supabase.auth.getUser();
@@ -214,11 +241,8 @@ export default function FiatWithdrawalPage() {
     if (result) {
       toast.success("Bank account saved!");
       setShowAddAccount(false);
-      setAccountNumber("");
-      setAccountName("");
-      setAccountVerified(false);
-      setSelectedBank(null);
       fetchSavedAccounts();
+      handleSelectSavedAccount(result);
     }
   };
 
@@ -227,9 +251,8 @@ export default function FiatWithdrawalPage() {
       toast.error("Please enter an amount");
       return;
     }
-
-    if (!selectedAccount) {
-      toast.error("Please select or add a bank account");
+    if (!accountVerified) {
+      toast.error("Please verify your bank account first");
       return;
     }
 
@@ -238,13 +261,30 @@ export default function FiatWithdrawalPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      let bankAccountId = selectedAccount?.id;
+      if (!bankAccountId) {
+        const result = await saveBankAccount(
+          user.id,
+          selectedBank.code,
+          selectedBank.name,
+          accountNumber,
+          accountName,
+          country
+        );
+        if (result) {
+          bankAccountId = result.id;
+        }
+      }
+
       const result = await createWithdrawal(
         user.id,
         parseFloat(fiatAmount),
         parseFloat(usdcAmount),
         currency,
-        selectedAccount.id,
-        withdrawalType
+        bankAccountId!,
+        "direct",
+        exchangeRate,
+        fee
       );
 
       if (result.error) {
@@ -252,10 +292,11 @@ export default function FiatWithdrawalPage() {
         return;
       }
 
-      toast.success("Withdrawal initiated!");
+      toast.success("Withdrawal successful! Money sent to your bank.");
       setFiatAmount("");
       setUsdcAmount("");
       fetchWithdrawals();
+      fetchSavedAccounts();
       setActiveTab("history");
     } catch (error) {
       toast.error("Withdrawal failed");
@@ -339,10 +380,10 @@ export default function FiatWithdrawalPage() {
             <Banknote className="h-10 w-10 text-primary" />
           </div>
           <h2 className="mb-3 font-display text-2xl text-foreground sm:text-3xl">
-            Fiat Withdrawal
+            Instant Fiat Withdrawal
           </h2>
           <p className="mb-6 max-w-md text-sm text-muted-foreground">
-            Withdraw your stablecoins to your local bank account
+            Convert your USDC to fiat and withdraw instantly to your bank account
           </p>
           <button
             onClick={login}
@@ -362,10 +403,10 @@ export default function FiatWithdrawalPage() {
       <div className="container mx-auto max-w-4xl px-4 pt-20 pb-12 sm:pt-24 sm:pb-16">
         <div className="mb-8">
           <h1 className="font-display text-2xl text-foreground sm:text-3xl">
-            Fiat Withdrawal
+            Instant Fiat Withdrawal
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Convert and withdraw to your local bank account
+            Convert USDC to fiat and receive instantly in your bank account
           </p>
         </div>
 
@@ -398,27 +439,14 @@ export default function FiatWithdrawalPage() {
             className="space-y-6"
           >
             <div className="rounded-xl border border-border bg-card p-6">
-              <div className="mb-4 flex gap-2">
-                <button
-                  onClick={() => setWithdrawalType("direct")}
-                  className={`flex-1 rounded-lg p-3 text-sm font-medium transition-colors ${
-                    withdrawalType === "direct"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  Direct Transfer
-                </button>
-                <button
-                  onClick={() => setWithdrawalType("p2p")}
-                  className={`flex-1 rounded-lg p-3 text-sm font-medium transition-colors ${
-                    withdrawalType === "p2p"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  P2P Marketplace
-                </button>
+              <div className="mb-6 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 p-4">
+                <div className="flex items-center gap-2 text-green-500 mb-2">
+                  <Zap className="h-5 w-5" />
+                  <span className="font-semibold">Instant Settlement</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Your money arrives in your bank account within seconds, not days!
+                </p>
               </div>
 
               <div className="mb-4">
@@ -436,9 +464,101 @@ export default function FiatWithdrawalPage() {
                 </select>
               </div>
 
+              <div className="mb-4 relative">
+                <label className="mb-2 block text-sm font-medium">Select Bank</label>
+                <div
+                  onClick={() => setShowBankDropdown(!showBankDropdown)}
+                  className="w-full rounded-lg border border-border bg-background px-4 py-3 cursor-pointer flex items-center justify-between"
+                >
+                  <span className={selectedBank ? "text-foreground" : "text-muted-foreground"}>
+                    {selectedBank ? selectedBank.name : "Search for your bank..."}
+                  </span>
+                  <ChevronDownIcon className={`h-5 w-5 text-muted-foreground transition-transform ${showBankDropdown ? 'rotate-180' : ''}`} />
+                </div>
+                
+                {showBankDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-hidden">
+                    <div className="p-2 border-b border-border">
+                      <input
+                        type="text"
+                        value={bankSearch}
+                        onChange={(e) => setBankSearch(e.target.value)}
+                        placeholder="Search banks..."
+                        className="w-full px-3 py-2 bg-background rounded border border-border text-sm"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {filteredBanks.length === 0 ? (
+                        <p className="px-4 py-3 text-sm text-muted-foreground">No banks found</p>
+                      ) : (
+                        filteredBanks.map((bank) => (
+                          <div
+                            key={bank.code}
+                            onClick={() => handleSelectBank(bank)}
+                            className="px-4 py-3 hover:bg-accent cursor-pointer"
+                          >
+                            <p className="font-medium text-sm">{bank.name}</p>
+                            <p className="text-xs text-muted-foreground">Code: {bank.code}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="mb-4">
                 <label className="mb-2 block text-sm font-medium">
-                  Amount ({currency})
+                  Account Number
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={accountNumber}
+                    onChange={(e) => {
+                      setAccountNumber(e.target.value.replace(/\D/g, ''));
+                      setAccountVerified(false);
+                      setVerificationError("");
+                    }}
+                    placeholder="Enter 10-digit account number"
+                    maxLength={10}
+                    className="w-full rounded-lg border border-border bg-background px-4 py-3 pr-10"
+                  />
+                  {verifying && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
+                  )}
+                  {accountVerified && (
+                    <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {selectedBank ? `Enter ${country === 'NG' ? '10' : 'account number for'} ${selectedBank.name}` : 'Select a bank first'}
+                </p>
+              </div>
+
+              {verificationError && (
+                <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 p-3">
+                  <div className="flex items-center gap-2 text-red-500 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    {verificationError}
+                  </div>
+                </div>
+              )}
+
+              {accountVerified && (
+                <div className="mb-6 rounded-lg bg-green-500/10 border border-green-500/20 p-4">
+                  <div className="flex items-center gap-2 text-green-500 mb-2">
+                    <ShieldCheck className="h-5 w-5" />
+                    <span className="font-semibold">Account Verified</span>
+                  </div>
+                  <p className="text-foreground font-medium">{accountName}</p>
+                </div>
+              )}
+
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium">
+                  Amount to Receive ({currency})
                 </label>
                 <input
                   type="number"
@@ -449,84 +569,31 @@ export default function FiatWithdrawalPage() {
                 />
               </div>
 
-              {fiatAmount && (
-                <div className="mb-6 rounded-lg bg-muted p-4">
-                  <div className="mb-2 flex items-center justify-between text-sm">
+              {fiatAmount && parseFloat(fiatAmount) > 0 && (
+                <div className="mb-6 rounded-lg bg-muted p-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Exchange Rate</span>
                     <span className="font-medium">
                       1 USDC = {CURRENCY_SYMBOLS[currency]}{exchangeRate.toLocaleString()}
                     </span>
                   </div>
-                  <div className="mb-2 flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Fee (1%)</span>
                     <span className="font-medium">
                       {CURRENCY_SYMBOLS[currency]}{fee.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
-                    <span className="text-muted-foreground">You'll receive</span>
-                    <span className="text-lg font-bold">
-                      {CURRENCY_SYMBOLS[currency]}
-                      {(parseFloat(fiatAmount) - fee).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">USDC to spend</span>
-                    <span className="font-medium">{usdcAmount} USDC</span>
+                  <div className="flex items-center justify-between border-t border-border pt-3">
+                    <span className="text-muted-foreground">USDC to Convert</span>
+                    <span className="text-lg font-bold text-primary">{usdcAmount} USDC</span>
                   </div>
                 </div>
               )}
 
-              <div className="mb-4">
-                <label className="mb-2 block text-sm font-medium">
-                  Bank Account
-                </label>
-                {savedAccounts.length > 0 ? (
-                  <div className="space-y-2">
-                    {savedAccounts.map((acc) => (
-                      <button
-                        key={acc.id}
-                        onClick={() => setSelectedAccount(acc)}
-                        className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
-                          selectedAccount?.id === acc.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        <div>
-                          <p className="font-medium">{acc.bank_name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {acc.account_number} - {acc.account_name}
-                          </p>
-                        </div>
-                        {selectedAccount?.id === acc.id && (
-                          <Check className="h-5 w-5 text-primary" />
-                        )}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setShowAddAccount(true)}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground hover:bg-muted"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add New Account
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowAddAccount(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed p-4 text-muted-foreground hover:bg-muted"
-                  >
-                    <Plus className="h-5 w-5" />
-                    Add Bank Account
-                  </button>
-                )}
-              </div>
-
               <button
                 onClick={handleWithdraw}
-                disabled={!fiatAmount || !selectedAccount || processing}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-50"
+                disabled={!fiatAmount || !accountVerified || processing || !selectedBank}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-500 py-3.5 font-semibold text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {processing ? (
                   <>
@@ -535,13 +602,51 @@ export default function FiatWithdrawalPage() {
                   </>
                 ) : (
                   <>
-                    Withdraw {CURRENCY_SYMBOLS[currency]}
-                    {(parseFloat(fiatAmount) - fee).toFixed(2)}
+                    <Zap className="h-5 w-5" />
+                    Withdraw Instantly
+                    {fiatAmount && (
+                      <span>
+                        {CURRENCY_SYMBOLS[currency]}{(parseFloat(fiatAmount) - fee).toFixed(2)}
+                      </span>
+                    )}
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}
               </button>
+              
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Instant delivery to your bank account • Powered by Flutterwave
+              </p>
             </div>
+
+            {savedAccounts.length > 0 && (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h3 className="font-semibold mb-4">Saved Bank Accounts</h3>
+                <div className="space-y-2">
+                  {savedAccounts.map((acc) => (
+                    <button
+                      key={acc.id}
+                      onClick={() => handleSelectSavedAccount(acc)}
+                      className={`flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors ${
+                        selectedAccount?.id === acc.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:bg-muted"
+                      }`}
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{acc.bank_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {acc.account_number} • {acc.account_name}
+                        </p>
+                      </div>
+                      {selectedAccount?.id === acc.id && (
+                        <Check className="h-5 w-5 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -792,120 +897,24 @@ export default function FiatWithdrawalPage() {
         )}
       </div>
 
-      <AnimatePresence>
-        {showAddAccount && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-xl border border-border bg-card p-6"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="font-semibold">Add Bank Account</h3>
-                <button
-                  onClick={() => setShowAddAccount(false)}
-                  className="rounded-lg p-1 hover:bg-muted"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Country</label>
-                  <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3"
-                  >
-                    {SUPPORTED_COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Bank</label>
-                  <select
-                    value={selectedBank?.code || ""}
-                    onChange={(e) => {
-                      const bank = banks.find((b) => b.code === e.target.value);
-                      setSelectedBank(bank);
-                    }}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3"
-                  >
-                    <option value="">Select bank</option>
-                    {banks.map((bank) => (
-                      <option key={bank.code} value={bank.code}>
-                        {bank.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">
-                    Account Number
-                  </label>
-                  <input
-                    type="text"
-                    value={accountNumber}
-                    onChange={(e) => {
-                      setAccountNumber(e.target.value);
-                      setAccountVerified(false);
-                    }}
-                    placeholder="Enter account number"
-                    className="w-full rounded-lg border border-border bg-background px-4 py-3"
-                  />
-                </div>
-
-                <button
-                  onClick={verifyAccount}
-                  disabled={!selectedBank || !accountNumber || verifying}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-secondary py-3 text-sm font-medium disabled:opacity-50"
-                >
-                  {verifying ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Search className="h-4 w-4" />
-                      Verify Account
-                    </>
-                  )}
-                </button>
-
-                {accountVerified && (
-                  <div className="rounded-lg bg-green-500/10 p-4">
-                    <div className="flex items-center gap-2 text-green-500">
-                      <Check className="h-5 w-5" />
-                      <span className="font-medium">Account Verified</span>
-                    </div>
-                    <p className="mt-2 text-sm">{accountName}</p>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleAddAccount}
-                  disabled={!accountVerified}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-primary-foreground disabled:opacity-50"
-                >
-                  Save Account
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <Footer />
     </div>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
