@@ -92,9 +92,9 @@ sequenceDiagram
 
 | Network | Chain ID | Escrow Contract | USDC Token |
 |---------|----------|-----------------|-------------|
-| Base Sepolia | 84532 | `***REMOVED***` | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
-| Polygon Amoy | 80002 | `***REMOVED***` | `0x41E94EB09554da6d1DE6384F89b8c2C5B2c7f3f7` |
-| Celo Alfajores | 44787 | `***REMOVED***` | `0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B` |
+| Base Sepolia | 84532 | `0xb5e4A3130D774A8F3Bc0c081800b304A12a07aD1` | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Polygon Amoy | 80002 | `0xeb2923503953c5Ed2772917771b850315D030f24` | `0x41E94EB09554da6d1DE6384F89b8c2C5B2c7f3f7` |
+| Celo Alfajores | 44787 | `0xcDe14d966e546D70F9B0b646c203cFC1BdC2a961` | `0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B` |
 | Polkadot (Paseo) | 420420417 | `***REMOVED***` | PASS Token |
 
 ## Architecture Diagram (ASCII)
