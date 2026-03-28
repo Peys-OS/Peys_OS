@@ -56,7 +56,7 @@ export default function AppHeader() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:h-16 lg:px-8">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
-              src="/peys_logo_on_transparent_background.png"
+              src={theme === "dark" ? "/peys_logo_on_transparent_background.png" : "/peys_logo_alone.png"}
               alt="Peys"
               className="h-10 w-10 rounded-lg sm:h-11 sm:w-11"
             />

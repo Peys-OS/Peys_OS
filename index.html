@@ -9,6 +9,15 @@
     <meta name="theme-color" content="#6C3FE4" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/peys_logo_alone.png" />
+    <link id="favicon" rel="icon" href="/peys_logo_alone.png" type="image/png" />
+    <script>
+      (function() {
+        const stored = localStorage.getItem('pey-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = stored ? stored === 'dark' : prefersDark;
+        document.getElementById('favicon').href = isDark ? '/peys_logo_on_transparent_background.png' : '/peys_logo_alone.png';
+      })();
+    </script>
 
     
     
