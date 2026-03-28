@@ -98,7 +98,7 @@ export const chainConfigs: Record<number, ChainConfig> = {
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLYGON || "") as Address,
     passAddress: "" as Address,
     rpcUrl: import.meta.env.VITE_RPC_URL_POLYGON || "https://polygon-amoy.g.alchemy.com/v2/demo",
-    blockExplorer: "https://www.oklink.com/amoy",
+    blockExplorer: "https://amoy.polygonscan.com",
     nativeSymbol: "MATIC",
   },
 };
