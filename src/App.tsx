@@ -54,6 +54,7 @@ import StatementPage from "./pages/StatementPage";
 import HistoryPage from "./pages/HistoryPage";
 import BillsPage from "./pages/BillsPage";
 import FiatWithdrawalPage from "./pages/FiatWithdrawalPage";
+import ReceiveDepositsPage from "./pages/ReceiveDepositsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ReferralPage from "./pages/ReferralPage";
 import ReminderPage from "./pages/ReminderPage";
@@ -179,6 +180,7 @@ const App = () => (
                   <Route path="/history" element={<HistoryPage />} />
                   <Route path="/bills" element={<BillsPage />} />
                   <Route path="/withdraw" element={<FiatWithdrawalPage />} />
+                  <Route path="/deposit" element={<ReceiveDepositsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/referral" element={<ReferralPage />} />
                   <Route path="/budget" element={<ReminderPage />} />

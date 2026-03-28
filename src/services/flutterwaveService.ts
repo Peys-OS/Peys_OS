@@ -664,6 +664,127 @@ export class FlutterwaveService {
       return null;
     }
   }
+
+  async createVirtualAccountClient(
+    userId: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    phone: string,
+    currency: string = "NGN"
+  ): Promise<{
+    success: boolean;
+    account_number?: string;
+    bank_name?: string;
+    error?: string;
+  }> {
+    try {
+      const response = await fetch(
+        `${this.getBaseUrl()}/virtual-account-numbers`,
+        {
+          method: "POST",
+          headers: this.getHeaders(true),
+          body: JSON.stringify({
+            email,
+            first_name: firstName,
+            last_name: lastName,
+            phone,
+            currency,
+            is_permanent: true,
+            narration: `Peydot-${userId.slice(0, 8)}`,
+          }),
+        }
+      );
+      const data = await response.json();
+
+      if (data.status === "success") {
+        return {
+          success: true,
+          account_number: data.data.account_number,
+          bank_name: data.data.bank_name,
+        };
+      }
+      return { success: false, error: data.message };
+    } catch (error: any) {
+      console.error("Virtual account creation failed:", error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async getTransferRates(
+    sourceCurrency: string,
+    destinationCurrency: string,
+    amount: number
+  ): Promise<{
+    rate: number;
+    sourceAmount: number;
+    destinationAmount: number;
+    fee: number;
+  } | null> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/transfers/rates`, {
+        method: "POST",
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          source: { currency: sourceCurrency },
+          destination: { currency: destinationCurrency, amount },
+        }),
+      });
+      const data = await response.json();
+
+      if (data.status === "success") {
+        return {
+          rate: parseFloat(data.data.rate),
+          sourceAmount: parseFloat(data.data.source.amount),
+          destinationAmount: parseFloat(data.data.destination.amount),
+          fee: parseFloat(data.data.source.amount) * 0.01,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to get transfer rates:", error);
+      return null;
+    }
+  }
+
+  async initiateBulkTransfer(
+    transfers: Array<{
+      bankCode: string;
+      accountNumber: string;
+      accountName: string;
+      amount: number;
+      currency: string;
+      reference: string;
+    }>
+  ): Promise<{ success: boolean; batchId?: string; error?: string }> {
+    try {
+      const response = await fetch(`${this.getBaseUrl()}/bulk-transfers`, {
+        method: "POST",
+        headers: this.getHeaders(true),
+        body: JSON.stringify({
+          title: `Peydot Bulk Transfer - ${new Date().toISOString()}`,
+          transfers: transfers.map((t) => ({
+            bank_code: t.bankCode,
+            account_number: t.accountNumber,
+            account_name: t.accountName,
+            amount: t.amount,
+            currency: t.currency,
+            reference: t.reference,
+            narration: "Peydot Withdrawal",
+          })),
+        }),
+      });
+      const data = await response.json();
+
+      if (data.status === "success") {
+        return { success: true, batchId: data.data.batch_id };
+      }
+      return { success: false, error: data.message };
+    } catch (error: any) {
+      console.error("Bulk transfer failed:", error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export const flutterwaveService = new FlutterwaveService();
