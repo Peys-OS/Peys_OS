@@ -30,6 +30,8 @@ import blockchainService from './services/blockchainService.js';
 import dbService from './services/databaseService.js';
 import notificationService from './services/notificationService.js';
 import conversationStateMachine from './services/conversationStateMachine.js';
+import sessionManager from './services/sessionManager.js';
+import alertService from './services/alertService.js';
 const db = dbService;
 
 // ============================================================================
@@ -69,6 +71,9 @@ const userSessions = new Map();
 
 async function initializeServices() {
   console.log('⏳ Initializing services...');
+  
+  // Initialize session manager
+  await sessionManager.initialize();
   
   // Initialize escrow service (connects to blockchain)
   await escrowService.initialize();
@@ -173,6 +178,13 @@ async function initializeWhatsApp() {
     
     // Save session to database
     await db.saveWhatsappSession(null, connectedNumber, info?.wid?.user, null);
+    
+    // Alert on successful connection
+    await alertService.info(
+      'WhatsApp Connected',
+      'Bot is ready and connected to WhatsApp',
+      { connectedNumber: '+' + connectedNumber }
+    );
   });
 
   // Disconnected event
@@ -187,6 +199,13 @@ async function initializeWhatsApp() {
     console.log('═'.repeat(60));
     console.log('  Reason: ' + reason);
     console.log('═'.repeat(60) + '\n');
+    
+    // Alert on disconnect
+    alertService.error(
+      'WhatsApp Disconnected',
+      `Disconnected with reason: ${reason}`,
+      { reason, wasConnected }
+    );
     
     // Use the robust restart function
     if (reason !== 'NAVIGATION') {
@@ -275,11 +294,22 @@ function scheduleHealthCheckRestart() {
 async function restartClient() {
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
     console.log('❌ Max reconnect attempts reached. Please check the bot manually.');
+    await alertService.critical(
+      'WhatsApp Bot Disconnected',
+      'Max reconnect attempts reached. Manual intervention required.',
+      { attempts: reconnectAttempts, maxAttempts: MAX_RECONNECT_ATTEMPTS }
+    );
     return;
   }
   
   reconnectAttempts++;
   console.log(`🔄 Restarting WhatsApp client (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+  
+  await alertService.warning(
+    'WhatsApp Reconnecting',
+    `Reconnection attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`,
+    { attempt: reconnectAttempts }
+  );
   
   try {
     if (client) {
@@ -308,6 +338,11 @@ async function restartClient() {
     try {
       await initializeWhatsApp();
       reconnectAttempts = 0; // Reset on successful initialization
+      await alertService.info(
+        'WhatsApp Reconnected',
+        'Bot successfully reconnected to WhatsApp',
+        { connectedNumber }
+      );
     } catch (error) {
       console.error('❌ Restart failed:', error.message);
       // Try again with longer delay
@@ -442,7 +477,7 @@ async function handleMessage(message) {
     const registerMsg = 
     '🔐 *Create Your Account*\n\n' + 
     'Tap the link below to register:\n' + 
-    registerUrl + \n\n' + 
+    registerUrl + '\n\n' + 
     '📋 *Steps:*\n' + 
     '1. Tap the link above\n' + 
     '2. Sign in with phone or email\n' + 
