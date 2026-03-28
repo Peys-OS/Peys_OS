@@ -208,7 +208,7 @@ export default function StreamingPage() {
                       className="w-20 sm:w-24 rounded-lg border border-border bg-background px-2 py-2 text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       <option value="USDC">USDC</option>
-                      <option value="USDT">USDT</option>
+                      <option value="USDT" disabled>USDT (Coming Soon)</option>
                     </select>
                   </div>
                   <div className="flex gap-2">

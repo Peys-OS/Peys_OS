@@ -464,7 +464,6 @@ export default function SubscriptionPage() {
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       <option value="USDC">USDC</option>
-                      <option value="USDT">USDT</option>
                       <option value="PASS">PASS</option>
                     </select>
                   </div>

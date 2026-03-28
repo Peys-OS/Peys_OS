@@ -172,7 +172,7 @@ export default function TipJarPage() {
             <div>
               <label className="mb-2 block text-sm font-medium text-muted-foreground">Token</label>
               <div className="flex gap-2">
-                {(["USDC", "USDT", "PASS"] as const).map((t) => (
+                {(["USDC", "USDT", "PASS"] as const).filter(t => t !== "USDT").map((t) => (
                   <button
                     key={t}
                     onClick={() => setToken(t)}

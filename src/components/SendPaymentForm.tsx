@@ -741,7 +741,7 @@ export default function SendPaymentForm() {
                         return selectedNetwork === 420420417 || selectedNetwork === 420420421;
                       }
                       if (t === "USDT") {
-                        return !!chainConfig.usdtAddress && (chainConfig.usdtAddress as string) !== "";
+                        return false; // USDT coming soon
                       }
                       return true;
                     })
