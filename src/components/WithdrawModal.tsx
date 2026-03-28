@@ -347,7 +347,7 @@ export default function WithdrawModal({ open, onClose, balanceUSDC, balanceUSDT 
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Rate</span>
-                          <span className="font-medium">1 {token} = {CURRENCY_SYMBOLS[currency]}{exchangeRate}</span>
+                          <span className="font-medium">1 {token} = {CURRENCY_SYMBOLS[currency]}{exchangeRate.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Fee (1%)</span>
@@ -418,7 +418,7 @@ export default function WithdrawModal({ open, onClose, balanceUSDC, balanceUSDT 
                         <span className="text-muted-foreground">You receive</span>
                         <span className="font-bold text-green-500">
                           {method === "bank" 
-                            ? `${CURRENCY_SYMBOLS[currency]}{((numAmount - numAmount * 0.01) * exchangeRate).toFixed(2)}`
+                            ? `${CURRENCY_SYMBOLS[currency]}${((numAmount - numAmount * 0.01) * exchangeRate).toFixed(2)}`
                             : `$${(numAmount - fee).toFixed(2)}`
                           }
                         </span>
@@ -458,7 +458,7 @@ export default function WithdrawModal({ open, onClose, balanceUSDC, balanceUSDT 
                     <h3 className="font-display text-lg text-foreground">Withdrawal Successful!</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {method === "bank" 
-                        ? `${CURRENCY_SYMBOLS[currency]}{((numAmount - numAmount * 0.01) * exchangeRate).toFixed(2)} sent to ${accountName}`
+                        ? `${CURRENCY_SYMBOLS[currency]}${((numAmount - numAmount * 0.01) * exchangeRate).toFixed(2)} sent to ${accountName}`
                         : `$${(numAmount - fee).toFixed(2)} ${token} is on its way`
                       }
                     </p>
