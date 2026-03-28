@@ -6,7 +6,7 @@ const steps = [
     icon: Send,
     num: "01",
     title: "Enter amount & token",
-    desc: "Choose USDC or USDT, enter the amount, add an optional memo.",
+    desc: "Choose USDC, enter the amount, add an optional memo. USDT coming soon.",
   },
   {
     icon: Link2,

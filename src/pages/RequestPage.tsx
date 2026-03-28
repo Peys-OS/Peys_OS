@@ -241,7 +241,7 @@ export default function RequestPage() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    {(["USDC", "USDT"] as const).map((t) => (
+                    {(["USDC"] as const).map((t) => (
                       <button
                         key={t}
                         onClick={() => setForm({ ...form, token: t })}

@@ -259,7 +259,6 @@ export default function DashboardPage() {
               >
                 <option value="all">All Tokens</option>
                 <option value="USDC">USDC</option>
-                <option value="USDT">USDT</option>
               </select>
             </div>
           </div>

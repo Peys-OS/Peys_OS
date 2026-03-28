@@ -23,6 +23,7 @@ import qrcode from 'qrcode';
 import qrcodeTerminal from 'qrcode-terminal';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import crypto from 'crypto';
 
 // Import services
 import escrowService from './services/escrowService.js';
@@ -30,6 +31,8 @@ import blockchainService from './services/blockchainService.js';
 import dbService from './services/databaseService.js';
 import notificationService from './services/notificationService.js';
 import conversationStateMachine from './services/conversationStateMachine.js';
+import sessionManager from './services/sessionManager.js';
+import alertService from './services/alertService.js';
 const db = dbService;
 
 // ============================================================================
@@ -38,6 +41,105 @@ const db = dbService;
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Webhook secrets (should be set in environment)
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whatsapp-bot-secret-change-in-production';
+const FRONTEND_WEBHOOK_SECRET = process.env.FRONTEND_WEBHOOK_SECRET || 'frontend-webhook-secret-change-in-production';
+
+// Trusted IPs for webhooks (optional additional security)
+const TRUSTED_IPS = process.env.TRUSTED_IPS 
+  ? process.env.TRUSTED_IPS.split(',').map(ip => ip.trim()) 
+  : [];
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10); // 1 minute default
+const RATE_LIMIT_MAX_MESSAGES = parseInt(process.env.RATE_LIMIT_MAX_MESSAGES || '30', 10); // 30 messages per window
+const rateLimitMap = new Map();
+
+// ============================================================================
+// Webhook Authentication Middleware
+// ============================================================================
+// Webhook Authentication Middleware
+// ============================================================================
+
+/**
+ * Verify HMAC signature for webhook requests
+ * Uses SHA-256 HMAC with timing-safe comparison
+ */
+function verifyWebhookSignature(req, res, next, secret) {
+  const signature = req.headers['x-webhook-signature'];
+  const timestamp = req.headers['x-webhook-timestamp'];
+  
+  if (!signature) {
+    console.warn('[Webhook Auth] Missing signature header');
+    return res.status(401).json({ error: 'Missing signature' });
+  }
+  
+  // Check timestamp to prevent replay attacks (5 minute window)
+  if (timestamp) {
+    const requestTime = parseInt(timestamp, 10);
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (Math.abs(currentTime - requestTime) > 300) {
+      console.warn('[Webhook Auth] Request timestamp too old');
+      return res.status(401).json({ error: 'Request expired' });
+    }
+  }
+  
+  // Compute expected signature
+  const payload = timestamp 
+    ? `${timestamp}.${JSON.stringify(req.body)}`
+    : JSON.stringify(req.body);
+  
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  
+  // Timing-safe comparison
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  
+  if (signatureBuffer.length !== expectedBuffer.length || 
+      !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
+    console.warn('[Webhook Auth] Invalid signature');
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+  
+  next();
+}
+
+/**
+ * Payment webhook authentication middleware
+ */
+function paymentWebhookAuth(req, res, next) {
+  // Skip auth in development if no secret configured
+  if (process.env.NODE_ENV !== 'production' && !process.env.WEBHOOK_SECRET) {
+    console.log('[Webhook Auth] Skipping auth in development');
+    return next();
+  }
+  
+  // Optional IP whitelist check
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (TRUSTED_IPS.length > 0 && !TRUSTED_IPS.includes(clientIp)) {
+    console.warn(`[Webhook Auth] Untrusted IP: ${clientIp}`);
+    return res.status(403).json({ error: 'IP not trusted' });
+  }
+  
+  return verifyWebhookSignature(req, res, next, WEBHOOK_SECRET);
+}
+
+/**
+ * Registration webhook authentication middleware
+ */
+function registrationWebhookAuth(req, res, next) {
+  // Skip auth in development if no secret configured
+  if (process.env.NODE_ENV !== 'production' && !process.env.FRONTEND_WEBHOOK_SECRET) {
+    console.log('[Webhook Auth] Skipping registration auth in development');
+    return next();
+  }
+  
+  return verifyWebhookSignature(req, res, next, FRONTEND_WEBHOOK_SECRET);
+}
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -69,6 +171,9 @@ const userSessions = new Map();
 
 async function initializeServices() {
   console.log('⏳ Initializing services...');
+  
+  // Initialize session manager
+  await sessionManager.initialize();
   
   // Initialize escrow service (connects to blockchain)
   await escrowService.initialize();
@@ -173,6 +278,13 @@ async function initializeWhatsApp() {
     
     // Save session to database
     await db.saveWhatsappSession(null, connectedNumber, info?.wid?.user, null);
+    
+    // Alert on successful connection
+    await alertService.info(
+      'WhatsApp Connected',
+      'Bot is ready and connected to WhatsApp',
+      { connectedNumber: '+' + connectedNumber }
+    );
   });
 
   // Disconnected event
@@ -187,6 +299,13 @@ async function initializeWhatsApp() {
     console.log('═'.repeat(60));
     console.log('  Reason: ' + reason);
     console.log('═'.repeat(60) + '\n');
+    
+    // Alert on disconnect
+    alertService.error(
+      'WhatsApp Disconnected',
+      `Disconnected with reason: ${reason}`,
+      { reason, wasConnected }
+    );
     
     // Use the robust restart function
     if (reason !== 'NAVIGATION') {
@@ -275,11 +394,22 @@ function scheduleHealthCheckRestart() {
 async function restartClient() {
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
     console.log('❌ Max reconnect attempts reached. Please check the bot manually.');
+    await alertService.critical(
+      'WhatsApp Bot Disconnected',
+      'Max reconnect attempts reached. Manual intervention required.',
+      { attempts: reconnectAttempts, maxAttempts: MAX_RECONNECT_ATTEMPTS }
+    );
     return;
   }
   
   reconnectAttempts++;
   console.log(`🔄 Restarting WhatsApp client (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+  
+  await alertService.warning(
+    'WhatsApp Reconnecting',
+    `Reconnection attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`,
+    { attempt: reconnectAttempts }
+  );
   
   try {
     if (client) {
@@ -308,6 +438,11 @@ async function restartClient() {
     try {
       await initializeWhatsApp();
       reconnectAttempts = 0; // Reset on successful initialization
+      await alertService.info(
+        'WhatsApp Reconnected',
+        'Bot successfully reconnected to WhatsApp',
+        { connectedNumber }
+      );
     } catch (error) {
       console.error('❌ Restart failed:', error.message);
       // Try again with longer delay
@@ -442,7 +577,7 @@ async function handleMessage(message) {
     const registerMsg = 
     '🔐 *Create Your Account*\n\n' + 
     'Tap the link below to register:\n' + 
-    registerUrl + \n\n' + 
+    registerUrl + '\n\n' + 
     '📋 *Steps:*\n' + 
     '1. Tap the link above\n' + 
     '2. Sign in with phone or email\n' + 
@@ -861,6 +996,7 @@ async function handleSend(chatId, phone, text, wallet) {
   // Send confirmation based on transfer type
   const fee = '0.0005';
   const total = parseFloat(amount) + parseFloat(fee);
+  const isWalletAddress = transferType === 'direct';
 
   if (isWalletAddress) {
     // Direct transfer confirmation
@@ -1050,9 +1186,54 @@ async function showTyping(chatId, duration = 1500) {
 }
 
 /**
+ * Rate limiter for message sending
+ * Returns { allowed: boolean, remaining: number, resetTime: number }
+ */
+function checkRateLimit(chatId) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  
+  // Get or initialize user's rate limit data
+  if (!rateLimitMap.has(chatId)) {
+    rateLimitMap.set(chatId, { count: 0, windowStart: now });
+  }
+  
+  const userData = rateLimitMap.get(chatId);
+  
+  // Reset window if expired
+  if (userData.windowStart < windowStart) {
+    userData.count = 0;
+    userData.windowStart = now;
+  }
+  
+  // Check limit
+  if (userData.count >= RATE_LIMIT_MAX_MESSAGES) {
+    const resetTime = userData.windowStart + RATE_LIMIT_WINDOW_MS;
+    return { allowed: false, remaining: 0, resetTime };
+  }
+  
+  // Increment counter
+  userData.count++;
+  
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT_MAX_MESSAGES - userData.count,
+    resetTime: userData.windowStart + RATE_LIMIT_WINDOW_MS
+  };
+}
+
+/**
  * Send message with typing indicator
  */
 async function sendMessage(chatId, text, showTypingIndicator = true) {
+  // Check rate limit
+  const rateLimit = checkRateLimit(chatId);
+  if (!rateLimit.allowed) {
+    const secondsUntilReset = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+    console.warn(`[Rate Limit] Message rejected for ${chatId}, resets in ${secondsUntilReset}s`);
+    return false;
+  }
+  
   const maxRetries = 3;
   let lastError = null;
   
@@ -1065,7 +1246,7 @@ async function sendMessage(chatId, text, showTypingIndicator = true) {
       
       // Log outgoing message
       const phone = chatId.replace('@c.us', '').replace('@lid', '');
-      console.log('📤 SENT → +' + phone);
+      console.log('📤 SENT → +' + phone + ` [${rateLimit.remaining} remaining]`);
       console.log('   ' + text.substring(0, 60) + (text.length > 60 ? '...' : ''));
       
       lastSuccessfulOperation = Date.now();
@@ -1326,7 +1507,8 @@ app.post('/api/send', async (req, res) => {
 });
 
 // Webhook for payment notifications
-app.post('/webhook/payment', async (req, res) => {
+// Authentication: HMAC signature required
+app.post('/webhook/payment', paymentWebhookAuth, async (req, res) => {
   const { event, payload } = req.body;
   
   console.log(`[Webhook] ${event}:`, payload);
@@ -1341,7 +1523,8 @@ app.post('/webhook/payment', async (req, res) => {
 });
 
 // Webhook for registration confirmation from bot-frontend
-app.post('/webhook/registration', async (req, res) => {
+// Authentication: HMAC signature required
+app.post('/webhook/registration', registrationWebhookAuth, async (req, res) => {
   const { whatsapp_id, wallet_address, email, phone } = req.body;
   
   console.log(`[Webhook] Registration confirmed for: ${whatsapp_id}`);

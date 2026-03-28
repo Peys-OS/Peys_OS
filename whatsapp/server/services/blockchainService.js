@@ -18,7 +18,7 @@ const NETWORKS = {
     chainId: 84532,
     name: 'Base Sepolia',
     rpcUrl: process.env.VITE_RPC_URL_BASE_SEPOLIA || 'https://base-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt',
-    escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS || '0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c',
+    escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS || '0xb5e4A3130D774A8F3Bc0c081800b304A12a07aD1',
     usdcAddress: process.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
   },
   polkadot: {
@@ -32,8 +32,8 @@ const NETWORKS = {
     chainId: 44787,
     name: 'Celo Alfajores',
     rpcUrl: process.env.VITE_RPC_URL_CELO || 'https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt',
-    escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || '0xc880AF5d5aC3ea27c26C47D132661A710C245ea5',
-    usdcAddress: process.env.VITE_USDC_ADDRESS_CELO || '0x01C5C0122039549AD1493B8220cABEdD739BC44E',
+    escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || '0xcDe14d966e546D70F9B0b646c203cFC1BdC2a961',
+    usdcAddress: process.env.VITE_USDC_ADDRESS_CELO || '0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
   }
 };
 
