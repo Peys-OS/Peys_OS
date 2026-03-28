@@ -23,6 +23,7 @@ import qrcode from 'qrcode';
 import qrcodeTerminal from 'qrcode-terminal';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import crypto from 'crypto';
 
 // Import services
 import escrowService from './services/escrowService.js';
@@ -40,6 +41,98 @@ const db = dbService;
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Webhook secrets (should be set in environment)
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'whatsapp-bot-secret-change-in-production';
+const FRONTEND_WEBHOOK_SECRET = process.env.FRONTEND_WEBHOOK_SECRET || 'frontend-webhook-secret-change-in-production';
+
+// Trusted IPs for webhooks (optional additional security)
+const TRUSTED_IPS = process.env.TRUSTED_IPS 
+  ? process.env.TRUSTED_IPS.split(',').map(ip => ip.trim()) 
+  : [];
+
+// ============================================================================
+// Webhook Authentication Middleware
+// ============================================================================
+
+/**
+ * Verify HMAC signature for webhook requests
+ * Uses SHA-256 HMAC with timing-safe comparison
+ */
+function verifyWebhookSignature(req, res, next, secret) {
+  const signature = req.headers['x-webhook-signature'];
+  const timestamp = req.headers['x-webhook-timestamp'];
+  
+  if (!signature) {
+    console.warn('[Webhook Auth] Missing signature header');
+    return res.status(401).json({ error: 'Missing signature' });
+  }
+  
+  // Check timestamp to prevent replay attacks (5 minute window)
+  if (timestamp) {
+    const requestTime = parseInt(timestamp, 10);
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (Math.abs(currentTime - requestTime) > 300) {
+      console.warn('[Webhook Auth] Request timestamp too old');
+      return res.status(401).json({ error: 'Request expired' });
+    }
+  }
+  
+  // Compute expected signature
+  const payload = timestamp 
+    ? `${timestamp}.${JSON.stringify(req.body)}`
+    : JSON.stringify(req.body);
+  
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  
+  // Timing-safe comparison
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  
+  if (signatureBuffer.length !== expectedBuffer.length || 
+      !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
+    console.warn('[Webhook Auth] Invalid signature');
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+  
+  next();
+}
+
+/**
+ * Payment webhook authentication middleware
+ */
+function paymentWebhookAuth(req, res, next) {
+  // Skip auth in development if no secret configured
+  if (process.env.NODE_ENV !== 'production' && !process.env.WEBHOOK_SECRET) {
+    console.log('[Webhook Auth] Skipping auth in development');
+    return next();
+  }
+  
+  // Optional IP whitelist check
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (TRUSTED_IPS.length > 0 && !TRUSTED_IPS.includes(clientIp)) {
+    console.warn(`[Webhook Auth] Untrusted IP: ${clientIp}`);
+    return res.status(403).json({ error: 'IP not trusted' });
+  }
+  
+  return verifyWebhookSignature(req, res, next, WEBHOOK_SECRET);
+}
+
+/**
+ * Registration webhook authentication middleware
+ */
+function registrationWebhookAuth(req, res, next) {
+  // Skip auth in development if no secret configured
+  if (process.env.NODE_ENV !== 'production' && !process.env.FRONTEND_WEBHOOK_SECRET) {
+    console.log('[Webhook Auth] Skipping registration auth in development');
+    return next();
+  }
+  
+  return verifyWebhookSignature(req, res, next, FRONTEND_WEBHOOK_SECRET);
+}
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -1362,7 +1455,8 @@ app.post('/api/send', async (req, res) => {
 });
 
 // Webhook for payment notifications
-app.post('/webhook/payment', async (req, res) => {
+// Authentication: HMAC signature required
+app.post('/webhook/payment', paymentWebhookAuth, async (req, res) => {
   const { event, payload } = req.body;
   
   console.log(`[Webhook] ${event}:`, payload);
@@ -1377,7 +1471,8 @@ app.post('/webhook/payment', async (req, res) => {
 });
 
 // Webhook for registration confirmation from bot-frontend
-app.post('/webhook/registration', async (req, res) => {
+// Authentication: HMAC signature required
+app.post('/webhook/registration', registrationWebhookAuth, async (req, res) => {
   const { whatsapp_id, wallet_address, email, phone } = req.body;
   
   console.log(`[Webhook] Registration confirmed for: ${whatsapp_id}`);
