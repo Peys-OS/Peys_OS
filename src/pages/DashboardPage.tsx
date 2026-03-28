@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Send, Search, Filter, BarChart3, Zap, FileText, Users, RefreshCw, Loader2, QrCode, UserCircle, Wallet, Plus, Star } from "lucide-react";
-import WalletReceiveCard from "@/components/WalletReceiveCard";
 import { useApp } from "@/contexts/AppContext";
 import { useFavorites } from "@/hooks/useFavorites";
 import type { Transaction } from "@/hooks/useMockData";
@@ -10,6 +9,7 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import WithdrawModal from "@/components/WithdrawModal";
+import ReceiveModal from "@/components/ReceiveModal";
 import TransactionDetailModal from "@/components/TransactionDetailModal";
 import ImportWalletModal from "@/components/ImportWalletModal";
 
@@ -174,8 +174,8 @@ export default function DashboardPage() {
               <Send className="h-4 w-4" /> Send
             </Link>
             <button
-              onClick={() => setShowReceive((v) => !v)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium transition-colors sm:rounded-xl sm:py-3 ${showReceive ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:bg-secondary"}`}
+              onClick={() => setShowReceive(true)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:rounded-xl sm:py-3"
             >
               <QrCode className="h-4 w-4" /> Receive
             </button>
@@ -212,14 +212,12 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Receive card */}
-        <AnimatePresence>
-          {showReceive && (
-            <div className="mb-4 sm:mb-6">
-              <WalletReceiveCard address={walletAddress || wallet.address} />
-            </div>
-          )}
-        </AnimatePresence>
+        {/* Receive Modal */}
+        <ReceiveModal 
+          open={showReceive} 
+          onClose={() => setShowReceive(false)} 
+          walletAddress={walletAddress || wallet.address}
+        />
 
         {/* Quick links */}
         <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-6 sm:grid-cols-4">
