@@ -508,12 +508,7 @@ export default function SendPaymentForm() {
         }
 
         // 6. Send email notification via Supabase Edge Function
-        console.log("=== Sending email notification ===");
-        console.log("Recipient:", recipient);
-        console.log("Claim link:", link);
-
         try {
-          console.log("Calling Supabase Edge Function 'send-payment-notification'...");
           const { data, error } = await supabase.functions.invoke("send-payment-notification", {
             body: {
               recipientEmail: recipient,
