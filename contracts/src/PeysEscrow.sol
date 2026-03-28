@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @title PeysEscrow
  * @notice Escrow contract for Peys payment platform on Polygon Amoy
  * @dev Allows users to create payment intents, claim funds, and request refunds
+ * @dev Uses Solidity 0.8.20 for built-in overflow/underflow protection
+ * @dev All state-changing functions use ReentrancyGuard
  */
 contract PeysEscrow is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -33,6 +35,18 @@ contract PeysEscrow is ReentrancyGuard {
 
     /// @notice Payment counter
     uint256 public paymentCount;
+
+    /// @notice Maximum payment amount (prevents large loss from bugs)
+    uint256 public constant MAX_PAYMENT_AMOUNT = 1_000_000e6; // 1M USDC
+
+    /// @notice Minimum payment amount
+    uint256 public constant MIN_PAYMENT_AMOUNT = 1e6; // 1 USDC (6 decimals)
+
+    /// @notice Default expiration period
+    uint256 public constant DEFAULT_EXPIRATION = 7 days;
+
+    /// @notice Maximum expiration period
+    uint256 public constant MAX_EXPIRATION = 90 days;
 
     /// @notice Payments mapping
     mapping(uint256 => Payment) public payments;
@@ -79,10 +93,10 @@ contract PeysEscrow is ReentrancyGuard {
     /**
      * @notice Create a new payment
      * @param _recipient Recipient address
-     * @param _amount Amount to escrow
+     * @param _amount Amount to escrow (must be between MIN and MAX)
      * @param _token Token address (must be USDC)
      * @param _secretHash Hash of the secret for claiming
-     * @param _duration Lock duration in seconds (default 7 days)
+     * @param _duration Lock duration in seconds (default 7 days, max 90 days)
      */
     function createPayment(
         address _recipient,
@@ -91,19 +105,25 @@ contract PeysEscrow is ReentrancyGuard {
         bytes32 _secretHash,
         uint256 _duration
     ) external nonReentrant returns (uint256) {
+        // Input validation
         require(_recipient != address(0), "Invalid recipient");
         require(_recipient != msg.sender, "Cannot pay yourself");
-        require(_amount > 0, "Amount must be > 0");
+        require(_amount >= MIN_PAYMENT_AMOUNT, "Amount too small");
+        require(_amount <= MAX_PAYMENT_AMOUNT, "Amount too large");
         require(_token == address(usdc), "Only USDC accepted");
         require(_secretHash != bytes32(0), "Invalid secret hash");
 
-        // Transfer USDC from sender to contract
+        // Calculate expiration (default 7 days, max 90 days)
+        uint256 duration = _duration > 0 ? _duration : DEFAULT_EXPIRATION;
+        require(duration <= MAX_EXPIRATION, "Duration too long");
+        uint256 expiresAt = block.timestamp + duration;
+
+        // Transfer USDC from sender to contract (uses SafeERC20)
         usdc.safeTransferFrom(msg.sender, address(this), _amount);
 
         // Create payment
         paymentCount++;
         uint256 paymentId = paymentCount;
-        uint256 expiresAt = block.timestamp + (_duration > 0 ? _duration : 7 days);
 
         payments[paymentId] = Payment({
             sender: msg.sender,
@@ -129,13 +149,17 @@ contract PeysEscrow is ReentrancyGuard {
      * @notice Claim a payment using the secret
      * @param _paymentId Payment ID
      * @param _secret The secret to claim
+     * @dev Uses nonReentrant to prevent reentrancy attacks
      */
     function claimPayment(uint256 _paymentId, string calldata _secret) external nonReentrant {
+        // Note: Solidity 0.8.20+ reverts on overflow in these comparisons
         require(_paymentId > 0 && _paymentId <= paymentCount, "Invalid payment ID");
 
         Payment storage payment = payments[_paymentId];
 
         require(payment.status == PaymentStatus.Pending, "Payment not pending");
+        // Note: block.timestamp can be manipulated by miners within ~15 seconds
+        // This is acceptable for our use case as 15 seconds is insufficient for exploitation
         require(block.timestamp <= payment.expiresAt, "Payment expired");
         require(payment.recipient == msg.sender, "Not the recipient");
 
@@ -149,7 +173,7 @@ contract PeysEscrow is ReentrancyGuard {
         payment.status = PaymentStatus.Claimed;
         payment.claimedAt = block.timestamp;
 
-        // Transfer funds to recipient
+        // Transfer funds to recipient (uses SafeERC20)
         usdc.safeTransfer(payment.recipient, payment.amount);
 
         emit PaymentClaimed(_paymentId, payment.recipient, payment.amount, payment.token);
@@ -158,6 +182,7 @@ contract PeysEscrow is ReentrancyGuard {
     /**
      * @notice Refund an unclaimed payment (only sender can call after expiry)
      * @param _paymentId Payment ID
+     * @dev Uses nonReentrant to prevent reentrancy attacks
      */
     function refundPayment(uint256 _paymentId) external nonReentrant {
         require(_paymentId > 0 && _paymentId <= paymentCount, "Invalid payment ID");
@@ -171,7 +196,7 @@ contract PeysEscrow is ReentrancyGuard {
         // Mark as refunded
         payment.status = PaymentStatus.Refunded;
 
-        // Transfer funds back to sender
+        // Transfer funds back to sender (uses SafeERC20)
         usdc.safeTransfer(payment.sender, payment.amount);
 
         emit PaymentRefunded(_paymentId, payment.sender, payment.amount, payment.token);
@@ -197,6 +222,7 @@ contract PeysEscrow is ReentrancyGuard {
     /**
      * @notice Get pending payments for a recipient
      * @param _recipient Recipient address
+     * @dev Warning: Can be gas-intensive with many payments
      */
     function getPendingPaymentsForRecipient(address _recipient) external view returns (uint256[] memory) {
         uint256 count = 0;
