@@ -52,6 +52,8 @@ import DonationPage from "./pages/DonationPage";
 import SplitBillPage from "./pages/SplitBillPage";
 import StatementPage from "./pages/StatementPage";
 import HistoryPage from "./pages/HistoryPage";
+import BillsPage from "./pages/BillsPage";
+import FiatWithdrawalPage from "./pages/FiatWithdrawalPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ReferralPage from "./pages/ReferralPage";
 import ReminderPage from "./pages/ReminderPage";
@@ -175,6 +177,8 @@ const App = () => (
                   <Route path="/split-bill" element={<SplitBillPage />} />
                   <Route path="/statement" element={<StatementPage />} />
                   <Route path="/history" element={<HistoryPage />} />
+                  <Route path="/bills" element={<BillsPage />} />
+                  <Route path="/withdraw" element={<FiatWithdrawalPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/referral" element={<ReferralPage />} />
                   <Route path="/budget" element={<ReminderPage />} />
