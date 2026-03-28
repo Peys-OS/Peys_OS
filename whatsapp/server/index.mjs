@@ -896,6 +896,7 @@ async function handleSend(chatId, phone, text, wallet) {
   // Send confirmation based on transfer type
   const fee = '0.0005';
   const total = parseFloat(amount) + parseFloat(fee);
+  const isWalletAddress = transferType === 'direct';
 
   if (isWalletAddress) {
     // Direct transfer confirmation
