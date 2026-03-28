@@ -11,7 +11,7 @@ export default function Footer() {
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <img src={theme === "dark" ? "/peys_logo_on_transparent_background.png" : "/peys_logo_alone.png"} alt="Peys" className="h-10 w-10 rounded-lg" />
+              <img src={theme === "dark" ? "/peys_black_background.png" : "/peys_logo_alone.png"} alt="Peys" className="h-10 w-10 rounded-lg" />
               <span className="text-base font-semibold text-foreground">Peys</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
