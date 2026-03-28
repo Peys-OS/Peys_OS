@@ -397,7 +397,7 @@ export default function PublicPaymentPage() {
                         {(["USDC", "USDT", "PASS"] as Token[]).filter((t) => {
                           const chainConfig = getChainConfig(selectedNetwork);
                           if (t === "USDT") {
-                            return !!chainConfig.usdtAddress && (chainConfig.usdtAddress as any) !== "";
+                            return false; // USDT coming soon
                           }
                           if (t === "PASS") {
                             return selectedNetwork === 420420417;

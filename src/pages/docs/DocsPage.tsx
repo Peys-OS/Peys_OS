@@ -190,9 +190,10 @@ export default function DocsPage() {
               { name: "Base Sepolia", symbol: "USDC", network: "Testnet", status: "Active" },
               { name: "Celo Alfajores", symbol: "cUSD", network: "Testnet", status: "Active" },
               { name: "Polkadot (Paseo)", symbol: "USDC", network: "Testnet", status: "Active" },
+              { name: "Polygon Amoy", symbol: "USDC", network: "Testnet", status: "Active" },
               { name: "Base", symbol: "USDC", network: "Mainnet", status: "Coming Soon" },
               { name: "Ethereum", symbol: "USDC", network: "Mainnet", status: "Coming Soon" },
-              { name: "Polygon", symbol: "USDT", network: "Mainnet", status: "Coming Soon" },
+              { name: "USDT", symbol: "USDT", network: "All Networks", status: "Coming Soon" },
             ].map((chain) => (
               <div key={chain.name} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
                 <div>
