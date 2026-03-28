@@ -51,6 +51,13 @@ const TRUSTED_IPS = process.env.TRUSTED_IPS
   ? process.env.TRUSTED_IPS.split(',').map(ip => ip.trim()) 
   : [];
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10); // 1 minute default
+const RATE_LIMIT_MAX_MESSAGES = parseInt(process.env.RATE_LIMIT_MAX_MESSAGES || '30', 10); // 30 messages per window
+const rateLimitMap = new Map();
+
+// ============================================================================
+// Webhook Authentication Middleware
 // ============================================================================
 // Webhook Authentication Middleware
 // ============================================================================
@@ -1179,9 +1186,54 @@ async function showTyping(chatId, duration = 1500) {
 }
 
 /**
+ * Rate limiter for message sending
+ * Returns { allowed: boolean, remaining: number, resetTime: number }
+ */
+function checkRateLimit(chatId) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  
+  // Get or initialize user's rate limit data
+  if (!rateLimitMap.has(chatId)) {
+    rateLimitMap.set(chatId, { count: 0, windowStart: now });
+  }
+  
+  const userData = rateLimitMap.get(chatId);
+  
+  // Reset window if expired
+  if (userData.windowStart < windowStart) {
+    userData.count = 0;
+    userData.windowStart = now;
+  }
+  
+  // Check limit
+  if (userData.count >= RATE_LIMIT_MAX_MESSAGES) {
+    const resetTime = userData.windowStart + RATE_LIMIT_WINDOW_MS;
+    return { allowed: false, remaining: 0, resetTime };
+  }
+  
+  // Increment counter
+  userData.count++;
+  
+  return { 
+    allowed: true, 
+    remaining: RATE_LIMIT_MAX_MESSAGES - userData.count,
+    resetTime: userData.windowStart + RATE_LIMIT_WINDOW_MS
+  };
+}
+
+/**
  * Send message with typing indicator
  */
 async function sendMessage(chatId, text, showTypingIndicator = true) {
+  // Check rate limit
+  const rateLimit = checkRateLimit(chatId);
+  if (!rateLimit.allowed) {
+    const secondsUntilReset = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
+    console.warn(`[Rate Limit] Message rejected for ${chatId}, resets in ${secondsUntilReset}s`);
+    return false;
+  }
+  
   const maxRetries = 3;
   let lastError = null;
   
@@ -1194,7 +1246,7 @@ async function sendMessage(chatId, text, showTypingIndicator = true) {
       
       // Log outgoing message
       const phone = chatId.replace('@c.us', '').replace('@lid', '');
-      console.log('📤 SENT → +' + phone);
+      console.log('📤 SENT → +' + phone + ` [${rateLimit.remaining} remaining]`);
       console.log('   ' + text.substring(0, 60) + (text.length > 60 ? '...' : ''));
       
       lastSuccessfulOperation = Date.now();
