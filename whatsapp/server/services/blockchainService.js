@@ -33,7 +33,7 @@ const NETWORKS = {
     name: 'Celo Alfajores',
     rpcUrl: process.env.VITE_RPC_URL_CELO || 'https://celo-sepolia.g.alchemy.com/v2/***REMOVED***',
     escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || '***REMOVED***',
-    usdcAddress: process.env.VITE_USDC_ADDRESS_CELO || '0x01C5C0122039549AD1493B8220cABEdD739BC44E',
+    usdcAddress: process.env.VITE_USDC_ADDRESS_CELO || '0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
   }
 };
 

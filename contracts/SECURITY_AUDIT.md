@@ -20,7 +20,7 @@ This report documents the internal security review of the PeysEscrow smart contr
 |---------|---------|-----------------|
 | Base Sepolia | 84532 | ***REMOVED*** |
 | Polygon Amoy | 80002 | ***REMOVED*** |
-| Celo Alfajores | 44787 | Not deployed |
+| Celo Alfajores | 44787 | ***REMOVED*** |
 | Polkadot Asset Hub | 420420417 | ***REMOVED*** |
 
 ## Audit Methodology
@@ -166,6 +166,14 @@ This report documents the internal security review of the PeysEscrow smart contr
 ### Polygon Amoy
 - **Explorer**: https://amoy.polygonscan.com/address/***REMOVED***
 - **Status**: ✅ Verified
+
+### Base Sepolia
+- **Explorer**: https://sepolia.basescan.org/address/***REMOVED***
+- **Status**: ✅ Verified
+
+### Celo Alfajores
+- **Explorer**: https://alfajores.celoscan.io/address/***REMOVED***
+- **Status**: ✅ Deployed (manual verification pending)
 
 ## Conclusion
 
