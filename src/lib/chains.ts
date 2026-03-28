@@ -89,6 +89,18 @@ export const chainConfigs: Record<number, ChainConfig> = {
     blockExplorer: "https://basescan.org",
     nativeSymbol: "ETH",
   },
+  // Polygon Amoy Testnet (Chain ID: 80002)
+  80002: {
+    id: 80002,
+    name: "Polygon Amoy Testnet",
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLYGON || "0x815a27883CA25221C78B72D29851C3b4D7341d86") as Address,
+    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLYGON || "0x41E94EB09554da6d1DE6384F89b8c2C5B2c7f3f7") as Address,
+    usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLYGON || "") as Address,
+    passAddress: "" as Address,
+    rpcUrl: import.meta.env.VITE_RPC_URL_POLYGON || "https://polygon-amoy.g.alchemy.com/v2/demo",
+    blockExplorer: "https://www.oklink.com/amoy",
+    nativeSymbol: "MATIC",
+  },
 };
 
 export function getChainConfig(chainId: number): ChainConfig {

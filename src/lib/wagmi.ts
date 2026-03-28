@@ -13,6 +13,10 @@ const celoRpcs = [
   'https://alfajores.celo.org',
 ];
 
+const polygonAmoyRpcs = [
+  import.meta.env.VITE_RPC_URL_POLYGON || 'https://polygon-amoy.g.alchemy.com/v2/demo',
+];
+
 const polkadotRpcs = [
   import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-rpc-testnet.polkadot.io',
   'https://eth-asset-hub-paseo.dotters.network',
@@ -75,8 +79,35 @@ export const celoAlfajores = {
   testnet: true,
 } as const;
 
+// Define Polygon Amoy Testnet (Chain ID: 80002)
+export const polygonAmoy = {
+  id: 80002,
+  name: 'Polygon Amoy',
+  network: 'polygon-amoy',
+  nativeCurrency: {
+    name: 'MATIC',
+    symbol: 'MATIC',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: polygonAmoyRpcs,
+    },
+    public: {
+      http: polygonAmoyRpcs,
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Polygon Amoy Explorer',
+      url: 'https://www.oklink.com/amoy',
+    },
+  },
+  testnet: true,
+} as const;
+
 export const config = createConfig({
-  chains: [polkadotAssetHub, celoAlfajores, celo, base, baseSepolia, mainnet, polygon, arbitrum],
+  chains: [polkadotAssetHub, celoAlfajores, celo, base, baseSepolia, polygonAmoy, mainnet, polygon, arbitrum],
   connectors: [
     injected(),
     coinbaseWallet(),
@@ -87,6 +118,7 @@ export const config = createConfig({
     [celo.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
     [base.id]: http(import.meta.env.VITE_RPC_URL_BASE || 'https://mainnet.base.org'),
     [baseSepolia.id]: fallback(baseSepoliaRpcs.map(rpc => http(rpc)), { rank: true }),
+    [polygonAmoy.id]: fallback(polygonAmoyRpcs.map(rpc => http(rpc)), { rank: true }),
     [mainnet.id]: http(),
     [polygon.id]: http(),
     [arbitrum.id]: http(),

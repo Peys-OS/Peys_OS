@@ -58,6 +58,12 @@ const mockGasPrices: Record<string, GasPrice> = {
     fast: { price: "$0.05", time: "~15 sec", gwei: 20 },
     instant: { price: "$0.10", time: "~5 sec", gwei: 40 },
   },
+  Polygon: {
+    slow: { price: "$0.02", time: "~2 min", gwei: 50 },
+    standard: { price: "$0.05", time: "~1 min", gwei: 100 },
+    fast: { price: "$0.10", time: "~30 sec", gwei: 200 },
+    instant: { price: "$0.20", time: "~15 sec", gwei: 400 },
+  },
 };
 
 const mockNetworks: NetworkStats[] = [
@@ -86,6 +92,15 @@ const mockNetworks: NetworkStats[] = [
     avgBlockTime: "5 sec",
     congestion: 25,
     gasLimit: 20000000,
+    gasUsed: 5000000,
+  },
+  {
+    name: "Polygon Amoy",
+    chainId: 80002,
+    blockNumber: 45000000,
+    avgBlockTime: "2 sec",
+    congestion: 15,
+    gasLimit: 50000000,
     gasUsed: 5000000,
   },
 ];

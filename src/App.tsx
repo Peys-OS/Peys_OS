@@ -12,7 +12,6 @@ import { OfflineProvider } from "@/contexts/OfflineContext";
 import { SoundProvider } from "@/hooks/useSound";
 import { HapticProvider } from "@/hooks/useHaptic";
 import { WakeLockProvider } from "@/hooks/useWakeLock";
-import { QuickAccessBar, BookmarksList } from "@/hooks/useBookmarks";
 import AIChatBubble from "@/components/AIChatBubble";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -237,10 +236,8 @@ const App = () => (
                   <Route path="/docs/smart-contracts" element={<SmartContractsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-                <AIChatBubble />
+              <AIChatBubble />
                 <MobileBottomNav />
-                <QuickActionsBar />
-                <QuickAccessBar onSelect={(url) => window.location.href = url} />
               </BrowserRouter>
             </AppProvider>
                 </WakeLockProvider>

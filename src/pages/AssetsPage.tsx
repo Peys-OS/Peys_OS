@@ -85,6 +85,13 @@ function NetworkCard({ network, totalUSD }: NetworkCardProps) {
         icon: "🟣",
         shortName: "Polkadot",
       };
+    } else if (name.includes("Polygon")) {
+      return {
+        color: "#8247E5",
+        gradient: "from-purple-500/10 to-purple-600/10",
+        icon: "🟣",
+        shortName: "Polygon",
+      };
     }
     return { color: "#666", gradient: "from-gray-500/10 to-gray-600/10", icon: "⚪", shortName: name };
   };
