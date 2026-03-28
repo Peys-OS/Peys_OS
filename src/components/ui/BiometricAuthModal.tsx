@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fingerprint, Shield, Lock, AlertTriangle, CheckCircle, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { setSecurePinHash, verifySecurePin, clearPinHash, hasPinHash } from "@/utils/pinSecurity";
 
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -34,7 +35,7 @@ export default function BiometricAuthModal({
 
   useEffect(() => {
     const stored = localStorage.getItem("peys_biometric_enabled");
-    setBiometricEnabled(stored === "true");
+    setBiometricEnabled(stored === "true" && hasPinHash());
     
     const storedAttempts = localStorage.getItem("peys_auth_attempts");
     if (storedAttempts) setAttempts(parseInt(storedAttempts, 10));
@@ -118,7 +119,7 @@ export default function BiometricAuthModal({
       return;
     }
     
-    localStorage.setItem("peys_pin_hash", btoa(pin));
+    await setSecurePinHash(pin);
     localStorage.setItem("peys_biometric_enabled", "true");
     
     if (biometricAvailable) {
@@ -135,9 +136,9 @@ export default function BiometricAuthModal({
     onClose();
   };
 
-  const handlePinVerify = () => {
-    const storedHash = localStorage.getItem("peys_pin_hash");
-    if (btoa(pin) === storedHash) {
+  const handlePinVerify = async () => {
+    const isValid = await verifySecurePin(pin);
+    if (isValid) {
       setAttempts(0);
       localStorage.removeItem("peys_auth_attempts");
       toast.success("Authentication successful");
@@ -163,7 +164,7 @@ export default function BiometricAuthModal({
 
   const handleDisableBiometric = () => {
     localStorage.removeItem("peys_biometric_enabled");
-    localStorage.removeItem("peys_pin_hash");
+    clearPinHash();
     setBiometricEnabled(false);
     toast.info("Biometric authentication disabled");
     onClose();
