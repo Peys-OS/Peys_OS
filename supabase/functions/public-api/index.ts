@@ -157,12 +157,12 @@ Deno.serve(async (req) => {
 
       case path.match(/^\/v1\/payments\/[\w-]+\/claim$/) && method === "POST":
         const claimPaymentId = path.split("/")[2];
-        response = await handleClaimPayment(claimPaymentId, req, supabaseClient);
+        response = await handleClaimPayment(claimPaymentId, req, supabaseClient, keyRecord);
         break;
 
       case path.match(/^\/v1\/payments\/[\w-]+\/refund$/) && method === "POST":
         const refundPaymentId = path.split("/")[2];
-        response = await handleRefundPayment(refundPaymentId, req, supabaseClient);
+        response = await handleRefundPayment(refundPaymentId, req, supabaseClient, keyRecord);
         break;
 
       case path === "/v1/webhooks" && method === "POST":
@@ -339,7 +339,7 @@ async function handleListPayments(req: Request, supabaseClient: unknown, apiKey:
   };
 }
 
-async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: unknown) {
+async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
   const { recipientWallet, secret } = body;
 
@@ -353,12 +353,20 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
     return { error: "Payment not found" };
   }
 
+  if (payment.api_key_id !== apiKey.id) {
+    return { error: "Not authorized to claim this payment" };
+  }
+
   if (payment.status !== "pending") {
     return { error: `Payment is already ${payment.status}` };
   }
 
   if (new Date(payment.expires_at) < new Date()) {
     return { error: "Payment has expired" };
+  }
+
+  if (secret && payment.claim_secret && secret !== payment.claim_secret) {
+    return { error: "Invalid claim secret" };
   }
 
   const { data, error } = await supabaseClient
@@ -369,6 +377,7 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
       recipient_wallet: recipientWallet,
     })
     .eq("payment_id", paymentId)
+    .eq("status", "pending")
     .select()
     .single();
 
@@ -381,7 +390,7 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
   };
 }
 
-async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: unknown) {
+async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const { data: payment, error: paymentError } = await supabaseClient
     .from("payments")
     .select("*")
@@ -390,6 +399,10 @@ async function handleRefundPayment(paymentId: string, req: Request, supabaseClie
 
   if (paymentError || !payment) {
     return { error: "Payment not found" };
+  }
+
+  if (payment.api_key_id !== apiKey.id) {
+    return { error: "Not authorized to refund this payment" };
   }
 
   if (payment.status !== "pending") {
@@ -407,6 +420,7 @@ async function handleRefundPayment(paymentId: string, req: Request, supabaseClie
       refunded_at: new Date().toISOString(),
     })
     .eq("payment_id", paymentId)
+    .eq("status", "pending")
     .select()
     .single();
 
