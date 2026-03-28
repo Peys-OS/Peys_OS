@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 const primaryItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/pay", label: "Pay", icon: Send },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/send", label: "Send", icon: Send },
 ];
 
