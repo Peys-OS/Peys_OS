@@ -57,7 +57,7 @@ export const chainConfigs: Record<number, ChainConfig> = {
   84532: {
     id: 84532,
     name: "Base Sepolia Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA || "0xED2358Ba9b1Fb106D69b248C1E80C6372Bb9AEF6") as Address,
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_BASE_SEPOLIA || "0xb5e4A3130D774A8F3Bc0c081800b304A12a07aD1") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || "0x036CbD53842c5426634e7929541eC2318f3dCF7e") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_BASE_SEPOLIA || "") as Address,
     passAddress: "" as Address,
@@ -93,7 +93,7 @@ export const chainConfigs: Record<number, ChainConfig> = {
   80002: {
     id: 80002,
     name: "Polygon Amoy Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLYGON || "0x19679d6C842C2A9AFAF0ED92D7f65fC9f2eBf942") as Address,
+    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLYGON || "0xeb2923503953c5Ed2772917771b850315D030f24") as Address,
     usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLYGON || "0x41E94EB09554da6d1DE6384F89b8c2C5B2c7f3f7") as Address,
     usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLYGON || "") as Address,
     passAddress: "" as Address,

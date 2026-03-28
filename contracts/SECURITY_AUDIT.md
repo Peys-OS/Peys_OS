@@ -18,9 +18,9 @@ This report documents the internal security review of the PeysEscrow smart contr
 
 | Network | Chain ID | Escrow Contract |
 |---------|---------|-----------------|
-| Base Sepolia | 84532 | 0xED2358Ba9b1Fb106D69b248C1E80C6372Bb9AEF6 |
-| Polygon Amoy | 80002 | 0x19679d6C842C2A9AFAF0ED92D7f65fC9f2eBf942 |
-| Celo Alfajores | 44787 | 0x62F0bE8a94F7E348f15f6F373E35Ae5c34F7d40F |
+| Base Sepolia | 84532 | 0xb5e4A3130D774A8F3Bc0c081800b304A12a07aD1 |
+| Polygon Amoy | 80002 | 0xeb2923503953c5Ed2772917771b850315D030f24 |
+| Celo Alfajores | 44787 | 0xcDe14d966e546D70F9B0b646c203cFC1BdC2a961 |
 | Polkadot Asset Hub | 420420417 | 0x802a6843516f52144b3f1d04e5447a085d34af37 |
 
 ## Audit Methodology
