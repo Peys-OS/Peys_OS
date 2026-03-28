@@ -54,6 +54,54 @@ contract PeysEscrow is ReentrancyGuard {
     /// @notice Commit reveal delay - prevents front-running
     uint256 public constant COMMIT_REVEAL_DELAY = 2 minutes;
 
+    /// @notice Emergency withdrawal delay - prevents accidental triggering
+    uint256 public constant EMERGENCY_WITHDRAWAL_DELAY = 48 hours;
+
+    /// @notice Owner of the contract
+    address public owner;
+
+    /// @notice Pending owner for safe ownership transfer
+    address public pendingOwner;
+
+    /// @notice Timestamp when emergency withdrawal was initiated
+    uint256 public emergencyWithdrawInitiatedAt;
+
+    /// @notice Token address queued for emergency withdrawal
+    address public emergencyWithdrawToken;
+
+    /// @notice Target address for emergency withdrawal
+    address public emergencyWithdrawTarget;
+
+    /// @notice Amount queued for emergency withdrawal
+    uint256 public emergencyWithdrawAmount;
+
+    /// @notice Emergency withdrawal initiated event
+    event EmergencyWithdrawInitiated(
+        address indexed token,
+        address indexed target,
+        uint256 amount,
+        uint256 executeTime
+    );
+
+    /// @notice Emergency withdrawal cancelled event
+    event EmergencyWithdrawCancelled();
+
+    /// @notice Emergency withdrawal executed event
+    event EmergencyWithdrawExecuted(
+        address indexed token,
+        address indexed target,
+        uint256 amount
+    );
+
+    /// @notice Ownership transfer initiated
+    event OwnershipTransferInitiated(address indexed oldOwner, address indexed newOwner);
+
+    /// @notice Ownership transfer completed
+    event OwnershipTransferCompleted(address indexed oldOwner, address indexed newOwner);
+
+    /// @notice Unauthorized access attempt
+    error Unauthorized();
+
     /// @notice Payments mapping
     mapping(uint256 => Payment) public payments;
 
@@ -97,6 +145,15 @@ contract PeysEscrow is ReentrancyGuard {
     constructor(address _usdc) {
         require(_usdc != address(0), "Invalid USDC address");
         usdc = IERC20(_usdc);
+        owner = msg.sender;
+    }
+
+    /**
+     * @notice Modifier to restrict access to owner only
+     */
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert Unauthorized();
+        _;
     }
 
     /**
@@ -321,5 +378,91 @@ contract PeysEscrow is ReentrancyGuard {
         uint256 revealTime = payment.commitmentTime + COMMIT_REVEAL_DELAY;
         if (block.timestamp >= revealTime) return 0;
         return revealTime - block.timestamp;
+    }
+
+    /**
+     * @notice Initiate emergency withdrawal of tokens (48 hour timelock)
+     * @param _token Token address to withdraw
+     * @param _target Address to receive the tokens
+     * @param _amount Amount to withdraw
+     * @dev Requires 48 hour delay before execution
+     */
+    function initiateEmergencyWithdraw(
+        address _token,
+        address _target,
+        uint256 _amount
+    ) external onlyOwner {
+        require(_token != address(0), "Invalid token");
+        require(_target != address(0), "Invalid target");
+        require(_amount > 0, "Amount must be > 0");
+
+        emergencyWithdrawToken = _token;
+        emergencyWithdrawTarget = _target;
+        emergencyWithdrawAmount = _amount;
+        emergencyWithdrawInitiatedAt = block.timestamp + EMERGENCY_WITHDRAWAL_DELAY;
+
+        emit EmergencyWithdrawInitiated(_token, _target, _amount, emergencyWithdrawInitiatedAt);
+    }
+
+    /**
+     * @notice Execute emergency withdrawal after timelock expires
+     */
+    function executeEmergencyWithdraw() external onlyOwner {
+        require(emergencyWithdrawInitiatedAt > 0, "No withdrawal initiated");
+        require(block.timestamp >= emergencyWithdrawInitiatedAt, "Timelock not expired");
+        require(IERC20(emergencyWithdrawToken).transfer(emergencyWithdrawTarget, emergencyWithdrawAmount), "Transfer failed");
+
+        emit EmergencyWithdrawExecuted(emergencyWithdrawToken, emergencyWithdrawTarget, emergencyWithdrawAmount);
+
+        emergencyWithdrawToken = address(0);
+        emergencyWithdrawTarget = address(0);
+        emergencyWithdrawAmount = 0;
+        emergencyWithdrawInitiatedAt = 0;
+    }
+
+    /**
+     * @notice Cancel pending emergency withdrawal
+     */
+    function cancelEmergencyWithdraw() external onlyOwner {
+        require(emergencyWithdrawInitiatedAt > 0, "No withdrawal pending");
+
+        emit EmergencyWithdrawCancelled();
+
+        emergencyWithdrawToken = address(0);
+        emergencyWithdrawTarget = address(0);
+        emergencyWithdrawAmount = 0;
+        emergencyWithdrawInitiatedAt = 0;
+    }
+
+    /**
+     * @notice Initiate ownership transfer
+     * @param _newOwner Address of new owner
+     */
+    function transferOwnership(address _newOwner) external onlyOwner {
+        require(_newOwner != address(0), "Invalid new owner");
+        pendingOwner = _newOwner;
+        emit OwnershipTransferInitiated(owner, _newOwner);
+    }
+
+    /**
+     * @notice Accept ownership transfer
+     */
+    function acceptOwnership() external {
+        require(msg.sender == pendingOwner, "Not the pending owner");
+        address oldOwner = owner;
+        owner = pendingOwner;
+        pendingOwner = address(0);
+        emit OwnershipTransferCompleted(oldOwner, owner);
+    }
+
+    /**
+     * @notice Renounce ownership (irreversible)
+     * @dev Must not have any active payments
+     */
+    function renounceOwnership() external onlyOwner {
+        require(paymentCount == 0, "Cannot renounce with active payments");
+        address oldOwner = owner;
+        owner = address(0);
+        emit OwnershipTransferCompleted(oldOwner, address(0));
     }
 }
