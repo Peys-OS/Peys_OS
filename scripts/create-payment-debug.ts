@@ -9,7 +9,7 @@ if (!PRIVATE_KEY) {
 
 const RPC_URL = process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC || "https://base-sepolia.g.alchemy.com/v2/your-api-key";
 const USDC_ADDRESS = process.env.USDC_ADDRESS || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
-const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS || "0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c";
+const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS || "0xED2358Ba9b1Fb106D69b248C1E80C6372Bb9AEF6";
 
 const USDC_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)",

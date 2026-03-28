@@ -100,7 +100,7 @@ export const polygonAmoy = {
   blockExplorers: {
     default: {
       name: 'Polygon Amoy Explorer',
-      url: 'https://www.oklink.com/amoy',
+      url: 'https://amoy.polygonscan.com',
     },
   },
   testnet: true,

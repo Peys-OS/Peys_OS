@@ -398,8 +398,9 @@ forge script script/DeployCeloAlfajores.s.sol --rpc-url $VITE_RPC_URL_CELO --bro
 | Network | Chain ID | RPC URL | Escrow Contract |
 |---|---|---|---|
 | Polkadot Asset Hub | 420420417 | `https://eth-asset-hub-paseo.dotters.network` | `0x802a6843516f52144b3f1d04e5447a085d34af37` |
-| Base Sepolia | 84532 | `https://base-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt` | `0x4a5a67a3666A3f26bF597AdC7c10EA89495e046c` |
-| Celo Alfajores | 44787 | `https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt` | `0xc880AF5d5aC3ea27c26C47D132661A710C245ea5` |
+| Base Sepolia | 84532 | `https://base-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt` | `0xED2358Ba9b1Fb106D69b248C1E80C6372Bb9AEF6` |
+| Polygon Amoy | 80002 | `https://polygon-amoy.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt` | `0x19679d6C842C2A9AFAF0ED92D7f65fC9f2eBf942` |
+| Celo Alfajores | 44787 | `https://celo-sepolia.g.alchemy.com/v2/H3-pV1jNnbXq7-6JEW8Gt` | `0x62F0bE8a94F7E348f15f6F373E35Ae5c34F7d40F` |
 
 ### Token Addresses
 
@@ -407,7 +408,8 @@ forge script script/DeployCeloAlfajores.s.sol --rpc-url $VITE_RPC_URL_CELO --bro
 |---|---|---|---|
 | Polkadot | `0x0000000000000000000000000000000000000D39` | Not available | Native token |
 | Base Sepolia | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | Not available | Not available |
-| Celo Alfajores | `0x01C5C0122039549AD1493B8220cABEdD739BC44E` | Not available | Not available |
+| Polygon Amoy | `0x41E94EB09554da6d1DE6384F89b8c2C5B2c7f3f7` | Not available | Not available |
+| Celo Alfajores | `0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B` | Not available | Not available |
 
 ## 🚀 Deployment
 
