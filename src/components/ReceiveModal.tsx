@@ -20,6 +20,17 @@ interface VirtualAccount {
   currency: string;
 }
 
+const SUPPORTED_FIAT_CURRENCIES = [
+  { code: "NGN", name: "Nigeria", flag: "🇳🇬" },
+  { code: "GHS", name: "Ghana", flag: "🇬🇭" },
+  { code: "KES", name: "Kenya", flag: "🇰🇪" },
+  { code: "ZAR", name: "South Africa", flag: "🇿🇦" },
+  { code: "UGX", name: "Uganda", flag: "🇺🇬" },
+  { code: "TZS", name: "Tanzania", flag: "🇹🇿" },
+  { code: "RWF", name: "Rwanda", flag: "🇷🇼" },
+  { code: "ETB", name: "Ethiopia", flag: "🇪🇹" },
+];
+
 export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveModalProps) {
   const [method, setMethod] = useState<ReceiveMethod>("wallet");
   const [copied, setCopied] = useState<string | null>(null);
@@ -29,6 +40,12 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
   const [selectedNetwork, setSelectedNetwork] = useState("base-sepolia");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const [showCreateFiat, setShowCreateFiat] = useState(false);
+  const [selectedFiatCurrency, setSelectedFiatCurrency] = useState("NGN");
+  const [creating, setCreating] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [createdPaymentLink, setCreatedPaymentLink] = useState<string | null>(null);
+  const [shareEmail, setShareEmail] = useState("");
 
   const networks = [
     { id: "base-sepolia", name: "Base Sepolia", icon: "🔵", color: "blue" },
@@ -39,6 +56,7 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
   useEffect(() => {
     if (open && walletAddress) {
       fetchUserEmail();
+      fetchUserProfile();
       fetchVirtualAccounts();
     }
   }, [open, walletAddress]);
@@ -47,6 +65,30 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
     const { data: { user } } = await supabase.auth.getUser();
     if (user?.email) {
       setUserEmail(user.email);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile) {
+        setUserProfile(profile);
+      } else {
+        setUserProfile({
+          email: user.email,
+          full_name: user.user_metadata?.full_name || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
     }
   };
 
@@ -72,6 +114,48 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
     }
   };
 
+  const handleCreateVirtualAccount = async () => {
+    if (!userProfile?.email) {
+      toast.error("Please complete your profile first");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const names = (userProfile.full_name || user.email?.split("@")[0] || "User").split(" ");
+      const firstName = names[0] || "User";
+      const lastName = names.slice(1).join(" ") || "Peydot";
+
+      const { data, error } = await supabase.functions.invoke("create-virtual-account", {
+        body: {
+          userId: user.id,
+          email: userProfile.email || user.email,
+          firstName,
+          lastName,
+          phone: userProfile.phone || "",
+          currency: selectedFiatCurrency,
+        },
+      });
+
+      if (error || !data?.success) {
+        toast.error("Failed to create virtual account. Please try again.");
+        return;
+      }
+
+      toast.success("Virtual account created successfully!");
+      setShowCreateFiat(false);
+      fetchVirtualAccounts();
+    } catch (error) {
+      console.error("Failed to create virtual account:", error);
+      toast.error("Failed to create virtual account");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const copyToClipboard = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(id);
@@ -90,19 +174,57 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const paymentLink = `https://peys.app/pay/${crypto.randomUUID().slice(0, 8)}`;
-      
-      toast.success("Payment link created!", {
-        description: paymentLink,
-        action: {
-          label: "Copy",
-          onClick: () => copyToClipboard(paymentLink, "payment-link"),
+      const linkId = crypto.randomUUID().slice(0, 8);
+      const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const paymentLink = `${baseUrl}/pay/${linkId}`;
+
+      const { error } = await supabase
+        .from("payment_links")
+        .insert({
+          user_id: user.id,
+          link_id: linkId,
+          amount: parseFloat(amount),
+          currency: "USDC",
+          description: description || null,
+          status: "active",
+        });
+
+      if (error) {
+        console.error("Failed to save payment link:", error);
+      }
+
+      setCreatedPaymentLink(paymentLink);
+      toast.success("Payment link created!");
+      copyToClipboard(paymentLink, "payment-link");
+    } catch (error) {
+      console.error("Failed to create payment link:", error);
+      toast.error("Failed to create payment link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendPaymentLinkEmail = async () => {
+    if (!createdPaymentLink || !shareEmail) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-payment-link", {
+        body: {
+          email: shareEmail,
+          paymentLink: createdPaymentLink,
+          amount,
+          description,
         },
       });
 
-      copyToClipboard(paymentLink, "payment-link");
+      if (error) {
+        toast.success("Payment link copied! Share it manually.");
+      } else {
+        toast.success(`Payment link sent to ${shareEmail}!`);
+      }
     } catch (error) {
-      toast.error("Failed to create payment link");
+      toast.success("Payment link created! Copy and share manually.");
     } finally {
       setLoading(false);
     }
@@ -233,7 +355,7 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
               )}
 
               {/* Email Payment Link */}
-              {method === "email" && (
+              {method === "email" && !createdPaymentLink && (
                 <div className="space-y-4">
                   <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4">
                     <p className="text-sm text-muted-foreground">
@@ -265,7 +387,7 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
 
                   {userEmail && (
                     <div className="rounded-lg bg-muted p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Send payment link to</p>
+                      <p className="text-xs text-muted-foreground mb-1">Your email</p>
                       <p className="font-medium text-sm">{userEmail}</p>
                     </div>
                   )}
@@ -279,15 +401,108 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        <Mail className="h-4 w-4" /> Create & Share Link
+                        <Mail className="h-4 w-4" /> Create Payment Link
                       </>
                     )}
                   </button>
                 </div>
               )}
 
+              {/* Created Payment Link */}
+              {method === "email" && createdPaymentLink && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 mb-4">
+                    <div className="flex items-center gap-2 text-green-500 text-sm font-medium mb-2">
+                      <Check className="h-4 w-4" />
+                      Payment Link Created!
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Share this link to receive {amount} USDC
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-border bg-secondary/50 p-4">
+                    <p className="text-xs text-muted-foreground mb-2">Your Payment Link</p>
+                    <div className="flex items-center gap-2">
+                      <p className="flex-1 font-mono text-sm text-foreground break-all">
+                        {createdPaymentLink}
+                      </p>
+                      <button
+                        onClick={() => copyToClipboard(createdPaymentLink, "payment-link")}
+                        className="shrink-0 rounded-lg p-2 hover:bg-background"
+                      >
+                        {copied === "payment-link" ? (
+                          <Check className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <Copy className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Share via Email</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={shareEmail}
+                        onChange={(e) => setShareEmail(e.target.value)}
+                        placeholder="recipient@email.com"
+                        className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5"
+                      />
+                      <button
+                        onClick={sendPaymentLinkEmail}
+                        disabled={loading || !shareEmail}
+                        className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                      >
+                        {loading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Mail className="h-4 w-4" /> Send
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const shareUrl = `https://wa.me/?text=Pay%20me%20${amount}%20USDC%3A%20${encodeURIComponent(createdPaymentLink)}`;
+                        window.open(shareUrl, "_blank");
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-medium hover:bg-secondary"
+                    >
+                      <ExternalLink className="h-4 w-4" /> WhatsApp
+                    </button>
+                    <button
+                      onClick={() => {
+                        const shareUrl = `mailto:?subject=Payment%20Request&body=Please%20pay%20me%20${amount}%20USDC%3A%20${encodeURIComponent(createdPaymentLink)}`;
+                        window.location.href = shareUrl;
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-medium hover:bg-secondary"
+                    >
+                      <Mail className="h-4 w-4" /> Email
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setCreatedPaymentLink(null);
+                      setAmount("");
+                      setDescription("");
+                      setShareEmail("");
+                    }}
+                    className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Create Another Link
+                  </button>
+                </div>
+              )}
+
               {/* Fiat Virtual Account */}
-              {method === "fiat" && (
+              {method === "fiat" && !showCreateFiat && (
                 <div className="space-y-4">
                   <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 mb-4">
                     <div className="flex items-center gap-2 text-green-500 text-sm font-medium mb-2">
@@ -328,6 +543,12 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
                           </div>
                         </div>
                       ))}
+                      <button
+                        onClick={() => setShowCreateFiat(true)}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                      >
+                        <Plus className="h-4 w-4" /> Create Another Account
+                      </button>
                     </div>
                   ) : (
                     <div className="text-center py-6">
@@ -335,18 +556,69 @@ export default function ReceiveModal({ open, onClose, walletAddress }: ReceiveMo
                       <p className="text-sm text-muted-foreground mb-4">
                         No virtual accounts yet
                       </p>
-                      <a
-                        href="/receive"
+                      <button
+                        onClick={() => setShowCreateFiat(true)}
                         className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
                       >
                         <Plus className="h-4 w-4" /> Create Virtual Account
-                      </a>
+                      </button>
                     </div>
                   )}
 
                   <p className="text-xs text-muted-foreground text-center">
                     Share this account number to receive fiat deposits
                   </p>
+                </div>
+              )}
+
+              {/* Create Virtual Account Form */}
+              {method === "fiat" && showCreateFiat && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">Create Virtual Account</h4>
+                    <button
+                      onClick={() => setShowCreateFiat(false)}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Currency / Country</label>
+                    <div className="relative">
+                      <select
+                        value={selectedFiatCurrency}
+                        onChange={(e) => setSelectedFiatCurrency(e.target.value)}
+                        className="w-full rounded-lg border border-border bg-background px-4 py-3 appearance-none"
+                      >
+                        {SUPPORTED_FIAT_CURRENCIES.map((c) => (
+                          <option key={c.code} value={c.code}>
+                            {c.flag} {c.name} ({c.code})
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    A unique bank account number will be generated for you. You can receive deposits in {selectedFiatCurrency} and they'll be converted to USDC in your wallet.
+                  </p>
+
+                  <button
+                    onClick={handleCreateVirtualAccount}
+                    disabled={creating}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-500 py-3 text-sm font-semibold text-white hover:bg-green-600 disabled:opacity-50"
+                  >
+                    {creating ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Building2 className="h-4 w-4" /> Create Account
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
