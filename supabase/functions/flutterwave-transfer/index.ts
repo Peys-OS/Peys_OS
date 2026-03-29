@@ -3,10 +3,23 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const FLUTTERWAVE_API_BASE = "https://api.flutterwave.com/v3";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGINS") || "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function getCorsHeaders() {
+  const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
+  
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  };
+
+  if (allowedOrigins === "*") {
+    headers["Access-Control-Allow-Origin"] = "*";
+  } else {
+    headers["Access-Control-Allow-Origin"] = allowedOrigins;
+    headers["Vary"] = "Origin";
+  }
+
+  return headers;
+}
 
 interface TransferRequest {
   withdrawalId: string;
@@ -20,23 +33,29 @@ interface TransferRequest {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders() });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       });
     }
+
+    const supabaseClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
 
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(
       authHeader.replace("Bearer ", "")
@@ -45,7 +64,7 @@ serve(async (req) => {
     if (userError || !userData.user) {
       return new Response(JSON.stringify({ error: "Invalid user" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       });
     }
 
@@ -55,7 +74,34 @@ serve(async (req) => {
     if (!withdrawalId || !amount || !currency || !bankCode || !accountNumber || !accountName) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: withdrawal, error: withdrawalError } = await supabaseClient
+      .from("fiat_withdrawals")
+      .select("*")
+      .eq("id", withdrawalId)
+      .single();
+
+    if (withdrawalError || !withdrawal) {
+      return new Response(JSON.stringify({ error: "Withdrawal not found" }), {
+        status: 404,
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+      });
+    }
+
+    if (withdrawal.user_id !== userData.user.id) {
+      return new Response(JSON.stringify({ error: "Not authorized to process this withdrawal" }), {
+        status: 403,
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+      });
+    }
+
+    if (withdrawal.status !== "pending") {
+      return new Response(JSON.stringify({ error: "Withdrawal already processed" }), {
+        status: 400,
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       });
     }
 
@@ -63,9 +109,15 @@ serve(async (req) => {
     if (!flutterwaveSecret) {
       return new Response(JSON.stringify({ error: "Flutterwave not configured" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       });
     }
+
+    const serviceRoleClient = createClient(
+      supabaseUrl,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
 
     const response = await fetch(`${FLUTTERWAVE_API_BASE}/transfers`, {
       method: "POST",
@@ -89,7 +141,7 @@ serve(async (req) => {
     const data = await response.json();
 
     if (data.status === "success") {
-      await supabaseClient
+      await serviceRoleClient
         .from("fiat_withdrawals")
         .update({
           status: "processing",
@@ -105,12 +157,12 @@ serve(async (req) => {
           status: data.data.status,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         }
       );
     }
 
-    await supabaseClient
+    await serviceRoleClient
       .from("fiat_withdrawals")
       .update({
         status: "failed",
@@ -125,14 +177,14 @@ serve(async (req) => {
       }),
       {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       }
     );
   } catch (error) {
     console.error("Transfer error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 });

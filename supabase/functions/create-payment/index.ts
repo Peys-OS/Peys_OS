@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { CreatePaymentSchema, validateSchema } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -8,8 +10,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    
+    const rateLimit = await checkRateLimit(
+      supabaseUrl,
+      serviceRoleKey,
+      getClientIp(req),
+      { maxRequests: 30 }
+    );
+    
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.resetAt);
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
+      supabaseUrl,
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
@@ -34,18 +50,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { recipientEmail, amount, token, memo, senderWallet } = await req.json();
+    const body = await req.json();
 
-    // Validation
-    if (!recipientEmail || !amount || !token) {
+    const validation = validateSchema(CreatePaymentSchema, body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ 
+          error: "Invalid request data",
+          details: validation.errors.flatten().fieldErrors 
+        }),
         {
           status: 400,
           headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         }
       );
     }
+
+    const { recipientEmail, amount, token, memo, senderWallet } = validation.data;
 
     // Get sender profile
     const { data: senderProfile } = await supabaseClient
@@ -86,7 +107,7 @@ Deno.serve(async (req) => {
     if (insertError) {
       console.error("Insert error:", insertError);
       return new Response(
-        JSON.stringify({ error: insertError.message }),
+        JSON.stringify({ error: "Failed to create payment. Please try again." }),
         {
           status: 500,
           headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
@@ -192,7 +213,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Error creating payment:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       {
         status: 500,
         headers: { ...getCorsHeaders(), "Content-Type": "application/json" },

@@ -40,7 +40,7 @@ peydot-magic-links/
 
 ## Security Audit Status
 
-### ✅ COMPLETED FIXES (6 merged)
+### ✅ COMPLETED FIXES (12 merged)
 
 | PR | Issue | Description |
 |----|-------|-------------|
@@ -51,19 +51,19 @@ peydot-magic-links/
 | #314 | SEC-007 | HMAC timing-safe comparison for webhook signatures |
 | #315 | SEC-008 | Add rate limiting to critical endpoints |
 | #316 | SEC-009 | Sanitize error messages to prevent info disclosure |
+| #317 | SEC-010 | Add Zod schema validation to API endpoints |
+| #318 | SEC-017 | Flutterwave withdrawal ownership verification |
+| #319 | SEC-019 | Add JWT auth to token balance/allowance endpoints |
+| #320 | SEC-025 | P2P marketplace - use anon key + RLS |
+| #321 | SEC-049 | Add organization RBAC system |
+| #322 | SEC-050 | Timing-safe comparisons for authentication |
 
-### ❌ REMAINING ISSUES (44 open)
+### ❌ REMAINING ISSUES (38 open)
 
-#### CRITICAL (7 issues)
+#### CRITICAL (1 issue)
 | # | Issue | Location | Fix |
 |---|-------|----------|-----|
-| SEC-010 | Missing Input Validation on API Endpoints | public-api, create-payment, p2p-marketplace | Add Zod schema validation |
-| SEC-017 | Withdrawal Ownership Not Verified | flutterwave-transfer/index.ts | Add user ownership verification |
 | SEC-018 | create-payment Missing Authentication | create-payment/index.ts | Add JWT auth check |
-| SEC-019 | Wallet Balance Endpoints Unauthenticated | get-token-balance, get-token-allowance | Add JWT auth |
-| SEC-025 | P2P Orders Uses Service Role Key | p2p-marketplace/index.ts | Use anon key + RLS |
-| SEC-049 | Missing Organization Access Controls | OrganizationsPage, merchant tools | Add RBAC at API level |
-| SEC-050 | Memory-Based Timing Attacks | Various auth functions | Use timing-safe comparisons |
 
 #### HIGH (10 issues)
 | # | Issue | Location | Fix |
@@ -173,6 +173,9 @@ git checkout -b fix/SEC-011
 ### Shared Utilities (in `supabase/functions/_shared/`)
 - `cors.ts` - CORS header configuration
 - `rateLimit.ts` - IP-based rate limiting
+- `schemas.ts` - Zod validation schemas
+- `rbac.ts` - Role-based access control
+- `crypto.ts` - Timing-safe comparisons
 
 ### Frontend (in `src/`)
 | Component | Security Issue |
@@ -236,17 +239,20 @@ After each fix, verify:
 ## Quick Reference: Remaining Issues by Priority
 
 ### Start with CRITICAL issues:
-1. SEC-010 (SEC-018 already partially covered by create-payment auth)
-2. SEC-017 - Withdrawal ownership
-3. SEC-019 - Token balance auth
-4. SEC-025 - Service role in P2P
-5. SEC-049 - Org access controls
-6. SEC-050 - Timing attacks
+1. SEC-018 - create-payment authentication
 
 Then HIGH, then MEDIUM/LOW.
+
+### Completed in this session:
+- SEC-010 - Zod validation schemas
+- SEC-017 - Flutterwave withdrawal ownership
+- SEC-019 - Token balance auth
+- SEC-025 - P2P service role
+- SEC-049 - Organization RBAC
+- SEC-050 - Timing-safe comparisons
 
 ---
 
 *Last Updated: 2026-03-29*
-*Completed: 6/50 fixes (12%)*
-*Remaining: 44 issues*
+*Completed: 12/50 fixes (24%)*
+*Remaining: 38 issues*
