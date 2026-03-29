@@ -240,6 +240,7 @@ export default function WebhooksPage() {
                   id="url"
                   placeholder="https://your-server.com/webhook"
                   value={newWebhook.url}
+                  maxLength={500}
                   onChange={(e) => setNewWebhook({ ...newWebhook, url: e.target.value })}
                 />
               </div>
