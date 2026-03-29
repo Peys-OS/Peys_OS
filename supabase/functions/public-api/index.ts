@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
 
       case path.match(/^\/v1\/webhooks\/[\w-]+$/) && method === "DELETE":
         const webhookId = path.split("/").pop();
-        response = await handleDeleteWebhook(webhookId!, supabaseClient);
+        response = await handleDeleteWebhook(webhookId!, supabaseClient, keyRecord);
         break;
 
       case path === "/v1/pricing" && method === "GET":
@@ -495,7 +495,21 @@ async function handleListWebhooks(supabaseClient: unknown, apiKey: ApiKey) {
   };
 }
 
-async function handleDeleteWebhook(webhookId: string, supabaseClient: unknown) {
+async function handleDeleteWebhook(webhookId: string, supabaseClient: unknown, apiKey: ApiKey) {
+  const { data: webhook, error: fetchError } = await supabaseClient
+    .from("webhooks")
+    .select("user_id")
+    .eq("id", webhookId)
+    .single();
+
+  if (fetchError || !webhook) {
+    throw new Error("Webhook not found");
+  }
+
+  if (webhook.user_id !== apiKey.user_id) {
+    throw new Error("Unauthorized: You do not own this webhook");
+  }
+
   const { error } = await supabaseClient
     .from("webhooks")
     .delete()
