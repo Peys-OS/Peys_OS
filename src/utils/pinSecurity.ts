@@ -3,6 +3,19 @@ const ITERATIONS = 100000;
 const KEY_LENGTH = 256;
 const DIGEST = "SHA-256";
 
+function timingSafeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const aBuffer = new TextEncoder().encode(a);
+  const bBuffer = new TextEncoder().encode(b);
+  let result = 0;
+  for (let i = 0; i < aBuffer.length; i++) {
+    result |= aBuffer[i] ^ bBuffer[i];
+  }
+  return result === 0;
+}
+
 async function generateSalt(): Promise<Uint8Array> {
   return crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
 }
@@ -43,7 +56,7 @@ async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
     const combined = Uint8Array.from(atob(storedHash), c => c.charCodeAt(0));
     const salt = combined.slice(0, SALT_LENGTH);
     const newHash = await hashPin(pin, salt);
-    return newHash === storedHash;
+    return timingSafeCompare(newHash, storedHash);
   } catch {
     return false;
   }
