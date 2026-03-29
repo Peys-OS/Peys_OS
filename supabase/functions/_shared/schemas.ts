@@ -10,6 +10,7 @@ export const CreatePaymentSchema = z.object({
   token: tokenEnum,
   memo: z.string().max(500, "Memo too long").optional(),
   senderWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address").optional(),
+  idempotencyKey: z.string().uuid("Invalid idempotency key").optional(),
 });
 
 export const CreatePaymentApiSchema = z.object({
@@ -20,6 +21,7 @@ export const CreatePaymentApiSchema = z.object({
   token: tokenEnum,
   memo: z.string().max(500, "Memo too long").optional(),
   expiresIn: z.number().int().positive().max(90, "Expiry too long").optional(),
+  idempotencyKey: z.string().uuid("Invalid idempotency key").optional(),
 });
 
 export const ClaimPaymentSchema = z.object({
