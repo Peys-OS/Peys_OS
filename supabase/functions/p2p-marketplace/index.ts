@@ -69,7 +69,7 @@ async function handleOrders(req: Request, supabaseClient: any) {
   const { data, error } = await query;
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "An unexpected error occurred. Please try again." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

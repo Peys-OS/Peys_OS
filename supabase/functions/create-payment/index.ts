@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
     if (insertError) {
       console.error("Insert error:", insertError);
       return new Response(
-        JSON.stringify({ error: insertError.message }),
+        JSON.stringify({ error: "Failed to create payment. Please try again." }),
         {
           status: 500,
           headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Error creating payment:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       {
         status: 500,
         headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
