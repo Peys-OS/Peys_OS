@@ -438,19 +438,26 @@ async function handleMessage(message) {
 
     // Peys registration URL
     const appUrl = process.env.APP_URL || 'https://bot-frontend-inky.vercel.app';
-    const registerUrl = `${appUrl}/register/whatsapp?wa=${phone}`;
-    const registerMsg = `🔐 *Create Your Account*
+    const registerUrl = `${appUrl}/register?wa=${phone}`;
+    
+    const registerMsg = 
+      '🔐 *Create Your Account*\n\n' +
+      'Tap the link below to register:\n' +
+      registerUrl + '\n\n' +
+      '📋 *Steps:*\n' +
+      '1. Tap the link above\n' +
+      '2. Sign in with phone or email\n' +
+      '3. Your wallet is created automatically\n' +
+      '4. Come back here and send *menu*\n\n' +
+      '_It takes less than 30 seconds!_';
 
-Tap the link below to register:
-${registerUrl}
+    await sendMessage(chatId, registerMsg);
+    await db.logCommand(null, phone, 'register_link_sent', null, 'success');
+    return;
+  }
 
-📋 *Steps:*
-1. Tap the link above
-2. Sign in with phone or email
-3. Your wallet is created automatically
-4. Come back here and send *menu*
-
-_It takes less than 30 seconds!_`;
+  // Check registration status
+  if (lowerText === 'check' || lowerText === 'status') {
     const profile = await db.getProfileByWhatsappId(chatId);
     
     if (profile?.wallet_address) {
