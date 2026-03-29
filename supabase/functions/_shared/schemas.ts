@@ -69,3 +69,17 @@ export function validateSchema<T>(schema: z.ZodSchema<T>, data: unknown): { succ
   }
   return { success: false, errors: result.error };
 }
+
+export function parseSafeInt(value: string | null, defaultValue: number, min = 1, max = 100): number {
+  if (!value) return defaultValue;
+  const parsed = parseInt(value, 10);
+  if (isNaN(parsed)) return defaultValue;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+export function parseSafeFloat(value: string | null, defaultValue: number, min = 0, max = 1_000_000): number {
+  if (!value) return defaultValue;
+  const parsed = parseFloat(value);
+  if (isNaN(parsed)) return defaultValue;
+  return Math.max(min, Math.min(max, parsed));
+}
