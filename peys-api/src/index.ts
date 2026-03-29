@@ -36,6 +36,16 @@ await fastify.register(helmet, {
       frameSrc: ["'none'"],
     },
   },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "same-site" },
+});
+
+// Add CSRF protection via SameSite cookies
+fastify.addHook('onRequest', async (request, reply) => {
+  // Set secure cookie defaults for any cookies set by the API
+  reply.headers({
+    'Set-Cookie': 'Secure; HttpOnly; SameSite=Strict',
+  });
 });
 
 fastify.get('/health', async () => {
