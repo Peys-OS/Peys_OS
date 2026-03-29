@@ -1,6 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { verifyHmacSignature } from "../_shared/crypto.ts";
+
+const FlutterwaveWebhookSchema = z.object({
+  event: z.string(),
+  data: z.object({
+    amount: z.number().positive(),
+    currency: z.string(),
+    tx_ref: z.string().optional(),
+    id: z.string().optional(),
+    virtual_account_number: z.string().optional(),
+    account_number: z.string().optional(),
+  }).passthrough(),
+});
 
 function getCorsHeaders() {
   const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
@@ -55,13 +68,23 @@ serve(async (req) => {
     
     const body = JSON.parse(rawBody);
     
-    if (body.event === "charge.completed" || body.event === "virtual_account_tx.completed") {
-      const data = body.data;
+    const validation = FlutterwaveWebhookSchema.safeParse(body);
+    if (!validation.success) {
+      return new Response(JSON.stringify({ error: "Invalid webhook payload" }), {
+        status: 400,
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+      });
+    }
+    
+    const validatedBody = validation.data;
+    
+    if (validatedBody.event === "charge.completed" || validatedBody.event === "virtual_account_tx.completed") {
+      const webhookData = validatedBody.data;
       
-      const accountNumber = data.virtual_account_number || data.account_number;
-      const amount = data.amount;
-      const currency = data.currency;
-      const txRef = data.tx_ref || data.id;
+      const accountNumber = webhookData.virtual_account_number || webhookData.account_number;
+      const amount = webhookData.amount;
+      const currency = webhookData.currency;
+      const txRef = webhookData.tx_ref || webhookData.id;
       
       const { data: vaData, error: vaError } = await supabaseClient
         .from("virtual_accounts")
@@ -84,7 +107,7 @@ serve(async (req) => {
           source: "virtual_account",
           account_number: accountNumber,
           status: "completed",
-          metadata: data,
+          metadata: webhookData,
         });
 
         await supabaseClient.from("notifications").insert({
