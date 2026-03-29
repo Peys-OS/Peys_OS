@@ -4,7 +4,7 @@ import { MessageCircle, Phone, Mail, Shield, ArrowRight, CheckCircle2, Loader2 }
 import { usePrivyAuth } from "@/contexts/PrivyContext";
 import { useApp } from "@/contexts/AppContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { sanitizePhone } from "@/utils/sanitize";
+import { sanitizeWhatsAppNumber } from "@/utils/sanitize";
 
 export default function WhatsAppRegisterPage() {
   const { login, loginWithEmailOnly, isLoggedIn, user, ready } = usePrivyAuth();
@@ -19,7 +19,7 @@ export default function WhatsAppRegisterPage() {
 
   // Get WhatsApp number from URL params (passed from bot) - sanitize
   const rawWhatsappNumber = searchParams.get('wa') || '';
-  const whatsappNumber = sanitizePhone(rawWhatsappNumber);
+  const whatsappNumber = sanitizeWhatsAppNumber(rawWhatsappNumber);
 
   // Redirect to dashboard if already logged in
   useEffect(() => {

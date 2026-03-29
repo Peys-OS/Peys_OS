@@ -17,6 +17,18 @@ export function sanitizePhone(input: string): string {
   return phoneRegex.test(cleaned) ? cleaned : "";
 }
 
+export function sanitizeWhatsAppNumber(input: string): string {
+  if (!input || typeof input !== "string") return "";
+  const cleaned = input.replace(/[\s\-\(\)]/g, "").replace(/\D/g, "");
+  const whatsappRegex = /^\+?(\d{1,3})?(\d{9,15})$/;
+  if (!whatsappRegex.test(cleaned)) return "";
+  const startsWithCountryCode = cleaned.startsWith("+") || cleaned.length > 12;
+  if (!startsWithCountryCode && cleaned.length >= 10) {
+    return cleaned;
+  }
+  return whatsappRegex.test(cleaned) ? cleaned : "";
+}
+
 export function sanitizeAmount(input: string): string {
   if (!input || typeof input !== "string") return "0";
   const sanitized = input.replace(/[^0-9.]/g, "");

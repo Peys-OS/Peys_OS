@@ -65,19 +65,19 @@ async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
 export async function setSecurePinHash(pin: string): Promise<void> {
   const salt = await generateSalt();
   const hash = await hashPin(pin, salt);
-  localStorage.setItem("peys_pin_hash", hash);
+  sessionStorage.setItem("peys_pin_hash", hash);
 }
 
 export async function verifySecurePin(pin: string): Promise<boolean> {
-  const storedHash = localStorage.getItem("peys_pin_hash");
+  const storedHash = sessionStorage.getItem("peys_pin_hash");
   if (!storedHash) return false;
   return verifyPin(pin, storedHash);
 }
 
 export function clearPinHash(): void {
-  localStorage.removeItem("peys_pin_hash");
+  sessionStorage.removeItem("peys_pin_hash");
 }
 
 export function hasPinHash(): boolean {
-  return localStorage.getItem("peys_pin_hash") !== null;
+  return sessionStorage.getItem("peys_pin_hash") !== null;
 }
