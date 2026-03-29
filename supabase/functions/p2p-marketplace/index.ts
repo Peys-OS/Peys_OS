@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { parseSafeInt } from "../_shared/schemas.ts";
+import { parseSafeInt, parseSafeFloat } from "../_shared/schemas.ts";
 
 function getCorsHeaders() {
   const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
@@ -141,6 +141,15 @@ async function handleMatch(req: Request, supabaseClient: any) {
 
   const { orderId, amountUsdc } = await req.json();
 
+  if (!orderId) {
+    return new Response(JSON.stringify({ error: "Order ID is required" }), {
+      status: 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  const validatedAmount = amountUsdc ? parseSafeFloat(String(amountUsdc), 0, 0.01, 1000000) : null;
+
   const { data: order, error: fetchError } = await supabaseClient
     .from("p2p_orders")
     .select("*")
@@ -162,7 +171,7 @@ async function handleMatch(req: Request, supabaseClient: any) {
     });
   }
 
-  const matchAmount = amountUsdc || order.amount_usdc;
+  const matchAmount = validatedAmount || order.amount_usdc;
 
   const { error: updateError } = await supabaseClient
     .from("p2p_orders")
@@ -310,6 +319,27 @@ async function handleDispute(req: Request, supabaseClient: any) {
   }
 
   const { orderId, reason, evidence } = await req.json();
+
+  if (!orderId) {
+    return new Response(JSON.stringify({ error: "Order ID is required" }), {
+      status: 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  if (reason && reason.length > 500) {
+    return new Response(JSON.stringify({ error: "Reason too long (max 500 characters)" }), {
+      status: 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  if (evidence && evidence.length > 2000) {
+    return new Response(JSON.stringify({ error: "Evidence too long (max 2000 characters)" }), {
+      status: 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
 
   const { data: order, error: fetchError } = await supabaseClient
     .from("p2p_orders")
