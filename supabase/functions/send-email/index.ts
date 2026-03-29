@@ -21,6 +21,21 @@ Deno.serve(async (req) => {
       );
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const sanitizedTo = Array.isArray(to) 
+      ? to.filter((e) => emailRegex.test(e)).join(",")
+      : to;
+
+    if (!sanitizedTo || !emailRegex.test(Array.isArray(to) ? to[0] : to)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const sanitizedSubject = subject.slice(0, 200).replace(/[\r\n]/g, "");
+    const sanitizedHtml = html.slice(0, 50000);
+
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     
     if (!RESEND_API_KEY) {
@@ -39,9 +54,9 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: "Peys <onboarding@resend.dev>",
-        to: to,
-        subject: subject,
-        html: html,
+        to: sanitizedTo,
+        subject: sanitizedSubject,
+        html: sanitizedHtml,
       }),
     });
 
