@@ -1,14 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGINS") || "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function getCorsHeaders() {
+  const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
+  
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  };
+
+  if (allowedOrigins === "*") {
+    headers["Access-Control-Allow-Origin"] = "*";
+  } else {
+    headers["Access-Control-Allow-Origin"] = allowedOrigins;
+    headers["Vary"] = "Origin";
+  }
+
+  return headers;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders() });
   }
 
   try {
@@ -39,14 +52,14 @@ serve(async (req) => {
       default:
         return new Response(JSON.stringify({ error: "Unknown action" }), {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         });
     }
   } catch (error) {
     console.error("P2P marketplace error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 });
@@ -77,7 +90,7 @@ async function handleOrders(req: Request, supabaseClient: any) {
   if (error) {
     return new Response(JSON.stringify({ error: "An unexpected error occurred. Please try again." }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -100,7 +113,7 @@ async function handleOrders(req: Request, supabaseClient: any) {
   return new Response(
     JSON.stringify({ success: true, orders: ordersWithRating }),
     {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     }
   );
 }
@@ -110,7 +123,7 @@ async function handleMatch(req: Request, supabaseClient: any) {
   if (!authHeader) {
     return new Response(JSON.stringify({ error: "No authorization" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -121,7 +134,7 @@ async function handleMatch(req: Request, supabaseClient: any) {
   if (!userData.user) {
     return new Response(JSON.stringify({ error: "Invalid user" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -137,14 +150,14 @@ async function handleMatch(req: Request, supabaseClient: any) {
   if (fetchError || !order) {
     return new Response(JSON.stringify({ error: "Order not found" }), {
       status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
   if (order.created_by === userData.user.id) {
     return new Response(JSON.stringify({ error: "Cannot match own order" }), {
       status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -164,7 +177,7 @@ async function handleMatch(req: Request, supabaseClient: any) {
   if (updateError) {
     return new Response(JSON.stringify({ error: updateError.message }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -182,7 +195,7 @@ async function handleMatch(req: Request, supabaseClient: any) {
       order: { ...order, amount_usdc: matchAmount, total_fiat: matchAmount * order.price_per_usdc },
     }),
     {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     }
   );
 }
@@ -192,7 +205,7 @@ async function handleComplete(req: Request, supabaseClient: any) {
   if (!authHeader) {
     return new Response(JSON.stringify({ error: "No authorization" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -203,7 +216,7 @@ async function handleComplete(req: Request, supabaseClient: any) {
   if (!userData.user) {
     return new Response(JSON.stringify({ error: "Invalid user" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -218,14 +231,14 @@ async function handleComplete(req: Request, supabaseClient: any) {
   if (fetchError || !order) {
     return new Response(JSON.stringify({ error: "Order not found" }), {
       status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
   if (order.created_by !== userData.user.id && order.matched_with !== userData.user.id) {
     return new Response(JSON.stringify({ error: "Not authorized" }), {
       status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -250,7 +263,7 @@ async function handleComplete(req: Request, supabaseClient: any) {
     return new Response(
       JSON.stringify({ success: true, message: "Transaction completed" }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       }
     );
   } else if (action === "cancel") {
@@ -264,14 +277,14 @@ async function handleComplete(req: Request, supabaseClient: any) {
     return new Response(
       JSON.stringify({ success: true, message: "Transaction cancelled" }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       }
     );
   }
 
   return new Response(JSON.stringify({ error: "Invalid action" }), {
     status: 400,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
   });
 }
 
@@ -280,7 +293,7 @@ async function handleDispute(req: Request, supabaseClient: any) {
   if (!authHeader) {
     return new Response(JSON.stringify({ error: "No authorization" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -291,7 +304,7 @@ async function handleDispute(req: Request, supabaseClient: any) {
   if (!userData.user) {
     return new Response(JSON.stringify({ error: "Invalid user" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -306,14 +319,14 @@ async function handleDispute(req: Request, supabaseClient: any) {
   if (fetchError || !order) {
     return new Response(JSON.stringify({ error: "Order not found" }), {
       status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
   if (order.created_by !== userData.user.id && order.matched_with !== userData.user.id) {
     return new Response(JSON.stringify({ error: "Not authorized" }), {
       status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -329,7 +342,7 @@ async function handleDispute(req: Request, supabaseClient: any) {
   if (disputeError) {
     return new Response(JSON.stringify({ error: disputeError.message }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
@@ -341,7 +354,7 @@ async function handleDispute(req: Request, supabaseClient: any) {
   return new Response(
     JSON.stringify({ success: true, message: "Dispute raised" }),
     {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     }
   );
 }

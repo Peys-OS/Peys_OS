@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getCorsHeaders, corsResponse, corsError } from "../_shared/cors.ts";
+import { CreatePaymentApiSchema, PaginationSchema, validateSchema } from "../_shared/schemas.ts";
 
 interface ApiKey {
   id: string;
@@ -231,11 +232,16 @@ Deno.serve(async (req) => {
 
 async function handleCreatePayment(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
-  const { recipient, amount, token, memo, expiresIn } = body;
 
-  if (!recipient || !amount || !token) {
-    return { error: "Missing required fields: recipient, amount, token" };
+  const validation = validateSchema(CreatePaymentApiSchema, body);
+  if (!validation.success) {
+    return { 
+      error: "Invalid request data",
+      details: validation.errors.flatten().fieldErrors 
+    };
   }
+
+  const { recipient, amount, token, memo, expiresIn } = validation.data;
 
   const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const claimLink = crypto.randomUUID();
@@ -302,9 +308,16 @@ async function handleGetPayment(paymentId: string, supabaseClient: unknown) {
 
 async function handleListPayments(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const url = new URL(req.url);
-  const limit = parseInt(url.searchParams.get("limit") || "10");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
-  const status = url.searchParams.get("status");
+  
+  const paginationValidation = validateSchema(PaginationSchema, {
+    limit: url.searchParams.get("limit"),
+    offset: url.searchParams.get("offset"),
+    status: url.searchParams.get("status"),
+  });
+  
+  const { limit, offset, status } = paginationValidation.success 
+    ? paginationValidation.data 
+    : { limit: 10, offset: 0, status: undefined };
 
   let query = supabaseClient
     .from("payments")
