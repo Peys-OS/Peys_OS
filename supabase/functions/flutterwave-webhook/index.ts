@@ -6,6 +6,37 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, webhook-verification-hash",
 };
 
+async function verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const payloadData = encoder.encode(payload);
+  
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signatureBuffer = await crypto.subtle.sign("HMAC", key, payloadData);
+  const expectedSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+  
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
+  
+  const sigBuffer = encoder.encode(signature);
+  const expectedBuffer = encoder.encode(expectedSignature);
+  
+  let result = 0;
+  for (let i = 0; i < sigBuffer.length; i++) {
+    result |= sigBuffer[i] ^ expectedBuffer[i];
+  }
+  
+  return result === 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -20,15 +51,26 @@ serve(async (req) => {
 
     const secretHash = Deno.env.get("FLUTTERWAVE_WEBHOOK_SECRET");
     const signature = req.headers.get("verif-hash");
+    const body = await req.text();
     
-    if (secretHash && signature !== secretHash) {
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (secretHash) {
+      if (!signature) {
+        return new Response(JSON.stringify({ error: "Missing signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      const isValid = await verifyWebhookSignature(body, signature, secretHash);
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
-
-    const body = await req.json();
+    
+    const body = JSON.parse(body);
     
     if (body.event === "charge.completed" || body.event === "virtual_account_tx.completed") {
       const data = body.data;
