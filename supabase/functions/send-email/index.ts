@@ -34,7 +34,15 @@ Deno.serve(async (req) => {
     }
 
     const sanitizedSubject = subject.slice(0, 200).replace(/[\r\n]/g, "");
-    const sanitizedHtml = html.slice(0, 50000);
+    // Sanitize HTML to prevent injection - remove script tags, event handlers, and limit length
+    const sanitizedHtml = html
+      .slice(0, 50000)
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      .replace(/on\w+\s*=\s*"[^"]*"/gi, "")
+      .replace(/on\w+\s*=\s*'[^']*'/gi, "")
+      .replace(/on\w+\s*=\s*[^\s>]*/gi, "")
+      .replace(/javascript:/gi, "")
+      .replace(/data:/gi, "");
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     
