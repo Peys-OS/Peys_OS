@@ -1,14 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyHmacSignature } from "../_shared/crypto.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, webhook-verification-hash",
-};
+function getCorsHeaders() {
+  const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
+  
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, webhook-verification-hash",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  };
+
+  if (allowedOrigins === "*") {
+    headers["Access-Control-Allow-Origin"] = "*";
+  } else {
+    headers["Access-Control-Allow-Origin"] = allowedOrigins;
+    headers["Vary"] = "Origin";
+  }
+
+  return headers;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders() });
   }
 
   try {
@@ -20,15 +34,26 @@ serve(async (req) => {
 
     const secretHash = Deno.env.get("FLUTTERWAVE_WEBHOOK_SECRET");
     const signature = req.headers.get("verif-hash");
+    const rawBody = await req.text();
     
-    if (secretHash && signature !== secretHash) {
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (secretHash) {
+      if (!signature) {
+        return new Response(JSON.stringify({ error: "Missing signature" }), {
+          status: 401,
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        });
+      }
+      
+      const isValid = await verifyHmacSignature(rawBody, signature, secretHash);
+      if (!isValid) {
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        });
+      }
     }
-
-    const body = await req.json();
+    
+    const body = JSON.parse(rawBody);
     
     if (body.event === "charge.completed" || body.event === "virtual_account_tx.completed") {
       const data = body.data;
@@ -86,13 +111,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ status: "received" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Webhook error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 });

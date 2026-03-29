@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fingerprint, Shield, Lock, AlertTriangle, CheckCircle, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { setSecurePinHash, verifySecurePin, clearPinHash, hasPinHash } from "@/utils/pinSecurity";
 
 const MAX_ATTEMPTS = 3;
 const LOCKOUT_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -33,20 +34,20 @@ export default function BiometricAuthModal({
   const [biometricAvailable, setBiometricAvailable] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("peys_biometric_enabled");
-    setBiometricEnabled(stored === "true");
+    const stored = sessionStorage.getItem("peys_biometric_enabled");
+    setBiometricEnabled(stored === "true" && hasPinHash());
     
-    const storedAttempts = localStorage.getItem("peys_auth_attempts");
+    const storedAttempts = sessionStorage.getItem("peys_auth_attempts");
     if (storedAttempts) setAttempts(parseInt(storedAttempts, 10));
     
-    const storedLockout = localStorage.getItem("peys_auth_lockout");
+    const storedLockout = sessionStorage.getItem("peys_auth_lockout");
     if (storedLockout) {
       const lockTime = parseInt(storedLockout, 10);
       if (lockTime > Date.now()) {
         setLockoutUntil(lockTime);
         setStep("locked");
       } else {
-        localStorage.removeItem("peys_auth_lockout");
+        sessionStorage.removeItem("peys_auth_lockout");
       }
     }
 
@@ -118,8 +119,8 @@ export default function BiometricAuthModal({
       return;
     }
     
-    localStorage.setItem("peys_pin_hash", btoa(pin));
-    localStorage.setItem("peys_biometric_enabled", "true");
+    await setSecurePinHash(pin);
+    sessionStorage.setItem("peys_biometric_enabled", "true");
     
     if (biometricAvailable) {
       const registered = await registerBiometric();
@@ -135,25 +136,25 @@ export default function BiometricAuthModal({
     onClose();
   };
 
-  const handlePinVerify = () => {
-    const storedHash = localStorage.getItem("peys_pin_hash");
-    if (btoa(pin) === storedHash) {
+  const handlePinVerify = async () => {
+    const isValid = await verifySecurePin(pin);
+    if (isValid) {
       setAttempts(0);
-      localStorage.removeItem("peys_auth_attempts");
+      sessionStorage.removeItem("peys_auth_attempts");
       toast.success("Authentication successful");
       onSuccess();
       onClose();
     } else {
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
-      localStorage.setItem("peys_auth_attempts", newAttempts.toString());
+      sessionStorage.setItem("peys_auth_attempts", newAttempts.toString());
       setPin("");
       
       if (newAttempts >= MAX_ATTEMPTS) {
         const lockout = Date.now() + LOCKOUT_DURATION;
         setLockoutUntil(lockout);
         setStep("locked");
-        localStorage.setItem("peys_auth_lockout", lockout.toString());
+        sessionStorage.setItem("peys_auth_lockout", lockout.toString());
         toast.error("Too many failed attempts. Please wait 5 minutes.");
       } else {
         toast.error(`Incorrect PIN. ${MAX_ATTEMPTS - newAttempts} attempts remaining.`);
@@ -162,8 +163,8 @@ export default function BiometricAuthModal({
   };
 
   const handleDisableBiometric = () => {
-    localStorage.removeItem("peys_biometric_enabled");
-    localStorage.removeItem("peys_pin_hash");
+    sessionStorage.removeItem("peys_biometric_enabled");
+    clearPinHash();
     setBiometricEnabled(false);
     toast.info("Biometric authentication disabled");
     onClose();
@@ -475,7 +476,7 @@ export function useBiometricAuth() {
   const [authCallback, setAuthCallback] = useState<(() => void) | null>(null);
 
   const requireAuth = useCallback((reason: string, onSuccess: () => void) => {
-    const enabled = localStorage.getItem("peys_biometric_enabled") === "true";
+    const enabled = sessionStorage.getItem("peys_biometric_enabled") === "true";
     if (!enabled) {
       onSuccess();
       return;

@@ -5,6 +5,37 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-signature',
 };
 
+async function verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret);
+  const payloadData = encoder.encode(payload);
+  
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  
+  const signatureBuffer = await crypto.subtle.sign("HMAC", key, payloadData);
+  const expectedSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+  
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
+  
+  const sigBuffer = encoder.encode(signature);
+  const expectedBuffer = encoder.encode(expectedSignature);
+  
+  let result = 0;
+  for (let i = 0; i < sigBuffer.length; i++) {
+    result |= sigBuffer[i] ^ expectedBuffer[i];
+  }
+  
+  return result === 0;
+}
+
 interface BlockchainEvent {
   eventType: 'PaymentCreated' | 'PaymentClaimed' | 'PaymentRefunded';
   paymentId: string;
@@ -30,6 +61,7 @@ Deno.serve(async (req) => {
     // Verify webhook signature
     const signature = req.headers.get('x-webhook-signature');
     const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
+    const body = await req.text();
     
     if (!webhookSecret) {
       console.error('WEBHOOK_SECRET not configured');
@@ -40,7 +72,16 @@ Deno.serve(async (req) => {
     }
 
     // Validate signature
-    if (signature !== webhookSecret) {
+    if (!signature) {
+      console.warn('Missing webhook signature');
+      return new Response(
+        JSON.stringify({ error: 'Missing signature' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const isValid = await verifyWebhookSignature(body, signature, webhookSecret);
+    if (!isValid) {
       console.warn('Invalid webhook signature');
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
@@ -48,7 +89,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const event: BlockchainEvent = await req.json();
+    const event: BlockchainEvent = JSON.parse(body);
     console.log('Received blockchain event:', event.eventType, event.paymentId);
 
     const supabaseClient = createClient(
@@ -78,7 +119,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error processing webhook:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An unexpected error occurred.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
