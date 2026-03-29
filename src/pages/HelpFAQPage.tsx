@@ -181,6 +181,7 @@ export default function HelpFAQPage() {
           <Input
             placeholder="Search for help..."
             value={searchQuery}
+            maxLength={200}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
@@ -367,10 +368,11 @@ export default function HelpFAQPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Input placeholder="Subject" />
+                <Input placeholder="Subject" maxLength={200} />
                 <textarea
                   className="w-full rounded-md border border-input bg-background px-3 py-2 min-h-[120px]"
                   placeholder="Describe your issue..."
+                  maxLength={2000}
                 />
                 <Button className="w-full">
                   <LifeBuoy className="h-4 w-4 mr-2" />
