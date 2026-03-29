@@ -43,9 +43,30 @@ export default function ScheduledPaymentsPage() {
     { id: "4", recipient: "0x1234...5678", amount: 100, date: "2026-02-01", status: "completed" },
   ];
 
+  const validateForm = () => {
+    if (!formData.recipient || formData.recipient.trim().length === 0) {
+      toast.error("Recipient address is required");
+      return false;
+    }
+    const walletRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (!walletRegex.test(formData.recipient)) {
+      toast.error("Please enter a valid Ethereum wallet address");
+      return false;
+    }
+    if (!formData.amount || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
+      toast.error("Please enter a valid amount greater than 0");
+      return false;
+    }
+    const amount = parseFloat(formData.amount);
+    if (amount > 1000000) {
+      toast.error("Amount exceeds maximum limit of 1,000,000");
+      return false;
+    }
+    return true;
+  };
+
   const handleCreate = async () => {
-    if (!formData.recipient || !formData.amount) {
-      toast.error("Please fill in all required fields");
+    if (!validateForm()) {
       return;
     }
     setSubmitting(true);

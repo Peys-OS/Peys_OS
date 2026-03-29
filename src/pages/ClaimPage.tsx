@@ -137,11 +137,7 @@ export default function ClaimPage() {
 
     setClaiming(true);
     try {
-      console.log("=== Claim Attempt ===");
-      console.log("Payment ID (blockchain_payment_id):", payment.blockchain_payment_id);
-      console.log("Claim Secret:", payment.claim_secret);
-      console.log("Recipient:", privyUser?.email);
-      console.log("Payment Status:", payment.status);
+      console.log("Claiming payment...");
 
       if (!payment.blockchain_payment_id) {
         throw new Error("Payment not found on blockchain - no blockchain_payment_id");
@@ -157,7 +153,6 @@ export default function ClaimPage() {
       }
 
       const onChainPayment = await getPayment(payment.blockchain_payment_id as `0x${string}`);
-      console.log("On-chain payment data:", onChainPayment);
 
       if (!onChainPayment) {
         throw new Error("Payment not found on blockchain. It may have been created on a different network.");
@@ -171,11 +166,6 @@ export default function ClaimPage() {
         throw new Error("Payment not found on blockchain.");
       }
 
-      console.log("Attempting to claim payment...", {
-        paymentId: payment.blockchain_payment_id,
-        secret: payment.claim_secret
-      });
-      
       const txHash = await claimPayment(payment.blockchain_payment_id as `0x${string}`, payment.claim_secret || "");
       
       if (!txHash) throw new Error("Failed to claim transaction");

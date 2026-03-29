@@ -1,5 +1,5 @@
 {
-  "name": "@peys/sdk",
+  "name": "@peys-os/sdk",
   "version": "1.0.0",
   "description": "Peys payment SDK for JavaScript and TypeScript",
   "main": "dist/index.js",
@@ -20,6 +20,15 @@
     "blockchain"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Peys-OS/Peys_OS.git",
+    "directory": "sdks/javascript"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  },
   "dependencies": {
     "axios": "^1.6.0"
   },

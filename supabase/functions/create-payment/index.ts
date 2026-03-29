@@ -1,19 +1,31 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, getClientIp, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { CreatePaymentSchema, validateSchema } from "../_shared/schemas.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders() });
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    
+    const rateLimit = await checkRateLimit(
+      supabaseUrl,
+      serviceRoleKey,
+      getClientIp(req),
+      { maxRequests: 30 }
+    );
+    
+    if (!rateLimit.allowed) {
+      return rateLimitResponse(rateLimit.resetAt);
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
+      supabaseUrl,
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
@@ -33,22 +45,53 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: "Unauthorized" }),
         {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         }
       );
     }
 
-    const { recipientEmail, amount, token, memo, senderWallet } = await req.json();
+    const body = await req.json();
 
-    // Validation
-    if (!recipientEmail || !amount || !token) {
+    const validation = validateSchema(CreatePaymentSchema, body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
+        JSON.stringify({ 
+          error: "Invalid request data",
+          details: validation.errors.flatten().fieldErrors 
+        }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         }
       );
+    }
+
+    const { recipientEmail, amount, token, memo, senderWallet, idempotencyKey } = validation.data;
+
+    // Check idempotency key if provided
+    if (idempotencyKey) {
+      const { data: existingPayment } = await supabaseClient
+        .from("payments")
+        .select("id, payment_id")
+        .eq("idempotency_key", idempotencyKey)
+        .single();
+      
+      if (existingPayment) {
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            payment: {
+              id: existingPayment.id,
+              paymentId: existingPayment.payment_id,
+            },
+            message: "Payment already created with this idempotency key"
+          }),
+          {
+            status: 200,
+            headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     // Get sender profile
@@ -83,17 +126,18 @@ Deno.serve(async (req) => {
         claim_secret: claimSecret,
         expires_at: expiresAt.toISOString(),
         status: "pending",
+        idempotency_key: idempotencyKey,
       })
       .select()
       .single();
 
     if (insertError) {
-      console.error("Insert error:", insertError);
+      console.error("Insert error:", insertError.message);
       return new Response(
-        JSON.stringify({ error: insertError.message }),
+        JSON.stringify({ error: "Failed to create payment. Please try again." }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
         }
       );
     }
@@ -140,7 +184,7 @@ Deno.serve(async (req) => {
         console.log("Email notification result:", notificationResult);
       }
     } catch (emailError) {
-      console.error("Error sending email notification:", emailError);
+      console.error("Error sending email notification:", emailError instanceof Error ? emailError.message : "Unknown error");
     }
 
     // Dispatch webhook event for payment.created
@@ -175,7 +219,7 @@ Deno.serve(async (req) => {
         });
       }
     } catch (webhookError) {
-      console.error("Error dispatching webhook:", webhookError);
+      console.error("Error dispatching webhook:", webhookError instanceof Error ? webhookError.message : "Unknown error");
     }
 
     return new Response(
@@ -190,16 +234,16 @@ Deno.serve(async (req) => {
         },
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("Error creating payment:", error);
+    console.error("Error creating payment:", error instanceof Error ? error.message : "Unknown error");
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
       }
     );
   }

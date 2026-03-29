@@ -459,7 +459,7 @@ export default function SendPaymentForm() {
         }
 
         // Find the PaymentCreated event log
-        const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)'));
+        const paymentCreatedTopic = getEventSelector(parseAbiItem('event PaymentCreated(uint256 indexed paymentId, address indexed sender, address indexed recipient, uint256 amount, address token, uint256 expiresAt)'));
         
         const log = receipt?.logs ? (receipt.logs as Array<{ topics: string[], data: string }>).find(l => l.topics[0] === paymentCreatedTopic) : null;
         
@@ -468,12 +468,12 @@ export default function SendPaymentForm() {
         if (log) {
           try {
             const decoded = decodeEventLog({
-              abi: [parseAbiItem('event PaymentCreated(bytes32 indexed paymentId, address indexed sender, address token, uint256 amount, uint256 expiry, string memo)')],
+              abi: [parseAbiItem('event PaymentCreated(uint256 indexed paymentId, address indexed sender, address indexed recipient, uint256 amount, address token, uint256 expiresAt)')],
               data: log.data as `0x${string}`,
               topics: log.topics as [`0x${string}`, ...`0x${string}`[]],
-            }) as { args: { paymentId: string } };
+            }) as { args: { paymentId: bigint } };
             
-            blockchainPaymentId = decoded.args.paymentId;
+            blockchainPaymentId = decoded.args.paymentId.toString();
           } catch (decodeError) {
             console.warn("Failed to decode event log:", decodeError);
           }
@@ -508,12 +508,7 @@ export default function SendPaymentForm() {
         }
 
         // 6. Send email notification via Supabase Edge Function
-        console.log("=== Sending email notification ===");
-        console.log("Recipient:", recipient);
-        console.log("Claim link:", link);
-
         try {
-          console.log("Calling Supabase Edge Function 'send-payment-notification'...");
           const { data, error } = await supabase.functions.invoke("send-payment-notification", {
             body: {
               recipientEmail: recipient,
@@ -741,7 +736,7 @@ export default function SendPaymentForm() {
                         return selectedNetwork === 420420417 || selectedNetwork === 420420421;
                       }
                       if (t === "USDT") {
-                        return !!chainConfig.usdtAddress && (chainConfig.usdtAddress as string) !== "";
+                        return false; // USDT coming soon
                       }
                       return true;
                     })

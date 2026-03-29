@@ -37,9 +37,42 @@ export default function TemplatesPage() {
     description: "",
   });
 
+  const validateForm = () => {
+    if (!formData.name || formData.name.trim().length === 0) {
+      toast.error("Template name is required");
+      return false;
+    }
+    if (formData.name.length > 100) {
+      toast.error("Template name must be less than 100 characters");
+      return false;
+    }
+    if (!formData.recipient || formData.recipient.trim().length === 0) {
+      toast.error("Recipient email is required");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.recipient)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    if (!formData.amount || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
+      toast.error("Please enter a valid amount greater than 0");
+      return false;
+    }
+    const amount = parseFloat(formData.amount);
+    if (amount > 1000000) {
+      toast.error("Amount exceeds maximum limit of 1,000,000");
+      return false;
+    }
+    if (formData.description && formData.description.length > 500) {
+      toast.error("Description must be less than 500 characters");
+      return false;
+    }
+    return true;
+  };
+
   const handleCreate = () => {
-    if (!formData.name || !formData.recipient || !formData.amount) {
-      toast.error("Please fill in all required fields");
+    if (!validateForm()) {
       return;
     }
     const newTemplate: Template = {
@@ -59,8 +92,11 @@ export default function TemplatesPage() {
   };
 
   const handleUpdate = () => {
-    if (!editingId || !formData.name || !formData.recipient || !formData.amount) {
-      toast.error("Please fill in all required fields");
+    if (!editingId) {
+      toast.error("No template selected for update");
+      return;
+    }
+    if (!validateForm()) {
       return;
     }
     setTemplates(templates.map(t => 
@@ -195,9 +231,7 @@ export default function TemplatesPage() {
                   className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="USDC">USDC</option>
-                  <option value="USDT">USDT</option>
-                  <option value="ETH">ETH</option>
-                  <option value="MATIC">MATIC</option>
+                  <option value="USDT" disabled>USDT (Coming Soon)</option>
                 </select>
               </div>
               <div className="sm:col-span-2">

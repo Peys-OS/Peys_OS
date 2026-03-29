@@ -77,7 +77,7 @@ export default function TransactionBundlerPage() {
   };
 
   const verifyPinAndBundle = async () => {
-    const storedPin = localStorage.getItem("peys_pin_hash");
+    const storedPin = sessionStorage.getItem("peys_pin_hash");
     
     if (!storedPin) {
       toast.error("PIN not set up. Please set up PIN in Profile settings.");

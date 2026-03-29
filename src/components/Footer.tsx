@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
 import { Github, X, MessageCircle, Code } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Footer() {
+  const { theme } = useTheme();
+  
   return (
     <footer className="border-t border-border py-12 pb-24 sm:py-16 xl:pb-16">
       <div className="container mx-auto px-4">
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <img src="/peys_logo_alone.png" alt="Peys" className="h-10 w-10 rounded-lg" />
+              <img src={theme === "dark" ? "/peys_black_background.png" : "/peys_logo_alone.png"} alt="Peys" className="h-10 w-10 rounded-lg" />
               <span className="text-base font-semibold text-foreground">Peys</span>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

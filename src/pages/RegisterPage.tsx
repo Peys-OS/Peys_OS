@@ -4,6 +4,7 @@ import { MessageCircle, Phone, Mail, Shield, ArrowRight, Loader2 } from "lucide-
 import { usePrivy } from "@privy-io/react-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { sanitizeString, sanitizeWhatsAppNumber } from "@/utils/sanitize";
 
 export default function RegisterPage() {
   const { login, authenticated, user, ready } = usePrivy();
@@ -13,7 +14,8 @@ export default function RegisterPage() {
   const [authMethod, setAuthMethod] = useState<'phone' | 'email'>('phone');
   const [isLoading, setIsLoading] = useState(false);
 
-  const whatsappNumber = searchParams.get('wa') || '';
+  const rawWhatsappNumber = searchParams.get('wa') || '';
+  const whatsappNumber = sanitizeWhatsAppNumber(rawWhatsappNumber);
 
   // Redirect if already authenticated
   useEffect(() => {

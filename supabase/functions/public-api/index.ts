@@ -1,11 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-api-key",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-};
+import { getCorsHeaders, corsResponse, corsError } from "../_shared/cors.ts";
+import { CreatePaymentApiSchema, PaginationSchema, validateSchema } from "../_shared/schemas.ts";
+import { isUrlSafe } from "../_shared/urlValidation.ts";
 
 interface ApiKey {
   id: string;
@@ -16,6 +13,8 @@ interface ApiKey {
   monthly_api_calls: number;
   monthly_limit: number;
   is_active: boolean;
+  locked_until: string | null;
+  failed_attempts: number;
   created_at: string;
 }
 
@@ -72,7 +71,7 @@ function calculateFee(tier: string, requestCount: number): { fee: number; curren
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders() });
   }
 
   try {
@@ -92,7 +91,7 @@ Deno.serve(async (req) => {
           message: "Include your API key in the X-API-Key header",
           example: { "X-API-Key": "pk_live_xxxxxxxxxxxxx" }
         }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
       );
     }
 
@@ -109,11 +108,49 @@ Deno.serve(async (req) => {
           error: "Invalid API key", 
           message: "The provided API key is invalid or has been revoked"
         }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
       );
     }
 
     const keyRecord = apiKeyData as unknown as ApiKey;
+    
+    // Check if API key is locked out
+    if (keyRecord.locked_until && new Date(keyRecord.locked_until) > new Date()) {
+      return new Response(
+        JSON.stringify({ 
+          error: "API key locked", 
+          message: "Too many failed attempts. Please try again later or contact support",
+          locked_until: keyRecord.locked_until
+        }),
+        { status: 403, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+      );
+    }
+
+    // Reset failed attempts if last failure was more than 30 minutes ago
+    if (keyRecord.failed_attempts && keyRecord.failed_attempts > 0) {
+      const lastAttempt = keyRecord.failed_attempts;
+      if (lastAttempt >= 5) {
+        // Lock the account for 30 minutes
+        const lockUntil = new Date();
+        lockUntil.setMinutes(lockUntil.getMinutes() + 30);
+        await supabaseClient
+          .from("api_keys")
+          .update({ 
+            failed_attempts: 0,
+            locked_until: lockUntil.toISOString()
+          })
+          .eq("id", keyRecord.id);
+        return new Response(
+          JSON.stringify({ 
+            error: "API key locked", 
+            message: "Too many failed attempts. Account locked for 30 minutes.",
+            locked_until: lockUntil.toISOString()
+          }),
+          { status: 403, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -125,7 +162,7 @@ Deno.serve(async (req) => {
           tier: "free",
           upgrade: "https://peys.io/dashboard"
         }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "3600" } }
+        { status: 429, headers: { ...getCorsHeaders(), "Content-Type": "application/json", "Retry-After": "3600" } }
       );
     }
 
@@ -162,12 +199,12 @@ Deno.serve(async (req) => {
 
       case path.match(/^\/v1\/payments\/[\w-]+\/claim$/) && method === "POST":
         const claimPaymentId = path.split("/")[2];
-        response = await handleClaimPayment(claimPaymentId, req, supabaseClient);
+        response = await handleClaimPayment(claimPaymentId, req, supabaseClient, keyRecord);
         break;
 
       case path.match(/^\/v1\/payments\/[\w-]+\/refund$/) && method === "POST":
         const refundPaymentId = path.split("/")[2];
-        response = await handleRefundPayment(refundPaymentId, req, supabaseClient);
+        response = await handleRefundPayment(refundPaymentId, req, supabaseClient, keyRecord);
         break;
 
       case path === "/v1/webhooks" && method === "POST":
@@ -180,7 +217,7 @@ Deno.serve(async (req) => {
 
       case path.match(/^\/v1\/webhooks\/[\w-]+$/) && method === "DELETE":
         const webhookId = path.split("/").pop();
-        response = await handleDeleteWebhook(webhookId!, supabaseClient);
+        response = await handleDeleteWebhook(webhookId!, supabaseClient, keyRecord);
         break;
 
       case path === "/v1/pricing" && method === "GET":
@@ -223,12 +260,12 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify(response), {
       status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("API Error:", error);
+    console.error("API Error:", error instanceof Error ? error.message : "Unknown error");
     return new Response(
-      JSON.stringify({ error: "Internal server error", message: error.message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -236,11 +273,16 @@ Deno.serve(async (req) => {
 
 async function handleCreatePayment(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
-  const { recipient, amount, token, memo, expiresIn } = body;
 
-  if (!recipient || !amount || !token) {
-    return { error: "Missing required fields: recipient, amount, token" };
+  const validation = validateSchema(CreatePaymentApiSchema, body);
+  if (!validation.success) {
+    return { 
+      error: "Invalid request data",
+      details: validation.errors.flatten().fieldErrors 
+    };
   }
+
+  const { recipient, amount, token, memo, expiresIn } = validation.data;
 
   const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const claimLink = crypto.randomUUID();
@@ -307,9 +349,16 @@ async function handleGetPayment(paymentId: string, supabaseClient: unknown) {
 
 async function handleListPayments(req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const url = new URL(req.url);
-  const limit = parseInt(url.searchParams.get("limit") || "10");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
-  const status = url.searchParams.get("status");
+  
+  const paginationValidation = validateSchema(PaginationSchema, {
+    limit: url.searchParams.get("limit"),
+    offset: url.searchParams.get("offset"),
+    status: url.searchParams.get("status"),
+  });
+  
+  const { limit, offset, status } = paginationValidation.success 
+    ? paginationValidation.data 
+    : { limit: 10, offset: 0, status: undefined };
 
   let query = supabaseClient
     .from("payments")
@@ -344,7 +393,7 @@ async function handleListPayments(req: Request, supabaseClient: unknown, apiKey:
   };
 }
 
-async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: unknown) {
+async function handleClaimPayment(paymentId: string, req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const body = await req.json();
   const { recipientWallet, secret } = body;
 
@@ -358,12 +407,20 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
     return { error: "Payment not found" };
   }
 
+  if (payment.api_key_id !== apiKey.id) {
+    return { error: "Not authorized to claim this payment" };
+  }
+
   if (payment.status !== "pending") {
     return { error: `Payment is already ${payment.status}` };
   }
 
   if (new Date(payment.expires_at) < new Date()) {
     return { error: "Payment has expired" };
+  }
+
+  if (secret && payment.claim_secret && secret !== payment.claim_secret) {
+    return { error: "Invalid claim secret" };
   }
 
   const { data, error } = await supabaseClient
@@ -374,6 +431,7 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
       recipient_wallet: recipientWallet,
     })
     .eq("payment_id", paymentId)
+    .eq("status", "pending")
     .select()
     .single();
 
@@ -386,7 +444,7 @@ async function handleClaimPayment(paymentId: string, req: Request, supabaseClien
   };
 }
 
-async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: unknown) {
+async function handleRefundPayment(paymentId: string, req: Request, supabaseClient: unknown, apiKey: ApiKey) {
   const { data: payment, error: paymentError } = await supabaseClient
     .from("payments")
     .select("*")
@@ -395,6 +453,10 @@ async function handleRefundPayment(paymentId: string, req: Request, supabaseClie
 
   if (paymentError || !payment) {
     return { error: "Payment not found" };
+  }
+
+  if (payment.api_key_id !== apiKey.id) {
+    return { error: "Not authorized to refund this payment" };
   }
 
   if (payment.status !== "pending") {
@@ -412,6 +474,7 @@ async function handleRefundPayment(paymentId: string, req: Request, supabaseClie
       refunded_at: new Date().toISOString(),
     })
     .eq("payment_id", paymentId)
+    .eq("status", "pending")
     .select()
     .single();
 
@@ -430,6 +493,11 @@ async function handleCreateWebhook(req: Request, supabaseClient: unknown, apiKey
 
   if (!url) {
     return { error: "Missing required field: url" };
+  }
+
+  const urlValidation = isUrlSafe(url);
+  if (!urlValidation.valid) {
+    return { error: urlValidation.error };
   }
 
   const { data, error } = await supabaseClient
@@ -473,7 +541,21 @@ async function handleListWebhooks(supabaseClient: unknown, apiKey: ApiKey) {
   };
 }
 
-async function handleDeleteWebhook(webhookId: string, supabaseClient: unknown) {
+async function handleDeleteWebhook(webhookId: string, supabaseClient: unknown, apiKey: ApiKey) {
+  const { data: webhook, error: fetchError } = await supabaseClient
+    .from("webhooks")
+    .select("user_id")
+    .eq("id", webhookId)
+    .single();
+
+  if (fetchError || !webhook) {
+    throw new Error("Webhook not found");
+  }
+
+  if (webhook.user_id !== apiKey.user_id) {
+    throw new Error("Unauthorized: You do not own this webhook");
+  }
+
   const { error } = await supabaseClient
     .from("webhooks")
     .delete()
