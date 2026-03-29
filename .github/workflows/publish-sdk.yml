@@ -1,0 +1,70 @@
+name: Publish SDK Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0)'
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - 'sdks/javascript/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@peys'
+
+      - name: Install dependencies
+        working-directory: ./sdks/javascript
+        run: npm ci
+
+      - name: Build package
+        working-directory: ./sdks/javascript
+        run: npm run build
+
+      - name: Version bump
+        if: github.event.inputs.version != ''
+        working-directory: ./sdks/javascript
+        run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
+
+      - name: Publish package
+        working-directory: ./sdks/javascript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --access public
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    if: github.event.inputs.version != ''
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: sdk-v${{ github.event.inputs.version }}
+          release_name: SDK v${{ github.event.inputs.version }}
+          draft: false
+          prerelease: false
