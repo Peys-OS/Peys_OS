@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { getCorsHeaders, corsResponse, corsError } from "../_shared/cors.ts";
 import { CreatePaymentApiSchema, PaginationSchema, validateSchema } from "../_shared/schemas.ts";
+import { isUrlSafe } from "../_shared/urlValidation.ts";
 
 interface ApiKey {
   id: string;
@@ -452,6 +453,11 @@ async function handleCreateWebhook(req: Request, supabaseClient: unknown, apiKey
 
   if (!url) {
     return { error: "Missing required field: url" };
+  }
+
+  const urlValidation = isUrlSafe(url);
+  if (!urlValidation.valid) {
+    return { error: urlValidation.error };
   }
 
   const { data, error } = await supabaseClient
