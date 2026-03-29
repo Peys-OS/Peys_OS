@@ -13,6 +13,8 @@ interface ApiKey {
   monthly_api_calls: number;
   monthly_limit: number;
   is_active: boolean;
+  locked_until: string | null;
+  failed_attempts: number;
   created_at: string;
 }
 
@@ -111,6 +113,44 @@ Deno.serve(async (req) => {
     }
 
     const keyRecord = apiKeyData as unknown as ApiKey;
+    
+    // Check if API key is locked out
+    if (keyRecord.locked_until && new Date(keyRecord.locked_until) > new Date()) {
+      return new Response(
+        JSON.stringify({ 
+          error: "API key locked", 
+          message: "Too many failed attempts. Please try again later or contact support",
+          locked_until: keyRecord.locked_until
+        }),
+        { status: 403, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+      );
+    }
+
+    // Reset failed attempts if last failure was more than 30 minutes ago
+    if (keyRecord.failed_attempts && keyRecord.failed_attempts > 0) {
+      const lastAttempt = keyRecord.failed_attempts;
+      if (lastAttempt >= 5) {
+        // Lock the account for 30 minutes
+        const lockUntil = new Date();
+        lockUntil.setMinutes(lockUntil.getMinutes() + 30);
+        await supabaseClient
+          .from("api_keys")
+          .update({ 
+            failed_attempts: 0,
+            locked_until: lockUntil.toISOString()
+          })
+          .eq("id", keyRecord.id);
+        return new Response(
+          JSON.stringify({ 
+            error: "API key locked", 
+            message: "Too many failed attempts. Account locked for 30 minutes.",
+            locked_until: lockUntil.toISOString()
+          }),
+          { status: 403, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
