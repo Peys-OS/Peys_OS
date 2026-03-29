@@ -1049,17 +1049,18 @@ export async function getP2POrders(
   limit: number = 20
 ): Promise<any[]> {
   try {
-    const { data, error } = await supabase
-      .from("p2p_orders")
-      .select("*, creator:profiles(*)")
-      .eq("type", type)
-      .eq("currency", currency)
-      .eq("status", "open")
-      .order("price_per_usdc", { ascending: type === "buy" ? false : true })
-      .limit(limit);
-
-    if (error) throw error;
-    return data || [];
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/p2p-marketplace/orders?type=${type}&currency=${currency}&limit=${limit}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Failed to fetch orders");
+    return data?.orders || [];
   } catch (error) {
     console.error("Failed to fetch P2P orders:", error);
     return [];
@@ -1101,35 +1102,37 @@ export async function createP2POrder(
 export async function matchP2POrder(
   orderId: string,
   matcherId: string,
-  amountUsdc?: number
-): Promise<{ success: boolean; error?: string }> {
+  amountUsdc?: number,
+  idempotencyKey?: string
+): Promise<{ success: boolean; error?: string; order?: any; idempotencyKey?: string }> {
   try {
-    const { data: order, error: fetchError } = await supabase
-      .from("p2p_orders")
-      .select("*")
-      .eq("id", orderId)
-      .eq("status", "open")
-      .single();
-
-    if (fetchError || !order) {
-      return { success: false, error: "Order not found or already matched" };
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const response = await fetch(`${supabaseUrl}/functions/v1/p2p-marketplace/match`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({
+        orderId,
+        amountUsdc,
+        idempotencyKey: idempotencyKey || crypto.randomUUID(),
+      }),
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      return { success: false, error: data.error || "Failed to match order" };
     }
-
-    const matchAmount = amountUsdc || order.amount_usdc;
-
-    const { error } = await supabase
-      .from("p2p_orders")
-      .update({
-        status: "matched",
-        matched_with: matcherId,
-        matched_at: new Date().toISOString(),
-        amount_usdc: matchAmount,
-        total_fiat: matchAmount * order.price_per_usdc,
-      })
-      .eq("id", orderId);
-
-    if (error) throw error;
-    return { success: true };
+    
+    return { 
+      success: true, 
+      order: data.order, 
+      idempotencyKey: data.idempotencyKey 
+    };
   } catch (error: any) {
     console.error("Failed to match P2P order:", error);
     return { success: false, error: error.message };
