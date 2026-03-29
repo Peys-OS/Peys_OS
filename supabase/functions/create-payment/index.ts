@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (insertError) {
-      console.error("Insert error:", insertError);
+      console.error("Insert error:", insertError.message);
       return new Response(
         JSON.stringify({ error: "Failed to create payment. Please try again." }),
         {
@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
         console.log("Email notification result:", notificationResult);
       }
     } catch (emailError) {
-      console.error("Error sending email notification:", emailError);
+      console.error("Error sending email notification:", emailError instanceof Error ? emailError.message : "Unknown error");
     }
 
     // Dispatch webhook event for payment.created
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
         });
       }
     } catch (webhookError) {
-      console.error("Error dispatching webhook:", webhookError);
+      console.error("Error dispatching webhook:", webhookError instanceof Error ? webhookError.message : "Unknown error");
     }
 
     return new Response(
@@ -211,7 +211,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error creating payment:", error);
+    console.error("Error creating payment:", error instanceof Error ? error.message : "Unknown error");
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       {
