@@ -466,12 +466,47 @@ contract PeysEscrow is ReentrancyGuard {
 
     /**
      * @notice Renounce ownership (irreversible)
-     * @dev Must not have any active payments
+     * @dev Must not have any active payments or funds in the contract
      */
     function renounceOwnership() external onlyOwner {
-        require(paymentCount == 0, "Cannot renounce with active payments");
+        // Check contract has no funds
+        uint256 contractBalance = usdc.balanceOf(address(this));
+        require(contractBalance == 0, "Cannot renounce: contract has funds");
+
+        // Check for active payments (pending or committed status)
+        for (uint256 i = 1; i <= paymentCount; i++) {
+            Payment storage payment = payments[i];
+            if (payment.status == PaymentStatus.Pending || payment.status == PaymentStatus.Committed) {
+                revert("Cannot renounce with active payments");
+            }
+        }
+
         address oldOwner = owner;
         owner = address(0);
+        pendingOwner = address(0);
         emit OwnershipTransferCompleted(oldOwner, address(0));
+    }
+
+    /**
+     * @notice Check if ownership can be safely renounced
+     * @return canRenounce True if no funds and no active payments
+     * @return reason Reason why ownership cannot be renounced (if applicable)
+     */
+    function canRenounceOwnership() external view returns (bool canRenounce, string memory reason) {
+        // Check contract balance
+        uint256 contractBalance = usdc.balanceOf(address(this));
+        if (contractBalance > 0) {
+            return (false, "Contract has funds");
+        }
+
+        // Check for active payments
+        for (uint256 i = 1; i <= paymentCount; i++) {
+            Payment storage payment = payments[i];
+            if (payment.status == PaymentStatus.Pending || payment.status == PaymentStatus.Committed) {
+                return (false, "Active payments exist");
+            }
+        }
+
+        return (true, "");
     }
 }

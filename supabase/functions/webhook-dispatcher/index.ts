@@ -11,6 +11,12 @@ const corsHeaders = {
 const TIMESTAMP_TOLERANCE_MS = 5 * 60 * 1000; // 5 minutes
 const MAX_RETRY_COUNT = 5;
 const RETRY_DELAYS = [0, 300, 1800, 7200, 86400]; // 0, 5min, 30min, 2hr, 24hr
+const DEBUG = Deno.env.get("DEBUG") === "true";
+
+// Debug logger - only logs in debug mode
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG) console.log(...args);
+};
 
 interface WebhookEvent {
   event_type: string;
@@ -108,7 +114,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${webhooks.length} webhooks for event ${event.event_type}`);
+    debugLog(`Found ${webhooks.length} webhooks for event ${event.event_type}`);
 
     // Dispatch to each webhook
     const results = await Promise.allSettled(
@@ -119,7 +125,7 @@ Deno.serve(async (req) => {
     const successful = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
-    console.log(`Dispatched to ${successful} webhooks, ${failed} failed`);
+    debugLog(`Dispatched to ${successful} webhooks, ${failed} failed`);
 
     return new Response(
       JSON.stringify({
@@ -206,7 +212,7 @@ async function dispatchToWebhook(
       throw new Error(`Webhook returned ${response.status}`);
     }
 
-    console.log(`Successfully dispatched to ${webhook.url} in ${duration}ms`);
+    debugLog(`Successfully dispatched to ${webhook.url} in ${duration}ms`);
 
     // Schedule retry if failed
     if (!response.ok) {
@@ -225,7 +231,7 @@ async function scheduleRetry(
   retryCount: number
 ): Promise<void> {
   if (retryCount >= MAX_RETRY_COUNT) {
-    console.log(`Max retries reached for webhook ${webhookId}`);
+    debugLog(`Max retries reached for webhook ${webhookId}`);
     return;
   }
 
@@ -233,7 +239,7 @@ async function scheduleRetry(
   
   // In production, use a proper job queue (like Inngest, Trigger.dev, or QStash)
   // This is a placeholder for the retry logic
-  console.log(`Scheduling retry ${retryCount + 1} for webhook ${webhookId} in ${delay}ms`);
+  debugLog(`Scheduling retry ${retryCount + 1} for webhook ${webhookId} in ${delay}ms`);
 }
 
 async function generateSignature(secret: string, event: WebhookEvent): Promise<string> {
@@ -355,6 +361,9 @@ export async function verifyWebhookSignature(
 ): Promise<boolean> {
   // Check timestamp freshness
   const webhookTime = parseInt(timestamp);
+  if (isNaN(webhookTime)) {
+    return false;
+  }
   const now = Math.floor(Date.now());
   if (Math.abs(now - webhookTime) > TIMESTAMP_TOLERANCE_MS) {
     return false;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { sanitizePhone, sanitizeString } from "@/utils/sanitize";
 import {
   Smartphone,
   Tv,
@@ -215,11 +216,26 @@ export default function BillsPage() {
     let customerId = "";
 
     if (selectedCategory.type === "airtime" || selectedCategory.type === "data") {
-      customerId = phoneNumber;
+      const sanitizedPhone = sanitizePhone(phoneNumber);
+      if (!sanitizedPhone) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
+      customerId = sanitizedPhone;
     } else if (selectedCategory.type === "tv") {
-      customerId = smartCardNumber;
+      const sanitizedSmartCard = sanitizeString(smartCardNumber, 20).replace(/\D/g, "");
+      if (!sanitizedSmartCard || sanitizedSmartCard.length < 8) {
+        toast.error("Please enter a valid smart card number");
+        return;
+      }
+      customerId = sanitizedSmartCard;
     } else if (selectedCategory.type === "electricity") {
-      customerId = meterNumber;
+      const sanitizedMeter = sanitizeString(meterNumber, 20).replace(/\D/g, "");
+      if (!sanitizedMeter || sanitizedMeter.length < 8) {
+        toast.error("Please enter a valid meter number");
+        return;
+      }
+      customerId = sanitizedMeter;
     }
 
     if (!customerId) {
