@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { parseSafeFloat } from "../_shared/schemas.ts";
 
 const FLUTTERWAVE_API_BASE = "https://api.flutterwave.com/v3";
 
@@ -73,7 +74,7 @@ serve(async (req) => {
     const url = new URL(req.url);
     const fromCurrency = url.searchParams.get("from") || "USDC";
     const toCurrency = url.searchParams.get("to") || "NGN";
-    const amount = parseFloat(url.searchParams.get("amount") || "1");
+    const amount = parseSafeFloat(url.searchParams.get("amount"), 1, 0.01, 1_000_000);
 
     let rate = MOCK_RATES[fromCurrency]?.[toCurrency];
 

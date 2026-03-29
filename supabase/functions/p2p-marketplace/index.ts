@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { parseSafeInt } from "../_shared/schemas.ts";
 
 function getCorsHeaders() {
   const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS") || "*";
@@ -68,7 +69,7 @@ async function handleOrders(req: Request, supabaseClient: any) {
   const url = new URL(req.url);
   const type = url.searchParams.get("type");
   const currency = url.searchParams.get("currency");
-  const limit = parseInt(url.searchParams.get("limit") || "20");
+  const limit = parseSafeInt(url.searchParams.get("limit"), 20, 1, 100);
 
   let query = supabaseClient
     .from("p2p_orders")
