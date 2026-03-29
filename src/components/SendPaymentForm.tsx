@@ -829,11 +829,12 @@ export default function SendPaymentForm() {
                       onChange={(e) => { setRecipient(e.target.value); setShowContacts(true); }}
                       onFocus={() => setShowContacts(true)}
                       placeholder={
-                        recipientType === "email" ? "Recipient email address" : 
-                        recipientType === "phone" ? "Recipient phone number" : 
+                        recipientType === "email" ? "Recipient email address" :
+                        recipientType === "phone" ? "Recipient phone number" :
                         "0x..."
                       }
                       type="text"
+                      maxLength={recipientType === "email" ? 254 : recipientType === "phone" ? 20 : 42}
                       className="w-full rounded-xl border border-border bg-background px-4 py-2.5 pr-10 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                     />
                     <button
@@ -921,6 +922,7 @@ export default function SendPaymentForm() {
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   placeholder="Add a note (optional)"
+                  maxLength={500}
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring sm:py-3"
                 />
 
