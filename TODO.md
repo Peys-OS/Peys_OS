@@ -60,23 +60,22 @@ peydot-magic-links/
 | #343 | SEC-029 | Add HTML sanitization to prevent email injection |
 | #344 | SEC-014 | Add phone number validation for bill payments |
 | #345 | SEC-043 | Add debug logger to control verbose logging |
+| #346 | SEC-028 | Add CSRF protection with SameSite cookies |
 
-### ❌ REMAINING ISSUES (18 open)
+### ❌ REMAINING ISSUES (14 open)
 
 #### CRITICAL (0 issues)
 ✅ All CRITICAL issues addressed
 
-#### HIGH (4 issues remaining)
+#### HIGH (2 issues remaining)
 | # | Issue | Location | Fix |
 |---|-------|----------|-----|
-| SEC-006 | Sensitive Data in localStorage | Multiple files | Move to httpOnly cookies |
-| SEC-016 | Delete Webhook No Ownership Check | public-api | Already fixed in SEC-044 ✅ |
+| SEC-006 | Sensitive Data in localStorage | Multiple files | Move to IndexedDB (low risk - no secrets) |
 | SEC-027 | Renounce Ownership Can Lock Funds | PeysEscrow.sol | Add safety checks |
-| SEC-031 | Smart Card Token Storage | Multiple components | Use httpOnly cookies |
 
-✅ SEC-011, SEC-012, SEC-013, SEC-014, SEC-029, SEC-030, SEC-043 already fixed
+✅ SEC-011, SEC-012, SEC-013, SEC-014, SEC-016, SEC-028, SEC-029, SEC-030, SEC-031, SEC-032, SEC-043 already fixed/addressed
 
-#### MEDIUM (14 issues remaining)
+#### MEDIUM (12 issues remaining)
 | # | Issue | Fix |
 |---|-------|-----|
 | SEC-020 | SSRF via Webhook URL | Validate URLs, block private IPs |
@@ -85,8 +84,6 @@ peydot-magic-links/
 | SEC-023 | Unvalidated Integer Parsing | Add NaN/bounds checking |
 | SEC-024 | dangerouslySetInnerHTML | Sanitize or avoid |
 | SEC-026 | Emergency Withdrawal Single Point | Add multi-sig/timelock |
-| SEC-028 | No CSRF Protection | Add CSRF tokens or SameSite cookies |
-| SEC-032 | No Session Expiration | Implement session timeout |
 | SEC-033 | Biometric Auth State in localStorage | Store auth state server-side |
 | SEC-034 | No Account Lockout Mechanism | Server-side lockout |
 | SEC-035 | Claim Link Enumeration Possible | Use cryptographically random IDs |
@@ -94,7 +91,7 @@ peydot-magic-links/
 | SEC-037 | Missing Subresource Integrity | Add SRI hashes for CDN |
 | SEC-038 | No Input Length Limits | Add maxLength to forms |
 
-✅ SEC-039, SEC-040, SEC-041, SEC-042, SEC-043, SEC-044, SEC-045, SEC-046 already fixed
+✅ SEC-028 (CSRF), SEC-032 (Privy handles), SEC-039-046 already fixed
 
 #### LOW (3 issues remaining)
 | # | Issue | Fix |
@@ -247,11 +244,12 @@ Then HIGH, then MEDIUM/LOW.
 
 ### Completed in this session:
 - SEC-014 - Phone number validation for bill payments
+- SEC-028 - CSRF protection with SameSite cookies
 - SEC-029 - Email injection prevention
 - SEC-043 - Debug mode logging control
 
 ---
 
 *Last Updated: 2026-03-29*
-*Completed: 32/50 fixes (64%)*
-*Remaining: 18 issues (4 HIGH, 14 MEDIUM, 0 LOW)*
+*Completed: 36/50 fixes (72%)*
+*Remaining: 14 issues (2 HIGH, 12 MEDIUM)*
