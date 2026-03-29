@@ -139,10 +139,17 @@ async function handleMatch(req: Request, supabaseClient: any) {
     });
   }
 
-  const { orderId, amountUsdc } = await req.json();
+  const { orderId, amountUsdc, idempotencyKey } = await req.json();
 
   if (!orderId) {
     return new Response(JSON.stringify({ error: "Order ID is required" }), {
+      status: 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  if (idempotencyKey && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+    return new Response(JSON.stringify({ error: "Invalid idempotency key format" }), {
       status: 400,
       headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
@@ -154,12 +161,33 @@ async function handleMatch(req: Request, supabaseClient: any) {
     .from("p2p_orders")
     .select("*")
     .eq("id", orderId)
-    .eq("status", "open")
     .single();
 
   if (fetchError || !order) {
     return new Response(JSON.stringify({ error: "Order not found" }), {
       status: 404,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  if (order.status === "matched" && order.matched_with === userData.user.id) {
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Order already matched with this user",
+        order,
+        idempotencyKey,
+      }),
+      {
+        status: 200,
+        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  if (order.status !== "open") {
+    return new Response(JSON.stringify({ error: "Order is no longer available" }), {
+      status: 400,
       headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
@@ -181,8 +209,10 @@ async function handleMatch(req: Request, supabaseClient: any) {
       matched_at: new Date().toISOString(),
       amount_usdc: matchAmount,
       total_fiat: matchAmount * order.price_per_usdc,
+      idempotency_key: idempotencyKey || null,
     })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("status", "open");
 
   if (updateError) {
     return new Response(JSON.stringify({ error: updateError.message }), {
@@ -198,11 +228,18 @@ async function handleMatch(req: Request, supabaseClient: any) {
     message: `Your ${order.type === "sell" ? "sell" : "buy"} order for ${matchAmount} USDC has been matched. Please complete the transaction.`,
   });
 
+  const { data: updatedOrder } = await supabaseClient
+    .from("p2p_orders")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+
   return new Response(
     JSON.stringify({
       success: true,
       message: "Order matched successfully",
-      order: { ...order, amount_usdc: matchAmount, total_fiat: matchAmount * order.price_per_usdc },
+      order: updatedOrder,
+      idempotencyKey,
     }),
     {
       headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
