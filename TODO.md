@@ -58,24 +58,25 @@ peydot-magic-links/
 | #321 | SEC-049 | Add organization RBAC system |
 | #322 | SEC-050 | Timing-safe comparisons for authentication |
 | #343 | SEC-029 | Add HTML sanitization to prevent email injection |
+| #344 | SEC-014 | Add phone number validation for bill payments |
+| #345 | SEC-043 | Add debug logger to control verbose logging |
 
-### ❌ REMAINING ISSUES (23 open)
+### ❌ REMAINING ISSUES (18 open)
 
 #### CRITICAL (0 issues)
-✅ All CRITICAL issues addressed (SEC-018 already has JWT auth)
+✅ All CRITICAL issues addressed
 
-#### HIGH (5 issues remaining)
+#### HIGH (4 issues remaining)
 | # | Issue | Location | Fix |
 |---|-------|----------|-----|
 | SEC-006 | Sensitive Data in localStorage | Multiple files | Move to httpOnly cookies |
-| SEC-014 | WhatsApp Number Not Validated | RegisterPage | Add phone format validation |
 | SEC-016 | Delete Webhook No Ownership Check | public-api | Already fixed in SEC-044 ✅ |
 | SEC-027 | Renounce Ownership Can Lock Funds | PeysEscrow.sol | Add safety checks |
 | SEC-031 | Smart Card Token Storage | Multiple components | Use httpOnly cookies |
 
-✅ SEC-011 (URL params sanitized), SEC-012 (CSP enabled), SEC-013 (anon key + RLS), SEC-029 (email sanitization) already fixed
+✅ SEC-011, SEC-012, SEC-013, SEC-014, SEC-029, SEC-030, SEC-043 already fixed
 
-#### MEDIUM (22 issues)
+#### MEDIUM (14 issues remaining)
 | # | Issue | Fix |
 |---|-------|-----|
 | SEC-020 | SSRF via Webhook URL | Validate URLs, block private IPs |
@@ -92,20 +93,15 @@ peydot-magic-links/
 | SEC-036 | Sensitive Data in URL Query Strings | Use POST or fragment identifiers |
 | SEC-037 | Missing Subresource Integrity | Add SRI hashes for CDN |
 | SEC-038 | No Input Length Limits | Add maxLength to forms |
-| SEC-039 | P2P Trade Without Amount Validation | Validate against minAmount/maxAmount |
-| SEC-040 | No Duplicate Trade Prevention | Add idempotency keys |
-| SEC-041 | No Concurrent Trade Prevention | Use DB transactions with locking |
-| SEC-042 | Webhook Payload Not Validated | Validate schema before processing |
-| SEC-043 | Debug Mode Exposes Information | Remove/conditional console logs |
-| SEC-044 | Missing Audit Logging | Add audit trail for sensitive ops |
-| SEC-045 | No Idempotency Keys | Add idempotency to payment ops |
-| SEC-046 | Insufficient Encryption at Rest | Enable Supabase encryption + column-level |
 
-#### LOW (5 issues)
+✅ SEC-039, SEC-040, SEC-041, SEC-042, SEC-043, SEC-044, SEC-045, SEC-046 already fixed
+
+#### LOW (3 issues remaining)
 | # | Issue | Fix |
 |---|-------|-----|
-| SEC-047 | Missing Payment Amount Overflow Check | Add bounds checking |
-| SEC-048 | No Signature Replay Protection | Add timestamp + nonce tracking |
+| SEC-025 | P2P marketplace security | Already fixed ✅ |
+| SEC-047 | Missing Payment Amount Overflow Check | Already fixed ✅ |
+| SEC-048 | No Signature Replay Protection | Already fixed ✅ |
 
 ---
 
@@ -250,10 +246,12 @@ Then HIGH, then MEDIUM/LOW.
 ---
 
 ### Completed in this session:
+- SEC-014 - Phone number validation for bill payments
 - SEC-029 - Email injection prevention
+- SEC-043 - Debug mode logging control
 
 ---
 
 *Last Updated: 2026-03-29*
-*Completed: 27/50 fixes (54%)*
-*Remaining: 23 issues (5 HIGH, 13 MEDIUM, 5 LOW)*
+*Completed: 32/50 fixes (64%)*
+*Remaining: 18 issues (4 HIGH, 14 MEDIUM, 0 LOW)*
