@@ -66,7 +66,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { recipientEmail, amount, token, memo, senderWallet } = validation.data;
+    const { recipientEmail, amount, token, memo, senderWallet, idempotencyKey } = validation.data;
+
+    // Check idempotency key if provided
+    if (idempotencyKey) {
+      const { data: existingPayment } = await supabaseClient
+        .from("payments")
+        .select("id, payment_id")
+        .eq("idempotency_key", idempotencyKey)
+        .single();
+      
+      if (existingPayment) {
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            payment: {
+              id: existingPayment.id,
+              paymentId: existingPayment.payment_id,
+            },
+            message: "Payment already created with this idempotency key"
+          }),
+          {
+            status: 200,
+            headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
 
     // Get sender profile
     const { data: senderProfile } = await supabaseClient
@@ -100,6 +126,7 @@ Deno.serve(async (req) => {
         claim_secret: claimSecret,
         expires_at: expiresAt.toISOString(),
         status: "pending",
+        idempotency_key: idempotencyKey,
       })
       .select()
       .single();
