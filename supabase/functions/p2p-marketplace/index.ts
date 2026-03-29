@@ -157,26 +157,36 @@ async function handleMatch(req: Request, supabaseClient: any) {
 
   const validatedAmount = amountUsdc ? parseSafeFloat(String(amountUsdc), 0, 0.01, 1000000) : null;
 
-  const { data: order, error: fetchError } = await supabaseClient
-    .from("p2p_orders")
-    .select("*")
-    .eq("id", orderId)
-    .single();
+  const { data: result, error: rpcError } = await supabaseClient.rpc("match_p2p_order_with_lock", {
+    p_order_id: orderId,
+    p_matched_with: userData.user.id,
+    p_amount_usdc: validatedAmount,
+    p_idempotency_key: idempotencyKey || null,
+  });
 
-  if (fetchError || !order) {
-    return new Response(JSON.stringify({ error: "Order not found" }), {
-      status: 404,
+  if (rpcError) {
+    return new Response(JSON.stringify({ error: "Failed to match order" }), {
+      status: 500,
       headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
     });
   }
 
-  if (order.status === "matched" && order.matched_with === userData.user.id) {
+  if (!result.success) {
+    return new Response(JSON.stringify({ error: result.error }), {
+      status: result.error === "Order not found" ? 404 : 400,
+      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+    });
+  }
+
+  const order = result.order;
+
+  if (order.status === "matched" && order.matched_with === userData.user.id && order.idempotency_key) {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Order already matched with this user",
+        message: result.message || "Order already matched with this user",
         order,
-        idempotencyKey,
+        idempotencyKey: order.idempotency_key,
       }),
       {
         status: 200,
@@ -185,61 +195,19 @@ async function handleMatch(req: Request, supabaseClient: any) {
     );
   }
 
-  if (order.status !== "open") {
-    return new Response(JSON.stringify({ error: "Order is no longer available" }), {
-      status: 400,
-      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
-    });
-  }
-
-  if (order.created_by === userData.user.id) {
-    return new Response(JSON.stringify({ error: "Cannot match own order" }), {
-      status: 400,
-      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
-    });
-  }
-
-  const matchAmount = validatedAmount || order.amount_usdc;
-
-  const { error: updateError } = await supabaseClient
-    .from("p2p_orders")
-    .update({
-      status: "matched",
-      matched_with: userData.user.id,
-      matched_at: new Date().toISOString(),
-      amount_usdc: matchAmount,
-      total_fiat: matchAmount * order.price_per_usdc,
-      idempotency_key: idempotencyKey || null,
-    })
-    .eq("id", orderId)
-    .eq("status", "open");
-
-  if (updateError) {
-    return new Response(JSON.stringify({ error: updateError.message }), {
-      status: 500,
-      headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
-    });
-  }
-
   await supabaseClient.from("notifications").insert({
     user_id: order.created_by,
     type: "p2p_matched",
     title: "P2P Order Matched!",
-    message: `Your ${order.type === "sell" ? "sell" : "buy"} order for ${matchAmount} USDC has been matched. Please complete the transaction.`,
+    message: `Your ${order.type === "sell" ? "sell" : "buy"} order for ${order.amount_usdc} USDC has been matched. Please complete the transaction.`,
   });
-
-  const { data: updatedOrder } = await supabaseClient
-    .from("p2p_orders")
-    .select("*")
-    .eq("id", orderId)
-    .single();
 
   return new Response(
     JSON.stringify({
       success: true,
       message: "Order matched successfully",
-      order: updatedOrder,
-      idempotencyKey,
+      order,
+      idempotencyKey: order.idempotency_key,
     }),
     {
       headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
