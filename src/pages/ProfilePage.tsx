@@ -58,7 +58,7 @@ export default function ProfilePage() {
           organization_type: data.organization_type || "",
         });
       }
-      setBiometricEnabled(localStorage.getItem("peys_biometric_enabled") === "true");
+      setBiometricEnabled(sessionStorage.getItem("peys_biometric_enabled") === "true");
       setLoading(false);
     })();
   }, [isLoggedIn]);
