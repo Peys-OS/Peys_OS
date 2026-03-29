@@ -361,6 +361,9 @@ export async function verifyWebhookSignature(
 ): Promise<boolean> {
   // Check timestamp freshness
   const webhookTime = parseInt(timestamp);
+  if (isNaN(webhookTime)) {
+    return false;
+  }
   const now = Math.floor(Date.now());
   if (Math.abs(now - webhookTime) > TIMESTAMP_TOLERANCE_MS) {
     return false;
