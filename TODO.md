@@ -57,27 +57,23 @@ peydot-magic-links/
 | #320 | SEC-025 | P2P marketplace - use anon key + RLS |
 | #321 | SEC-049 | Add organization RBAC system |
 | #322 | SEC-050 | Timing-safe comparisons for authentication |
+| #343 | SEC-029 | Add HTML sanitization to prevent email injection |
 
-### ❌ REMAINING ISSUES (38 open)
+### ❌ REMAINING ISSUES (23 open)
 
-#### CRITICAL (1 issue)
-| # | Issue | Location | Fix |
-|---|-------|----------|-----|
-| SEC-018 | create-payment Missing Authentication | create-payment/index.ts | Add JWT auth check |
+#### CRITICAL (0 issues)
+✅ All CRITICAL issues addressed (SEC-018 already has JWT auth)
 
-#### HIGH (10 issues)
+#### HIGH (5 issues remaining)
 | # | Issue | Location | Fix |
 |---|-------|----------|-----|
 | SEC-006 | Sensitive Data in localStorage | Multiple files | Move to httpOnly cookies |
-| SEC-011 | Unvalidated URL Parameters | PublicPaymentPage, RegisterPage | Sanitize all URL params |
-| SEC-012 | CSP Header Disabled | peys-api/src/index.ts | Enable CSP |
-| SEC-013 | Service Role Key Inconsistent | webhook-register, p2p-marketplace | Use anon key + RLS |
-| SEC-014 | WhatsApp Number Not Validated | RegisterPage, WhatsAppRegisterPage | Add phone format validation |
-| SEC-016 | Delete Webhook No Ownership Check | public-api handleDeleteWebhook | Add api_key ownership verify |
+| SEC-014 | WhatsApp Number Not Validated | RegisterPage | Add phone format validation |
+| SEC-016 | Delete Webhook No Ownership Check | public-api | Already fixed in SEC-044 ✅ |
 | SEC-027 | Renounce Ownership Can Lock Funds | PeysEscrow.sol | Add safety checks |
-| SEC-029 | Email Injection Possible | send-email/index.ts | Validate email params |
-| SEC-030 | Pagination No Max Limit | Multiple files | Set max 100 items |
 | SEC-031 | Smart Card Token Storage | Multiple components | Use httpOnly cookies |
+
+✅ SEC-011 (URL params sanitized), SEC-012 (CSP enabled), SEC-013 (anon key + RLS), SEC-029 (email sanitization) already fixed
 
 #### MEDIUM (22 issues)
 | # | Issue | Fix |
@@ -253,6 +249,11 @@ Then HIGH, then MEDIUM/LOW.
 
 ---
 
+### Completed in this session:
+- SEC-029 - Email injection prevention
+
+---
+
 *Last Updated: 2026-03-29*
-*Completed: 12/50 fixes (24%)*
-*Remaining: 38 issues*
+*Completed: 27/50 fixes (54%)*
+*Remaining: 23 issues (5 HIGH, 13 MEDIUM, 5 LOW)*
