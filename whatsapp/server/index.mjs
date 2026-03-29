@@ -339,6 +339,111 @@ function startHealthCheck() {
 }
 
 // ============================================================================
+// NDPR/NDPA 2023 Consent Handling
+// ============================================================================
+
+const CONSENT_PENDING = new Set(); // Track users who haven't given consent yet
+
+async function handleConsent(chatId, phone, text, profile) {
+  const lowerText = text.toLowerCase().trim();
+  
+  // Check if user has already given consent
+  if (profile?.consent_given) {
+    return { hasConsent: true, action: 'proceed' };
+  }
+  
+  // Check if user already in consent flow
+  if (CONSENT_PENDING.has(chatId)) {
+    if (lowerText === 'yes' || lowerText === 'y') {
+      // User consents - record consent
+      CONSENT_PENDING.delete(chatId);
+      await recordConsent(chatId, phone, true);
+      await sendMessage(chatId,
+        '✅ *Consent Recorded*\n\n' +
+        'Thank you for consenting to our Privacy Policy.\n' +
+        'You can now use all Peys features.\n\n' +
+        'Send *menu* to see available commands.'
+      );
+      return { hasConsent: true, action: 'consented' };
+    } else if (lowerText === 'no' || lowerText === 'n') {
+      CONSENT_PENDING.delete(chatId);
+      await sendMessage(chatId,
+        '❌ *Consent Declined*\n\n' +
+        'You cannot use Peys without agreeing to our Privacy Policy.\n' +
+        'Send *yes* if you change your mind.'
+      );
+      return { hasConsent: false, action: 'declined' };
+    } else {
+      await sendMessage(chatId,
+        '⚠️ Please reply *YES* to agree or *NO* to decline.\n\n' +
+        'Your data will only be processed with your consent as required by NDPR/NDPA 2023.'
+      );
+      return { hasConsent: false, action: 'awaiting_response' };
+    }
+  }
+  
+  return { hasConsent: false, action: 'request_consent' };
+}
+
+async function recordConsent(chatId, phone, consentGiven) {
+  const client = db.getSupabase();
+  if (!client) return;
+  
+  try {
+    // Update profile with consent
+    await client
+      .from('profiles')
+      .update({
+        consent_given: consentGiven,
+        consent_timestamp: consentGiven ? new Date().toISOString() : null,
+        consent_source: 'whatsapp',
+        updated_at: new Date().toISOString()
+      })
+      .eq('whatsapp_id', chatId);
+    
+    // Update whatsapp_sessions if exists
+    await client
+      .from('whatsapp_sessions')
+      .update({
+        consent_given: consentGiven,
+        consent_timestamp: consentGiven ? new Date().toISOString() : null
+      })
+      .eq('phone_number', phone);
+    
+    // Log consent in audit
+    await client
+      .from('audit_logs')
+      .insert({
+        action: consentGiven ? 'consent_given' : 'consent_declined',
+        resource_type: 'profile',
+        resource_id: chatId,
+        metadata: {
+          source: 'whatsapp',
+          consent_given: consentGiven,
+          timestamp: new Date().toISOString()
+        }
+      });
+  } catch (error) {
+    console.error('Error recording consent:', error);
+  }
+}
+
+async function requestConsent(chatId) {
+  const appUrl = process.env.APP_URL || 'https://peydot.io';
+  const privacyUrl = `${appUrl}/privacy-policy`;
+  
+  CONSENT_PENDING.add(chatId);
+  
+  await sendMessage(chatId,
+    '🔒 *Welcome to Peys OS!*\n\n' +
+    'By continuing, you agree to our Privacy Policy: ' + privacyUrl + '\n\n' +
+    'We process your data in accordance with NDPR/NDPA 2023.\n\n' +
+    'Reply *YES* to proceed.\n' +
+    'Reply *NO* to decline.'
+  );
+}
+
+// ============================================================================
 // Message Handler
 // ============================================================================
 
@@ -487,6 +592,27 @@ _It takes less than 30 seconds!_`;
   // Get user profile for authenticated commands
   const profile = await db.getProfileByWhatsappId(chatId);
   const wallet = profile?.primary_wallet_address || profile?.wallet_address;
+
+  // ========================================================================
+  // NDPR/NDPA 2023 Consent Check
+  // ========================================================================
+  
+  if (profile) {
+    const consentCheck = await handleConsent(chatId, phone, text, profile);
+    
+    // If user just gave consent, don't process other commands
+    if (consentCheck.action === 'consented' || consentCheck.action === 'declined') {
+      return;
+    }
+    
+    // If consent is pending or needed, only allow menu or consent response
+    if (consentCheck.action === 'awaiting_response' || consentCheck.action === 'request_consent') {
+      if (consentCheck.action === 'request_consent') {
+        await requestConsent(chatId);
+      }
+      return;
+    }
+  }
 
   // Balance
   if (['balance', 'bal', 'wallet'].includes(lowerText)) {
