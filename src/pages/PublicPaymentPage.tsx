@@ -11,6 +11,7 @@ import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, getEventSelector, parseAbiItem, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useSwitchChain, useChainId } from "wagmi";
 import { usePrivyAuth } from "@/contexts/PrivyContext";
+import { sanitizeEmail, sanitizeString } from "@/utils/sanitize";
 
 type Token = "USDC" | "USDT" | "PASS";
 
@@ -35,7 +36,10 @@ export default function PublicPaymentPage() {
   const [amount, setAmount] = useState("");
   const [token, setToken] = useState<Token>("USDC");
   const [selectedNetwork, setSelectedNetwork] = useState<number>(84532);
-  const [recipient, setRecipient] = useState(searchParams.get("recipient") || "");
+  const [recipient, setRecipient] = useState(() => {
+    const raw = searchParams.get("recipient") || "";
+    return sanitizeEmail(raw);
+  });
   const [recipientType, setRecipientType] = useState<"email" | "phone">("email");
   const [memo, setMemo] = useState("");
   const [step, setStep] = useState<"form" | "confirm" | "sending" | "done">("form");
