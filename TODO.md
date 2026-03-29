@@ -61,8 +61,10 @@ peydot-magic-links/
 | #344 | SEC-014 | Add phone number validation for bill payments |
 | #345 | SEC-043 | Add debug logger to control verbose logging |
 | #346 | SEC-028 | Add CSRF protection with SameSite cookies |
+| #347 | SEC-023 | Add NaN check for timestamp parsing |
+| #348 | SEC-038 | Add maxLength to form inputs |
 
-### ❌ REMAINING ISSUES (14 open)
+### ❌ REMAINING ISSUES (10 open)
 
 #### CRITICAL (0 issues)
 ✅ All CRITICAL issues addressed
@@ -73,25 +75,21 @@ peydot-magic-links/
 | SEC-006 | Sensitive Data in localStorage | Multiple files | Move to IndexedDB (low risk - no secrets) |
 | SEC-027 | Renounce Ownership Can Lock Funds | PeysEscrow.sol | Add safety checks |
 
-✅ SEC-011, SEC-012, SEC-013, SEC-014, SEC-016, SEC-028, SEC-029, SEC-030, SEC-031, SEC-032, SEC-043 already fixed/addressed
+✅ SEC-011, SEC-012, SEC-013, SEC-014, SEC-016, SEC-022, SEC-023, SEC-028, SEC-029, SEC-030, SEC-031, SEC-032, SEC-035, SEC-038, SEC-043 already fixed/addressed
 
-#### MEDIUM (12 issues remaining)
+#### MEDIUM (8 issues remaining)
 | # | Issue | Fix |
 |---|-------|-----|
 | SEC-020 | SSRF via Webhook URL | Validate URLs, block private IPs |
 | SEC-021 | Form Fields Only Check Presence | Add comprehensive validation |
-| SEC-022 | Unvalidated Status Parameter | Validate against enum values |
-| SEC-023 | Unvalidated Integer Parsing | Add NaN/bounds checking |
 | SEC-024 | dangerouslySetInnerHTML | Sanitize or avoid |
 | SEC-026 | Emergency Withdrawal Single Point | Add multi-sig/timelock |
 | SEC-033 | Biometric Auth State in localStorage | Store auth state server-side |
 | SEC-034 | No Account Lockout Mechanism | Server-side lockout |
-| SEC-035 | Claim Link Enumeration Possible | Use cryptographically random IDs |
 | SEC-036 | Sensitive Data in URL Query Strings | Use POST or fragment identifiers |
 | SEC-037 | Missing Subresource Integrity | Add SRI hashes for CDN |
-| SEC-038 | No Input Length Limits | Add maxLength to forms |
 
-✅ SEC-028 (CSRF), SEC-032 (Privy handles), SEC-039-046 already fixed
+✅ SEC-022, SEC-023, SEC-028, SEC-032, SEC-035, SEC-038, SEC-039-046 already fixed
 
 #### LOW (3 issues remaining)
 | # | Issue | Fix |
@@ -244,12 +242,14 @@ Then HIGH, then MEDIUM/LOW.
 
 ### Completed in this session:
 - SEC-014 - Phone number validation for bill payments
+- SEC-023 - NaN check for timestamp parsing
 - SEC-028 - CSRF protection with SameSite cookies
 - SEC-029 - Email injection prevention
+- SEC-038 - Input length limits (maxLength)
 - SEC-043 - Debug mode logging control
 
 ---
 
 *Last Updated: 2026-03-29*
-*Completed: 36/50 fixes (72%)*
-*Remaining: 14 issues (2 HIGH, 12 MEDIUM)*
+*Completed: 40/50 fixes (80%)*
+*Remaining: 10 issues (2 HIGH, 8 MEDIUM)*
