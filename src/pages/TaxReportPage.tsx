@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, Download, Calendar, Filter, Search, Loader2, CheckCircle } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TaxRecord {
   id: string;
@@ -17,30 +18,60 @@ interface TaxRecord {
 }
 
 export default function TaxReportPage() {
-  const { isLoggedIn, login } = useApp();
+  const { isLoggedIn, login, walletAddress } = useApp();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
   const [records, setRecords] = useState<TaxRecord[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<TaxRecord[]>([]);
 
-  // Mock data
-  const mockRecords: TaxRecord[] = [
-    { id: "1", date: "2024-01-15", type: "income", amount: "1000", token: "USDC", txHash: "0xabc...", description: "Payment from Client A" },
-    { id: "2", date: "2024-01-20", type: "expense", amount: "500", token: "USDC", txHash: "0xdef...", description: "Software Subscription" },
-    { id: "3", date: "2024-02-05", type: "income", amount: "2500", token: "USDT", txHash: "0xghi...", description: "Project Payment" },
-  ];
-
-  useState(() => {
-    // Load records from localStorage or API
-    const saved = localStorage.getItem("tax_records");
-    if (saved) {
-      setRecords(JSON.parse(saved));
+  useEffect(() => {
+    if (isLoggedIn && walletAddress) {
+      fetchTaxRecords();
     } else {
-      setRecords(mockRecords);
+      setLoading(false);
     }
-    setLoading(false);
-  });
+  }, [isLoggedIn, walletAddress]);
+
+  const fetchTaxRecords = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const userEmail = user.email || "";
+
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("id, status, created_at, amount, token, tx_hash, memo, sender_wallet, recipient_email")
+        .or(`sender_wallet.eq.${walletAddress},recipient_email.eq.${userEmail}`)
+        .order("created_at", { ascending: false });
+
+      if (payments && payments.length > 0) {
+        const taxRecords: TaxRecord[] = payments.map((p) => {
+          const isSender = p.sender_wallet?.toLowerCase() === walletAddress?.toLowerCase();
+          return {
+            id: p.id,
+            date: new Date(p.created_at).toISOString().split("T")[0],
+            type: isSender ? "expense" : "income",
+            amount: (Number(p.amount) / 1000000).toString(),
+            token: p.token || "USDC",
+            txHash: p.tx_hash || "",
+            description: p.memo || (isSender ? `Sent to ${p.recipient_email}` : "Received payment"),
+          };
+        });
+        setRecords(taxRecords);
+        setFilteredRecords(taxRecords);
+      }
+    } catch (err) {
+      console.error("Error fetching tax records:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!dateRange.start || !dateRange.end) {

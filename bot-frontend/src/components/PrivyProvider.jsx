@@ -1,6 +1,10 @@
 import { PrivyProvider as PrivyProviderBase } from '@privy-io/react-auth';
 
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'cmlpmbwgn00cb0dicbfwdkz40';
+const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID;
+
+if (!PRIVY_APP_ID) {
+  throw new Error('Missing VITE_PRIVY_APP_ID environment variable');
+}
 
 export function PrivyProvider({ children }) {
   return (

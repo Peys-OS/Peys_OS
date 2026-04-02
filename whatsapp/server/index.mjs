@@ -18,7 +18,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import pkg from 'whatsapp-web.js';
-const { Client, LocalAuth, MessageMedia } = pkg;
+const { Client, LocalAuth, MessageMedia, Buttons, List } = pkg;
 import qrcode from 'qrcode';
 import qrcodeTerminal from 'qrcode-terminal';
 import path from 'path';
@@ -472,11 +472,9 @@ async function handleMessage(message) {
       await sendMessage(chatId, '❌ *Action cancelled*\n\n_Send "menu" for available commands_');
     },
     onConfirm: async (data) => {
-      // Legacy support - redirect to old confirm
       await sendMessage(chatId, '⏳ Processing your confirmation...');
     },
     onPin: async (data) => {
-      // Legacy support
       await sendMessage(chatId, '⏳ Verifying PIN...');
     },
     onClaimCode: async (data) => {
@@ -488,6 +486,12 @@ async function handleMessage(message) {
     if (stateResult.error) {
       await sendMessage(chatId, stateResult.error);
     }
+    return;
+  }
+
+  // Handle button/selection responses
+  const buttonResponse = handleButtonResponse(lowerText, chatId, phone);
+  if (buttonResponse) {
     return;
   }
 
@@ -730,30 +734,133 @@ _It takes less than 30 seconds!_`;
 // Command Handlers
 // ============================================================================
 
-async function sendMainMenu(chatId, isRegistered) {
-  let menu = '🤖 *Peys WhatsApp Bot*\n\n';
+/**
+ * Handle interactive button responses
+ */
+async function handleButtonResponse(text, chatId, phone) {
+  const isRegistered = await db.isUserRegistered(chatId);
+  const lowerText = text.toLowerCase();
   
-  if (isRegistered) {
-    menu += '✅ Your wallet is ready\n\n';
-    menu += '*Payments:*\n';
-    menu += '• `send [amt] [TOKEN] to [email]` - Escrow payment\n';
-    menu += '• `send [amt] [TOKEN] to 0x...` - Direct transfer\n';
-    menu += '• `balance` - Check wallet\n';
-    menu += '• `history` - Transactions\n';
-    menu += '• `claim` - Pending claims\n\n';
-  } else {
-    menu += '⚠️ Register to get started\n\n';
-    menu += '*Commands:*\n';
-    menu += '• `register` - Create your account\n\n';
+  // Balance button
+  if (lowerText.includes('check balance') || lowerText === 'balance') {
+    const profile = await db.getProfileByWhatsappId(chatId);
+    const wallet = profile?.primary_wallet_address || profile?.wallet_address;
+    await handleBalance(chatId, phone, wallet);
+    return true;
   }
   
-  menu += '*Supported Tokens:* USDC, USDT\n';
-  menu += '*Transfer Types:*\n';
-  menu += '• Email → Escrow (recipient claims)\n';
-  menu += '• Wallet → Direct (instant)\n\n';
-  menu += '_Powered by Peys Protocol_';
+  // Send Payment button
+  if (lowerText.includes('send payment') || lowerText === 'send') {
+    await sendMessage(chatId,
+      '📤 *Send Payment*\n\n' +
+      'Send payments by email or wallet address:\n\n' +
+      '• `send 10 USDC to email@example.com` (escrow)\n' +
+      '• `send 10 USDC to 0xABC...` (direct)\n\n' +
+      '_Example: send 10 USDC to john@email.com_'
+    );
+    return true;
+  }
   
-  await sendMessage(chatId, menu);
+  // Transaction History button
+  if (lowerText.includes('transaction history') || lowerText === 'history') {
+    await handleHistory(chatId, phone);
+    return true;
+  }
+  
+  // Claim Pending button
+  if (lowerText.includes('claim pending') || lowerText === 'claim') {
+    await handleClaim(chatId, phone);
+    return true;
+  }
+  
+  // Help/FAQ button
+  if (lowerText.includes('help') || lowerText.includes('faq') || lowerText === '?') {
+    await sendFAQ(chatId);
+    return true;
+  }
+  
+  // Register Now button
+  if (lowerText.includes('register now') || lowerText === 'register') {
+    if (isRegistered) {
+      const profile = await db.getProfileByWhatsappId(chatId);
+      const walletTrunc = profile?.wallet_address 
+        ? `${profile.wallet_address.slice(0, 6)}...${profile.wallet_address.slice(-4)}`
+        : 'Not set';
+      await sendMessage(chatId,
+        '✅ *Already Registered*\n\n' +
+        `Wallet: \`${walletTrunc}\`\n` +
+        `Email: ${profile?.email || 'Not linked'}\n\n` +
+        'Send *menu* to see available commands.'
+      );
+      return true;
+    }
+    // Send registration link (still needed for wallet creation)
+    const appUrl = process.env.APP_URL || 'https://bot-frontend-inky.vercel.app';
+    const registerUrl = `${appUrl}/register/whatsapp?wa=${phone}`;
+    await sendMessage(chatId,
+      '🔐 *Create Your Account*\n\n' +
+      `Tap here to register: ${registerUrl}\n\n` +
+      '📋 *Steps:*\n' +
+      '1. Tap the link above\n' +
+      '2. Sign in with phone or email\n' +
+      '3. Your wallet is created automatically\n' +
+      '4. Come back here and send *menu*\n\n' +
+      '_It takes less than 30 seconds!_'
+    );
+    return true;
+  }
+  
+  // What is Peys button
+  if (lowerText.includes('what is peys')) {
+    await sendMessage(chatId,
+      '💡 *What is Peys?*\n\n' +
+      'Peys is a stablecoin wallet that works right here in WhatsApp.\n\n' +
+      '✨ *Features:*\n' +
+      '• Send & receive USDC/USDT\n' +
+      '• Pay anyone by email or wallet\n' +
+      '• Check your balance anytime\n' +
+      '• No apps to download\n\n' +
+      '🔐 *Security:*\n' +
+      '• Non-custodial wallet\n' +
+      '• Your keys, your crypto\n' +
+      '• Secure with your phone\n\n' +
+      'Send *register* to get started!'
+    );
+    return true;
+  }
+  
+  return false;
+}
+
+async function sendMainMenu(chatId, isRegistered) {
+  if (isRegistered) {
+    const buttons = [
+      { body: '💰 Check Balance' },
+      { body: '📤 Send Payment' },
+      { body: '📜 Transaction History' },
+      { body: '🎁 Claim Pending' },
+      { body: '❓ Help/FAQ' }
+    ];
+    await sendButtons(
+      chatId,
+      '🤖 *Peys WhatsApp Bot*\n\nSelect an action:',
+      buttons,
+      'Main Menu',
+      'Powered by Peys Protocol'
+    );
+  } else {
+    const buttons = [
+      { body: '🔐 Register Now' },
+      { body: '❓ What is Peys?' }
+    ];
+    await sendButtons(
+      chatId,
+      '👋 *Welcome to Peys!*\n\nPeys is a stablecoin wallet that works right here in WhatsApp.\n\nTap a button to get started:',
+      buttons,
+      'Get Started',
+      'Powered by Peys Protocol'
+    );
+  }
 }
 
 async function handleBalance(chatId, phone, wallet) {
@@ -990,6 +1097,8 @@ async function handleSend(chatId, phone, text, wallet) {
     transferType = 'escrow';
   }
 
+  const isWalletAddress = transferType === 'direct';
+
   // Store pending transaction
   userSessions.set(chatId, {
     pendingTransaction: {
@@ -1008,26 +1117,40 @@ async function handleSend(chatId, phone, text, wallet) {
   const fee = '0.0005';
   const total = parseFloat(amount) + parseFloat(fee);
 
-  if (isWalletAddress) {
-    // Direct transfer confirmation
-    const recipientTrunc = `${recipient.slice(0, 6)}...${recipient.slice(-4)}`;
-    await sendMessage(chatId,
+  const recipientTrunc = resolvedRecipient.length > 10 
+    ? `${resolvedRecipient.slice(0, 6)}...${resolvedRecipient.slice(-4)}`
+    : resolvedRecipient;
+
+  const buttons = [
+    { body: '✅ Confirm' },
+    { body: '❌ Cancel' }
+  ];
+
+  if (transferType === 'direct') {
+    await sendButtons(
+      chatId,
       `📤 *Confirm Direct Transfer*\n\n` +
       `Amount: ${amount} ${token}\n` +
       `To: \`${recipientTrunc}\`\n` +
       `Type: Direct Transfer (instant)\n` +
       `Network Fee: ~${fee} ETH\n\n` +
-      `Reply *"confirm"* or *"cancel"*`
+      `Tap a button to confirm or cancel:`,
+      buttons,
+      'Confirm Payment',
+      'Powered by Peys Protocol'
     );
   } else {
-    // Escrow confirmation
-    await sendMessage(chatId,
+    await sendButtons(
+      chatId,
       `📤 *Confirm Escrow Payment*\n\n` +
       `Amount: ${amount} ${token}\n` +
-      `To: ${recipient}\n` +
+      `To: ${resolvedRecipient}\n` +
       `Type: Escrow (recipient must claim)\n` +
       `Network Fee: ~${fee} ETH\n\n` +
-      `Reply *"confirm"* or *"cancel"*`
+      `Tap a button to confirm or cancel:`,
+      buttons,
+      'Confirm Payment',
+      'Powered by Peys Protocol'
     );
   }
   
@@ -1236,6 +1359,60 @@ async function sendMessage(chatId, text, showTypingIndicator = true) {
   }
   
   console.error('❌ All send attempts failed');
+  return false;
+}
+
+/**
+ * Send interactive buttons message
+ */
+async function sendButtons(chatId, text, buttons, title = null, footer = null) {
+  const maxRetries = 3;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await showTyping(chatId);
+      const buttonMsg = new Buttons(text, buttons, title, footer);
+      await client.sendMessage(chatId, buttonMsg);
+      
+      const phone = chatId.replace('@c.us', '').replace('@lid', '');
+      console.log('📤 SENT (Buttons) → +' + phone);
+      
+      lastSuccessfulOperation = Date.now();
+      return true;
+    } catch (error) {
+      console.error('❌ Buttons send failed:', error.message);
+      if (attempt === maxRetries) {
+        await sendMessage(chatId, text);
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Send interactive list message
+ */
+async function sendList(chatId, text, buttonText, sections, title = null, footer = null) {
+  const maxRetries = 3;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await showTyping(chatId);
+      const listMsg = new List(text, buttonText, sections, title, footer);
+      await client.sendMessage(chatId, listMsg);
+      
+      const phone = chatId.replace('@c.us', '').replace('@lid', '');
+      console.log('📤 SENT (List) → +' + phone);
+      
+      lastSuccessfulOperation = Date.now();
+      return true;
+    } catch (error) {
+      console.error('❌ List send failed:', error.message);
+      if (attempt === maxRetries) {
+        await sendMessage(chatId, text);
+      }
+    }
+  }
   return false;
 }
 

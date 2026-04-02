@@ -2,7 +2,7 @@ import { usePublicClient, useChainId } from 'wagmi';
 import { useWallets } from '@privy-io/react-auth';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { keccak256, toBytes, Address, Hex, encodeFunctionData } from 'viem';
 
 export interface Payment {
@@ -20,6 +20,63 @@ export { getChainConfig };
 type EIP1193Provider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 };
+
+interface PendingNonce {
+  nonce: number;
+  chainId: number;
+}
+
+const pendingNonces = new Map<string, PendingNonce>();
+const nonceLocks = new Map<string, Promise<void>>();
+
+async function acquireNonceLock(walletAddress: string): Promise<() => void> {
+  while (nonceLocks.has(walletAddress)) {
+    await nonceLocks.get(walletAddress);
+  }
+  let releaseLock: () => void;
+  const lockPromise = new Promise<void>((resolve) => {
+    releaseLock = resolve;
+  });
+  nonceLocks.set(walletAddress, lockPromise);
+  return releaseLock!;
+}
+
+async function getNextNonce(
+  wallet: { address: string; getEthereumProvider: () => Promise<unknown> },
+  chainId: number
+): Promise<number> {
+  const provider = await wallet.getEthereumProvider() as EIP1193Provider;
+  const key = `${wallet.address.toLowerCase()}-${chainId}`;
+  const pending = pendingNonces.get(key);
+
+  try {
+    const result = await provider.request({
+      method: 'eth_getTransactionCount',
+      params: [wallet.address, 'pending'],
+    }) as string;
+    const onChainNonce = parseInt(result, 16);
+    const baseNonce = pending ? Math.max(pending.nonce + 1, onChainNonce) : onChainNonce;
+    
+    pendingNonces.set(key, { nonce: baseNonce, chainId });
+    return baseNonce;
+  } catch (error) {
+    console.warn("Failed to get on-chain nonce, using pending:", error);
+    return pending ? pending.nonce + 1 : 0;
+  }
+}
+
+function incrementNonce(walletAddress: string, chainId: number) {
+  const key = walletAddress.toLowerCase() + '-' + chainId;
+  const current = pendingNonces.get(key);
+  if (current) {
+    pendingNonces.set(key, { nonce: current.nonce + 1, chainId });
+  }
+}
+
+interface PendingNonce {
+  nonce: number;
+  chainId: number;
+}
 
 // Switch the wallet's network via EIP-1193 — works for Privy embedded + external wallets
 async function switchWalletNetwork(
@@ -45,21 +102,38 @@ async function switchWalletNetwork(
 async function sendViaTx(
   wallet: { address: string; getEthereumProvider: () => Promise<unknown> },
   address: string,
-  tx: { to: Address; data: Hex; value: bigint }
+  tx: { to: Address; data: Hex; value: bigint },
+  chainId: number = 84532
 ): Promise<{ hash: Hex }> {
+  const releaseLock = await acquireNonceLock(wallet.address);
+  let nonce: number;
+  
+  try {
+    nonce = await getNextNonce(wallet, chainId);
+  } catch (error) {
+    releaseLock();
+    throw error;
+  }
+
   const provider = await wallet.getEthereumProvider() as EIP1193Provider;
 
-  const hash = await provider.request({
-    method: 'eth_sendTransaction',
-    params: [{
-      from: address,
-      to: tx.to,
-      data: tx.data,
-      value: `0x${tx.value.toString(16)}`,
-    }],
-  }) as Hex;
+  try {
+    const hash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: address,
+        to: tx.to,
+        data: tx.data,
+        value: `0x${tx.value.toString(16)}`,
+        nonce: `0x${nonce.toString(16)}`,
+      }],
+    }) as Hex;
 
-  return { hash };
+    incrementNonce(wallet.address, chainId);
+    return { hash };
+  } finally {
+    releaseLock();
+  }
 }
 
 export function useEscrow() {
@@ -156,7 +230,7 @@ export function useEscrow() {
             to: tokenAddress,
             data: approvalData,
             value: BigInt(0),
-          });
+          }, chainId);
 
           if (result.hash && pc) {
             await pc.waitForTransactionReceipt({ hash: result.hash });
@@ -190,7 +264,7 @@ export function useEscrow() {
         to: escrowContract,
         data: createPaymentData,
         value: BigInt(0),
-      });
+      }, chainId);
 
       if (!result.hash) {
         throw new Error("Transaction was submitted but no hash was returned");
@@ -269,7 +343,7 @@ export function useEscrow() {
         to: escrowContract,
         data: claimData,
         value: BigInt(0),
-      });
+      }, chainId);
       return result.hash as Hex;
     } catch (error: unknown) {
       throw new Error(`Failed to claim: ${(error as Error).message}`);
@@ -293,7 +367,7 @@ export function useEscrow() {
         to: escrowContract,
         data: refundData,
         value: BigInt(0),
-      });
+      }, chainId);
       return result.hash as Hex;
     } catch (error: unknown) {
       throw new Error(`Failed to refund: ${(error as Error).message}`);

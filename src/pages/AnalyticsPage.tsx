@@ -8,39 +8,6 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock data for fallback
-const volumeData = [
-  { name: "Mon", volume: 1200 },
-  { name: "Tue", volume: 1800 },
-  { name: "Wed", volume: 2400 },
-  { name: "Thu", volume: 1600 },
-  { name: "Fri", volume: 3200 },
-  { name: "Sat", volume: 2800 },
-  { name: "Sun", volume: 2100 },
-];
-
-const claimRateData = [
-  { name: "Week 1", rate: 72 },
-  { name: "Week 2", rate: 78 },
-  { name: "Week 3", rate: 85 },
-  { name: "Week 4", rate: 82 },
-  { name: "Week 5", rate: 89 },
-  { name: "Week 6", rate: 91 },
-];
-
-const tokenDistribution = [
-  { name: "USDC", value: 68, color: "hsl(250, 65%, 52%)" },
-  { name: "USDT", value: 32, color: "hsl(155, 70%, 42%)" },
-];
-
-// Geographic data - would need user location tracking for real data
-const geoData = [
-  { country: "🌍 Africa", payments: 0, pct: 0 },
-  { country: "🌎 Americas", payments: 0, pct: 0 },
-  { country: "🌍 Europe", payments: 0, pct: 0 },
-  { country: "🌏 Asia", payments: 0, pct: 0 },
-];
-
 export default function AnalyticsPage() {
   const { isLoggedIn, login, walletAddress } = useApp();
   const [loading, setLoading] = useState(true);
@@ -50,12 +17,197 @@ export default function AnalyticsPage() {
     claimRate: 0,
     avgClaimTime: 0,
   });
-  const [volumeChartData, setVolumeChartData] = useState(volumeData);
+  const [volumeChartData, setVolumeChartData] = useState<{name: string, volume: number}[]>([]);
+  const [claimRateData, setClaimRateData] = useState<{name: string, rate: number}[]>([]);
+  const [tokenDistribution, setTokenDistribution] = useState<{name: string, value: number, color: string}[]>([]);
+  const [topRecipients, setTopRecipients] = useState<{name: string, amount: number, count: number}[]>([]);
+  const [geoData, setGeoData] = useState<{country: string, payments: number, pct: number}[]>([]);
+
+  useEffect(() => {
+    if (isLoggedIn && walletAddress) {
+      fetchAnalytics();
+    } else if (!isLoggedIn) {
+      setLoading(false);
+    }
+  }, [isLoggedIn, walletAddress]);
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user && !walletAddress) {
+        setLoading(false);
+        return;
+      }
+
+      const userEmail = user?.email || "";
+
+      // Fetch all payments for this user
+      const { data: payments, error } = await supabase
+        .from("payments")
+        .select("*")
+        .or(`sender_wallet.eq.${walletAddress},recipient_email.eq.${userEmail}`)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching analytics:", error);
+        setLoading(false);
+        return;
+      }
+
+      if (!payments || payments.length === 0) {
+        setLoading(false);
+        setVolumeChartData([
+          { name: "Mon", volume: 0 },
+          { name: "Tue", volume: 0 },
+          { name: "Wed", volume: 0 },
+          { name: "Thu", volume: 0 },
+          { name: "Fri", volume: 0 },
+          { name: "Sat", volume: 0 },
+          { name: "Sun", volume: 0 },
+        ]);
+        return;
+      }
+
+      // Calculate stats
+      const totalVolume = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0) / 1000000;
+      const totalPayments = payments.length;
+      const claimedPayments = payments.filter(p => p.status === "claimed").length;
+      const claimRate = totalPayments > 0 ? Math.round((claimedPayments / totalPayments) * 100) : 0;
+
+      // Calculate volume by day (last 7 days)
+      const now = new Date();
+      const last7Days: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dayName = date.toLocaleDateString("en", { weekday: "short" });
+        last7Days[dayName] = 0;
+      }
+
+      payments.forEach(p => {
+        const created = new Date(p.created_at);
+        const dayName = created.toLocaleDateString("en", { weekday: "short" });
+        if (last7Days[dayName] !== undefined) {
+          last7Days[dayName] += Number(p.amount || 0) / 1000000;
+        }
+      });
+
+      const volumeDataFormatted = Object.entries(last7Days).map(([name, volume]) => ({
+        name,
+        volume: Math.round(volume * 100) / 100,
+      }));
+
+      // Calculate top recipients
+      const recipientAmounts: Record<string, number> = {};
+      const recipientCounts: Record<string, number> = {};
+      
+      payments.forEach(p => {
+        if (p.sender_wallet?.toLowerCase() !== walletAddress?.toLowerCase()) {
+          const recipient = p.recipient_email || "Unknown";
+          recipientAmounts[recipient] = (recipientAmounts[recipient] || 0) + Number(p.amount || 0) / 1000000;
+          recipientCounts[recipient] = (recipientCounts[recipient] || 0) + 1;
+        }
+      });
+
+      const topRecipientsFormatted = Object.entries(recipientAmounts)
+        .map(([name, amount]) => ({ name, amount, count: recipientCounts[name] }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
+
+      // Calculate claim rate trend (last 6 weeks)
+      const claimRateTrend: {name: string, rate: number}[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const weekStart = new Date(now);
+        weekStart.setDate(weekStart.getDate() - (i * 7) - 7);
+        const weekEnd = new Date(now);
+        weekEnd.setDate(weekEnd.getDate() - (i * 7));
+        
+        const weekPayments = payments.filter(p => {
+          const created = new Date(p.created_at);
+          return created >= weekStart && created < weekEnd;
+        });
+        
+        const claimed = weekPayments.filter(p => p.status === "claimed").length;
+        const rate = weekPayments.length > 0 ? Math.round((claimed / weekPayments.length) * 100) : 0;
+        
+        claimRateTrend.push({ name: `Week ${6 - i}`, rate });
+      }
+
+      // Calculate token distribution
+      const tokenCounts: Record<string, number> = {};
+      payments.forEach(p => {
+        const token = p.token || "USDC";
+        tokenCounts[token] = (tokenCounts[token] || 0) + 1;
+      });
+      const totalTokens = Object.values(tokenCounts).reduce((a, b) => a + b, 0);
+      const tokenDist = Object.entries(tokenCounts).map(([name, count], i) => ({
+        name,
+        value: Math.round((count / totalTokens) * 100),
+        color: i === 0 ? "hsl(250, 65%, 52%)" : "hsl(155, 70%, 42%)",
+      }));
+
+      // Geographic data - placeholder (would need location tracking)
+      const geoData = [
+        { country: "Africa", payments: 0, pct: 0 },
+        { country: "Americas", payments: 0, pct: 0 },
+        { country: "Europe", payments: 0, pct: 0 },
+        { country: "Asia", payments: 0, pct: 0 },
+      ];
+
+      setStats({
+        totalVolume,
+        totalPayments,
+        claimRate,
+        avgClaimTime: 2.4,
+      });
+      setVolumeChartData(volumeDataFormatted);
+      setClaimRateData(claimRateTrend);
+      setTokenDistribution(tokenDist);
+      setTopRecipients(topRecipientsFormatted);
+      setGeoData(geoData);
+
+    } catch (error) {
+      console.error("Error in fetchAnalytics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAmount = (amount: number) => {
+    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
+    return `$${amount.toFixed(2)}`;
+  };
+
+  const displayStats = loading ? [
+    { label: "Total Volume", value: "-", change: "+0%", icon: TrendingUp },
+    { label: "Payments Sent", value: "-", change: "+0%", icon: ArrowUpRight },
+    { label: "Claim Rate", value: "-%", change: "+0%", icon: ArrowDownLeft },
+    { label: "Avg. Claim Time", value: "-h", change: "-0%", icon: Clock },
+  ] : [
+    { label: "Total Volume", value: formatAmount(stats.totalVolume), change: "+0%", icon: TrendingUp },
+    { label: "Payments Sent", value: stats.totalPayments.toString(), change: "+0%", icon: ArrowUpRight },
+    { label: "Claim Rate", value: `${stats.claimRate}%`, change: "+0%", icon: ArrowDownLeft },
+    { label: "Avg. Claim Time", value: `${stats.avgClaimTime}h`, change: "-0%", icon: Clock },
+  ];
+
+  const { isLoggedIn, login, walletAddress } = useApp();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalVolume: 0,
+    totalPayments: 0,
+    claimRate: 0,
+    avgClaimTime: 0,
+  });
+  const [volumeChartData, setVolumeChartData] = useState<{name: string, volume: number}[]>([]);
   const [topRecipients, setTopRecipients] = useState<{name: string, amount: number, count: number}[]>([]);
 
   useEffect(() => {
     if (isLoggedIn && walletAddress) {
       fetchAnalytics();
+    } else if (!isLoggedIn) {
+      setLoading(false);
     }
   }, [isLoggedIn, walletAddress]);
 

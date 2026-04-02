@@ -96,6 +96,34 @@ export default function ContactsPage() {
     }
   };
 
+  const deleteContact = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("contacts")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting contact:", error);
+        toast.error("Failed to delete contact");
+        return;
+      }
+
+      toast.success("Contact deleted");
+      fetchContacts();
+    } catch (err: unknown) {
+      console.error("Error:", err);
+      const error = err as Error;
+      toast.error(error?.message || "Failed to delete contact");
+    }
+  };
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "N/A";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" });
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background">

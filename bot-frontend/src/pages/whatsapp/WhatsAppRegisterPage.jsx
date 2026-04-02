@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Shield, ArrowRight, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function RegisterPage() {
   const { login, authenticated, user, ready } = usePrivy();

@@ -26,6 +26,9 @@ import {
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useApp } from "@/contexts/AppContext";
+import { useEffect, useState } from "react";
 
 interface SecurityLog {
   id: string;
@@ -36,21 +39,63 @@ interface SecurityLog {
   status: "success" | "warning" | "failed";
 }
 
-const mockSecurityLogs: SecurityLog[] = [
-  { id: "1", action: "Login", device: "Chrome on MacOS", location: "San Francisco, CA", timestamp: "2 min ago", status: "success" },
-  { id: "2", action: "Payment Sent", device: "Mobile App", location: "San Francisco, CA", timestamp: "1 hour ago", status: "success" },
-  { id: "3", action: "Settings Changed", device: "Chrome on Windows", location: "New York, NY", timestamp: "3 hours ago", status: "warning" },
-  { id: "4", action: "New Device Login", device: "Firefox on Linux", location: "Unknown", timestamp: "Yesterday", status: "warning" },
-  { id: "5", action: "Password Changed", device: "Mobile App", location: "San Francisco, CA", timestamp: "2 days ago", status: "success" },
-];
-
 export default function SecurityPage() {
+  const { isLoggedIn, walletAddress } = useApp();
+  const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
+  const [loading, setLoading] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
   const [biometricEnabled, setBiometricEnabled] = useState(true);
   const [loginAlerts, setLoginAlerts] = useState(true);
   const [deviceTracking, setDeviceTracking] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn && walletAddress) {
+      fetchSecurityActivity();
+    } else {
+      setLoading(false);
+    }
+  }, [isLoggedIn, walletAddress]);
+
+  const fetchSecurityActivity = async () => {
+    try {
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const userEmail = user.email || "";
+
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("id, status, created_at, memo, token, amount, recipient_email, sender_wallet")
+        .or(`sender_wallet.eq.${walletAddress},recipient_email.eq.${userEmail}`)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (payments && payments.length > 0) {
+        const logs: SecurityLog[] = payments.map((p, i) => {
+          const isSender = p.sender_wallet?.toLowerCase() === walletAddress?.toLowerCase();
+          return {
+            id: p.id,
+            action: isSender ? "Payment Sent" : "Payment Received",
+            device: "Web Browser",
+            location: "Unknown",
+            timestamp: new Date(p.created_at).toLocaleString(),
+            status: p.status === "claimed" ? "success" : p.status === "pending" ? "warning" : "failed",
+          };
+        });
+        setSecurityLogs(logs);
+      }
+    } catch (err) {
+      console.error("Error fetching security activity:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePasswordChange = () => {
     setIsChangingPassword(true);
@@ -333,7 +378,7 @@ export default function SecurityPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockSecurityLogs.map((log) => {
+                {securityLogs.map((log) => {
                   const config = statusConfig[log.status];
                   return (
                     <div

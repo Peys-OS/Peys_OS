@@ -62,7 +62,7 @@ export default function RequestPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("payment_requests")
         .select("*")
         .eq("user_id", user.id)
@@ -111,11 +111,11 @@ export default function RequestPage() {
       const id = `req_${Date.now()}`;
       const link = `peys.app/request/${id}`;
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("payment_requests")
         .insert({
           user_id: user.id,
-          from_email: form.from || "Anyone",
+          requester_email: form.from || "Anyone",
           amount: Number(form.amount),
           token: form.token,
           memo: form.memo || null,
@@ -154,7 +154,7 @@ export default function RequestPage() {
     const shareData = {
       title: `Payment request for $${req.amount} ${req.token}`,
       text: `${req.memo || "Payment requested"} — $${req.amount} ${req.token} on Peys`,
-      url: `https://${req.link}`,
+      url: `https://${req.request_link}`,
     };
     if (navigator.share) {
       try { await navigator.share(shareData); } catch (e) {
@@ -162,7 +162,7 @@ export default function RequestPage() {
         console.log("Share not supported, using clipboard");
       }
     } else {
-      copyLink(req.link, req.id);
+      copyLink(req.request_link, req.id);
     }
   };
 
@@ -201,13 +201,13 @@ export default function RequestPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Request created!</p>
-                  <p className="text-xs text-muted-foreground">${created.amount} {created.token} from {created.from_email}</p>
+                  <p className="text-xs text-muted-foreground">${created.amount} {created.token} from {created.requester_email}</p>
                 </div>
                 <button onClick={() => setCreated(null)} className="text-muted-foreground hover:text-foreground text-xs">Dismiss</button>
               </div>
               <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-card p-2">
-                <span className="flex-1 truncate text-xs text-foreground">{created.link}</span>
-                <button onClick={() => copyLink(created.link, created.id)} className="rounded-md border border-border p-1.5 transition-colors hover:bg-secondary">
+                <span className="flex-1 truncate text-xs text-foreground">{created.request_link}</span>
+                <button onClick={() => copyLink(created.request_link, created.id)} className="rounded-md border border-border p-1.5 transition-colors hover:bg-secondary">
                   {copiedId === created.id ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                 </button>
                 <button onClick={() => shareRequest(created)} className="rounded-md border border-border p-1.5 transition-colors hover:bg-secondary">
@@ -301,7 +301,7 @@ export default function RequestPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-foreground">{req.from_email}</p>
+                      <p className="truncate text-sm font-medium text-foreground">{req.requester_email}</p>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyles[req.status] || statusStyles.open}`}>
                         {req.status}
                       </span>
@@ -313,7 +313,7 @@ export default function RequestPage() {
                   </div>
                   {req.status === "open" && (
                     <button
-                      onClick={() => copyLink(req.link, req.id)}
+                      onClick={() => copyLink(req.request_link, req.id)}
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     >
                       {copiedId === req.id ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,37 +19,91 @@ import {
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-const mockReceipt = {
-  id: "rcpt_8x7f9a2b",
-  txHash: "0x7f9a2b4c8d3e5f6a1b4c8d3e5f6a1b4c8d3e5f6a1b4c8d3e5f6a1b",
-  amount: "250.00",
-  currency: "USD",
-  cryptoAmount: "250.00",
-  cryptoCurrency: "PUSDC",
-  status: "completed",
-  type: "payment_sent",
-  from: "0x1234...abcd",
-  to: "0x5678...efgh",
-  timestamp: "2024-01-15T14:32:00Z",
-  fee: "0.25",
-  feeCurrency: "PUSDC",
-  memo: "Payment for services",
-  merchantName: "Acme Services",
-  merchantVerified: true,
-  blockNumber: 18543210,
-  confirmations: 12,
-  gasPrice: "15",
-  gasUsed: "21000",
-  network: "Base",
-};
+interface ReceiptData {
+  id: string;
+  txHash: string;
+  amount: string;
+  currency: string;
+  cryptoAmount: string;
+  cryptoCurrency: string;
+  status: string;
+  type: string;
+  from: string;
+  to: string;
+  timestamp: string;
+  fee: string;
+  feeCurrency: string;
+  memo: string;
+  merchantName: string;
+  merchantVerified: boolean;
+  blockNumber: number;
+  confirmations: number;
+  gasPrice: string;
+  gasUsed: string;
+  network: string;
+}
 
 export default function ReceiptPage() {
   const { id } = useParams();
   const [copied, setCopied] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const receipt = mockReceipt;
+  useEffect(() => {
+    if (id) {
+      fetchReceipt();
+    }
+  }, [id]);
+
+  const fetchReceipt = async () => {
+    try {
+      setLoading(true);
+      const { data: payment, error } = await supabase
+        .from("payments")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !payment) {
+        toast.error("Receipt not found");
+        setLoading(false);
+        return;
+      }
+
+      const isSender = true;
+      setReceipt({
+        id: payment.id,
+        txHash: payment.tx_hash || "",
+        amount: (Number(payment.amount) / 1000000).toString(),
+        currency: "USD",
+        cryptoAmount: (Number(payment.amount) / 1000000).toString(),
+        cryptoCurrency: payment.token || "USDC",
+        status: payment.status,
+        type: isSender ? "payment_sent" : "payment_received",
+        from: payment.sender_wallet || "",
+        to: payment.recipient_email || "",
+        timestamp: payment.created_at,
+        fee: "0.00",
+        feeCurrency: payment.token || "USDC",
+        memo: payment.memo || "",
+        merchantName: payment.recipient_email || "",
+        merchantVerified: false,
+        blockNumber: 0,
+        confirmations: 12,
+        gasPrice: "0",
+        gasUsed: "0",
+        network: "Base",
+      });
+    } catch (err) {
+      console.error("Error fetching receipt:", err);
+      toast.error("Failed to load receipt");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/receipt/${id}`);

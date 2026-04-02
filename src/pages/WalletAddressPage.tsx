@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,50 +22,31 @@ import {
 import AppHeader from "@/components/AppHeader";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
-
-const mockAddresses = [
-  {
-    id: "1",
-    label: "Main Wallet",
-    address: "0x742d35Cc6634C0532925a3b844Bc9e7595f8a234",
-    type: "default",
-    ens: null,
-    avatar: null,
-    createdAt: "2024-01-01",
-    used: 45,
-  },
-  {
-    id: "2",
-    label: "Trading Account",
-    address: "0x8f3a2e5c9b1d0493f8a7c6e2b4d9f0a1c3e5b7d",
-    type: "custom",
-    ens: "trader.peyd.eth",
-    avatar: null,
-    createdAt: "2024-02-15",
-    used: 12,
-  },
-  {
-    id: "3",
-    label: "Savings",
-    address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
-    type: "custom",
-    ens: null,
-    avatar: null,
-    createdAt: "2024-03-20",
-    used: 8,
-  },
-];
-
-const mockENSNames = [
-  { address: "0x742d35Cc6634C0532925a3b844Bc9e7595f8a234", name: "alice.peyd.eth" },
-  { address: "0x8f3a2e5c9b1d0493f8a7c6e2b4d9f0a1c3e5b7d", name: "bob.peyd.eth" },
-  { address: "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b", name: "charlie.peyd.eth" },
-];
+import { useApp } from "@/contexts/AppContext";
 
 export default function WalletAddressPage() {
+  const { isLoggedIn, walletAddress } = useApp();
   const [copied, setCopied] = useState<string | null>(null);
   const [showFullAddress, setShowFullAddress] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState(mockAddresses[0]);
+  const [addresses, setAddresses] = useState<{id: string, label: string, address: string, type: string, ens: string | null, createdAt: string, used: number}[]>([]);
+
+  useEffect(() => {
+    if (walletAddress) {
+      setAddresses([
+        {
+          id: "1",
+          label: "Main Wallet",
+          address: walletAddress,
+          type: "default",
+          ens: null,
+          createdAt: new Date().toISOString().split("T")[0],
+          used: 0,
+        },
+      ]);
+    }
+  }, [walletAddress]);
+
+  const selectedAddress = addresses[0] || { id: "", label: "", address: "", type: "", ens: null, createdAt: "", used: 0 };
 
   const handleCopy = (address: string) => {
     navigator.clipboard.writeText(address);
@@ -190,7 +171,7 @@ export default function WalletAddressPage() {
                 <CardTitle className="text-lg">Select Address</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {mockAddresses.map((addr) => (
+                {addresses.map((addr) => (
                   <button
                     key={addr.id}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border transition-colors ${
@@ -237,7 +218,7 @@ export default function WalletAddressPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockAddresses.map((addr) => (
+                {addresses.map((addr) => (
                   <div
                     key={addr.id}
                     className="flex items-center justify-between p-3 rounded-lg border"
@@ -283,7 +264,7 @@ export default function WalletAddressPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockAddresses.map((addr) => (
+                {addresses.map((addr) => (
                   <div key={addr.id} className="space-y-1">
                     <div className="flex items-center justify-between text-sm">
                       <span>{addr.label}</span>
@@ -325,7 +306,7 @@ export default function WalletAddressPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockENSNames.map((ens) => (
+                {addresses.length > 0 ? [{ address: addresses[0].address, name: addresses[0].ens || "No ENS" }].map((ens) => (
                   <div
                     key={ens.address}
                     className="flex items-center justify-between p-3 rounded-lg border"
