@@ -24,6 +24,9 @@ import qrcodeTerminal from 'qrcode-terminal';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
+import pkgPuppeteer from 'puppeteer-core';
+const puppeteer = pkgPuppeteer;
+
 // Import services
 import escrowService from './services/escrowService.js';
 import blockchainService from './services/blockchainService.js';
@@ -86,13 +89,14 @@ async function initializeServices() {
 
 async function initializeWhatsApp() {
   const authPath = path.join(process.cwd(), '.waweb_auth');
-  const sessionId = 'peys-bot-' + Date.now();
+  const sessionId = process.env.WHATSAPP_SESSION_ID || 'peys-bot-main';
   
   if (!existsSync(authPath)) {
     mkdirSync(authPath, { recursive: true });
   }
 
   console.log('⏳ Initializing WhatsApp client...');
+  console.log('   Session: ' + sessionId);
   
   client = new Client({
     authStrategy: new LocalAuth({ 
@@ -102,12 +106,16 @@ async function initializeWhatsApp() {
     puppeteer: {
       headless: true,
       protocolTimeout: 120000,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROMIUM_PATH || undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--window-size=1920,1080'
+        '--window-size=1920,1080',
+        '--disable-extensions',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process'
       ]
     }
   });
@@ -1951,6 +1959,7 @@ function createQRPage(qrImage) {
 // ============================================================================
 
 async function startServer() {
+  // Start listening first
   app.listen(PORT, () => {
     const dbMode = db.isSupabaseConfigured() ? '✅ Supabase' : '⚠️ Mock (no DB)';
     console.log('\n' + '═'.repeat(60));
@@ -1963,11 +1972,17 @@ async function startServer() {
     console.log('═'.repeat(60) + '\n');
   });
 
-  // Initialize services
-  await initializeServices();
+  // Initialize services (non-blocking)
+  try {
+    await initializeServices();
+  } catch (error) {
+    console.error('⚠️ Services init error:', error.message);
+  }
   
-  // Initialize WhatsApp
-  await initializeWhatsApp();
+  // Initialize WhatsApp (non-blocking - happens in background)
+  initializeWhatsApp().catch(error => {
+    console.error('⚠️ WhatsApp init error:', error.message);
+  });
 }
 
 startServer().catch(console.error);

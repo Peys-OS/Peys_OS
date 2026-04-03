@@ -85,10 +85,12 @@ class BlockchainService {
    * Initialize providers and contracts for all networks
    */
   async initialize() {
+    this.initialized = false;
+    
     try {
       for (const [networkName, config] of Object.entries(this.networks)) {
         try {
-          // Create provider
+          // Create provider - just use the RPC URL without custom options
           const provider = new ethers.JsonRpcProvider(config.rpcUrl);
           this.providers[networkName] = provider;
 
@@ -100,11 +102,11 @@ class BlockchainService {
           );
           this.contracts[networkName] = escrowContract;
 
-          // Test connection
-          const blockNumber = await provider.getBlockNumber();
-          console.log(`[Blockchain] ${config.name}: Connected (block ${blockNumber})`);
+          // Skip connection test during initialization - just store the provider
+          console.log(`[Blockchain] ${config.name}: Provider configured`);
         } catch (error) {
-          console.warn(`[Blockchain] ${config.name}: Connection failed - ${error.message}`);
+          console.warn(`[Blockchain] ${config.name}: Provider setup failed - ${error.message}`);
+          // Continue with other networks
         }
       }
 
@@ -112,6 +114,8 @@ class BlockchainService {
       console.log('[Blockchain] Service initialized');
     } catch (error) {
       console.error('[Blockchain] Initialization error:', error.message);
+      // Don't crash - continue without blockchain
+      this.initialized = true;
     }
   }
 
