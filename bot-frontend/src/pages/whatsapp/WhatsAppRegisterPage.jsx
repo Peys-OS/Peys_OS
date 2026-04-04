@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy } from '../../components/PrivyProvider';
 import { motion } from 'framer-motion';
 import { Phone, Mail, Shield, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';

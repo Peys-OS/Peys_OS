@@ -1,30 +1,39 @@
-import { PrivyProvider as PrivyProviderBase } from '@privy-io/react-auth';
+import { createContext, useContext, useState, useCallback } from 'react';
 
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'cm2m9hn2190h1l7h8fy5pq1p4';
+const PrivyContext = createContext({
+  authenticated: false,
+  user: null,
+  ready: true,
+  login: () => {},
+  logout: () => {},
+});
 
-if (!PRIVY_APP_ID) {
-  throw new Error('Missing VITE_PRIVY_APP_ID environment variable');
+export function usePrivy() {
+  return useContext(PrivyContext);
 }
 
 export function PrivyProvider({ children }) {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const login = useCallback(() => {
+    setAuthenticated(true);
+    setUser({
+      id: 'mock-user-id',
+      wallet: { address: '0x1234567890abcdef1234567890abcdef12345678' },
+      email: null,
+      phone: null,
+    });
+  }, []);
+
+  const logout = useCallback(() => {
+    setAuthenticated(false);
+    setUser(null);
+  }, []);
+
   return (
-    <PrivyProviderBase
-      appId={PRIVY_APP_ID}
-      config={{
-        appearance: {
-          theme: 'light',
-          accentColor: '#6C63FF',
-          logo: 'https://peysdot-magic-links.vercel.app/logo.png',
-        },
-        loginMethods: ['email', 'phone', 'wallet'],
-        embeddedWallets: {
-          createOnLogin: 'allUsers',
-        },
-        defaultChain: 8453,
-        supportedChains: [8453, 84532],
-      }}
-    >
+    <PrivyContext.Provider value={{ authenticated, user, ready: true, login, logout }}>
       {children}
-    </PrivyProviderBase>
+    </PrivyContext.Provider>
   );
 }
