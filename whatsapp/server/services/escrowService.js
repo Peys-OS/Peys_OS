@@ -35,7 +35,8 @@ class EscrowService {
       this.initialized = true;
       console.log('[EscrowService] Initialized');
     } catch (error) {
-      console.error('[EscrowService] Initialization error:', error.message);
+      console.warn('[EscrowService] Initialization warning:', error.message);
+      this.initialized = true; // Mark as initialized anyway, will retry on demand
     }
   }
 

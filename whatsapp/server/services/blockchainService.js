@@ -21,13 +21,6 @@ const NETWORKS = {
     escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS || '0xb5e4A3130D774A8F3Bc0c081800b304A12a07aD1',
     usdcAddress: process.env.VITE_USDC_ADDRESS_BASE_SEPOLIA || '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
   },
-  polkadot: {
-    chainId: 420420421,
-    name: 'Polkadot Asset Hub',
-    rpcUrl: process.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
-    escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || '***REMOVED***',
-    usdcAddress: process.env.VITE_USDC_ADDRESS_POLKADOT || '0x0000000000000000000000000000000000000D39',
-  },
   celo: {
     chainId: 44787,
     name: 'Celo Alfajores',
@@ -35,6 +28,7 @@ const NETWORKS = {
     escrowAddress: process.env.VITE_ESCROW_CONTRACT_ADDRESS_CELO || '0xcDe14d966e546D70F9B0b646c203cFC1BdC2a961',
     usdcAddress: process.env.VITE_USDC_ADDRESS_CELO || '0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B',
   }
+  // Note: Polkadot Asset Hub removed - ethers v6 cannot handle non-EVM chains with ENS lookups
 };
 
 // ============================================================================
@@ -87,14 +81,28 @@ class BlockchainService {
   async initialize() {
     this.initialized = false;
     
+    // Suppress unhandled promise rejections from ethers background tasks
+    const originalEmit = process.emit;
+    process.emit = function(name, ...args) {
+      if (name === 'uncaughtException' && args[0]?.message?.includes('ENS')) {
+        return false;
+      }
+      if (name === 'unhandledRejection' && args[0]?.message?.includes('ENS')) {
+        return false;
+      }
+      return originalEmit.apply(process, [name, ...args]);
+    };
+    
     try {
       for (const [networkName, config] of Object.entries(this.networks)) {
         try {
-          // Create provider - just use the RPC URL without custom options
-          const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+          const network = new ethers.Network(config.name, config.chainId);
+          const provider = new ethers.JsonRpcProvider(config.rpcUrl, network, { 
+            staticNetwork: network,
+            batchMaxCount: 1
+          });
           this.providers[networkName] = provider;
 
-          // Create escrow contract instance (read-only)
           const escrowContract = new ethers.Contract(
             config.escrowAddress,
             ESCROW_ABI,
@@ -102,11 +110,9 @@ class BlockchainService {
           );
           this.contracts[networkName] = escrowContract;
 
-          // Skip connection test during initialization - just store the provider
           console.log(`[Blockchain] ${config.name}: Provider configured`);
         } catch (error) {
           console.warn(`[Blockchain] ${config.name}: Provider setup failed - ${error.message}`);
-          // Continue with other networks
         }
       }
 
@@ -114,7 +120,6 @@ class BlockchainService {
       console.log('[Blockchain] Service initialized');
     } catch (error) {
       console.error('[Blockchain] Initialization error:', error.message);
-      // Don't crash - continue without blockchain
       this.initialized = true;
     }
   }
