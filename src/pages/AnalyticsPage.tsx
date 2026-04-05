@@ -298,24 +298,6 @@ export default function AnalyticsPage() {
     }
   };
 
-  const formatAmount = (amount: number) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
-    return `$${amount.toFixed(2)}`;
-  };
-
-  const displayStats = loading ? [
-    { label: "Total Volume", value: "-", change: "+0%", icon: TrendingUp },
-    { label: "Payments Sent", value: "-", change: "+0%", icon: ArrowUpRight },
-    { label: "Claim Rate", value: "-%", change: "+0%", icon: ArrowDownLeft },
-    { label: "Avg. Claim Time", value: "-h", change: "-0%", icon: Clock },
-  ] : [
-    { label: "Total Volume", value: formatAmount(stats.totalVolume), change: "+0%", icon: TrendingUp },
-    { label: "Payments Sent", value: stats.totalPayments.toString(), change: "+0%", icon: ArrowUpRight },
-    { label: "Claim Rate", value: `${stats.claimRate}%`, change: "+0%", icon: ArrowDownLeft },
-    { label: "Avg. Claim Time", value: `${stats.avgClaimTime}h`, change: "-0%", icon: Clock },
-  ];
-
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background">
@@ -360,24 +342,42 @@ export default function AnalyticsPage() {
           </div>
         ) : (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {displayStats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="rounded-xl border border-border bg-card p-4 shadow-soft"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <s.icon className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="mt-2 font-display text-xl text-foreground sm:text-2xl">{s.value}</p>
-              <p className={`mt-1 text-xs font-medium ${s.change.startsWith("+") ? "text-primary" : "text-destructive"}`}>
-                {s.change} vs last period
-              </p>
-            </motion.div>
-          ))}
+          {(() => {
+            const formatAmount = (amount: number) => {
+              if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
+              if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
+              return `$${amount.toFixed(2)}`;
+            };
+            const displayStats = loading ? [
+              { label: "Total Volume", value: "-", change: "+0%", icon: TrendingUp },
+              { label: "Payments Sent", value: "-", change: "+0%", icon: ArrowUpRight },
+              { label: "Claim Rate", value: "-%", change: "+0%", icon: ArrowDownLeft },
+              { label: "Avg. Claim Time", value: "-h", change: "-0%", icon: Clock },
+            ] : [
+              { label: "Total Volume", value: formatAmount(stats.totalVolume), change: "+0%", icon: TrendingUp },
+              { label: "Payments Sent", value: stats.totalPayments.toString(), change: "+0%", icon: ArrowUpRight },
+              { label: "Claim Rate", value: `${stats.claimRate}%`, change: "+0%", icon: ArrowDownLeft },
+              { label: "Avg. Claim Time", value: `${stats.avgClaimTime}h`, change: "-0%", icon: Clock },
+            ];
+            return displayStats.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="rounded-xl border border-border bg-card p-4 shadow-soft"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <s.icon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <p className="mt-2 font-display text-xl text-foreground sm:text-2xl">{s.value}</p>
+                <p className={`mt-1 text-xs font-medium ${s.change.startsWith("+") ? "text-primary" : "text-destructive"}`}>
+                  {s.change} vs last period
+                </p>
+              </motion.div>
+            ));
+          })()}
         </div>
         )}
 
