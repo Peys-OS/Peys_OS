@@ -306,7 +306,7 @@ export default function WalletAddressPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {addresses.length > 0 ? [{ address: addresses[0].address, name: addresses[0].ens || "No ENS" }].map((ens) => (
+                {addresses.length > 0 && [{ address: addresses[0].address, name: addresses[0].ens || "No ENS" }].map((ens: any) => (
                   <div
                     key={ens.address}
                     className="flex items-center justify-between p-3 rounded-lg border"
