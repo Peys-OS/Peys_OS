@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { PrivyProvider as PrivyReactProvider, usePrivy } from '@privy-io/react-auth';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
+import { PrivyProvider as PrivyReactProvider, usePrivy, useUser } from '@privy-io/react-auth';
 import { defineChain } from 'viem';
 import { baseSepolia, celoAlfajores, polygonAmoy } from 'viem/chains';
 
@@ -45,18 +45,20 @@ interface PrivyAuthContextType {
 const PrivyAuthContext = createContext<PrivyAuthContextType | null>(null);
 
 function PrivyAuthInner({ children }: { children: ReactNode }) {
-  const { login, logout: privyLogout, user: privyUser, ready, authenticated, wallet } = usePrivy();
+  const { login, logout: privyLogout, user: privyUser, ready, authenticated } = usePrivy();
+  const { user: privyUserFull } = useUser();
 
   const [isLoading, setIsLoading] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
   useEffect(() => {
-    if (wallet) {
-      setWalletAddress(wallet.address);
+    const wallets = privyUserFull?.wallet?.address ? [privyUserFull.wallet] : [];
+    if (wallets.length > 0) {
+      setWalletAddress(wallets[0].address);
     } else {
       setWalletAddress('');
     }
-  }, [wallet]);
+  }, [privyUserFull]);
 
   const handleLogin = useCallback(() => {
     if (!ready) return;
