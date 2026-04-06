@@ -1,23 +1,23 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { PrivyProvider as PrivyReactProvider, usePrivy, useWallets } from '@privy-io/react-auth';
 import { defineChain } from 'viem';
-import { baseSepolia, celoAlfajores } from 'viem/chains';
+import { baseSepolia, celoAlfajores, polygonAmoy } from 'viem/chains';
 
-// Paseo Asset Hub EVM testnet chain definition
-const paseoAssetHub = defineChain({
-  id: 420420421,
-  name: 'Paseo Asset Hub',
-  nativeCurrency: { name: 'Paseo', symbol: 'PAS', decimals: 18 },
-  rpcUrls: {
-    default: { 
-      http: [
-        import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-asset-hub-paseo.dotters.network',
-        'https://paseo-rpc.dotters.network',
-        'https://westend-asset-hub-eth-rpc.polkadot.io',
-        'https://polkadot-westend.gateway.tatum.io',
-      ] 
-    },
-  },
+// Base Sepolia chain definition
+const baseSepoliaChain = defineChain({
+  ...baseSepolia,
+  testnet: true,
+});
+
+// Celo Alfajores chain definition  
+const celoAlfajoresChain = defineChain({
+  ...celoAlfajores,
+  testnet: true,
+});
+
+// Polygon Amoy chain definition
+const polygonAmoyChain = defineChain({
+  ...polygonAmoy,
   testnet: true,
 });
 
@@ -51,7 +51,6 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
-  // Track embedded wallet address
   useEffect(() => {
     if (wallets.length > 0) {
       const embedded = wallets.find((w) => w.walletClientType === 'privy');
@@ -67,7 +66,6 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
     if (!ready) return;
     setIsLoading(true);
     login();
-    // isLoading will be reset once `authenticated` changes
   }, [login, ready]);
 
   const handleLoginWithEmailOnly = useCallback((prefillEmail?: string) => {
@@ -119,10 +117,6 @@ function PrivyAuthInner({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Top-level Privy provider — wrap your entire app with this.
- * Configures Privy with Paseo Asset Hub chain and all login methods.
- */
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   return (
     <PrivyReactProvider
@@ -136,11 +130,11 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
         loginMethods: ['email', 'phone', 'google', 'apple', 'twitter', 'wallet'],
         embeddedWallets: {
           ethereum: {
-            createOnLogin: 'users-without-wallets',  // Fixed: was 'users-without-wallet'
+            createOnLogin: 'users-without-wallets',
           },
         },
-        defaultChain: baseSepolia,
-        supportedChains: [paseoAssetHub, baseSepolia, celoAlfajores],
+        defaultChain: baseSepoliaChain,
+        supportedChains: [baseSepoliaChain, celoAlfajoresChain, polygonAmoyChain],
       }}
     >
       <PrivyAuthInner>{children}</PrivyAuthInner>
@@ -148,9 +142,6 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Hook to access Privy auth state throughout the app.
- */
 export function usePrivyAuth() {
   const ctx = useContext(PrivyAuthContext);
   if (!ctx) throw new Error('usePrivyAuth must be inside PrivyAppProvider');
