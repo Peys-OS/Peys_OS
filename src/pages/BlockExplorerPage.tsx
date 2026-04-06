@@ -34,8 +34,8 @@ const MOCK_TX: TransactionDetails = {
   gasUsed: "21000",
   gasPrice: "0.00001",
   status: "confirmed",
-  network: "Polkadot Asset Hub Testnet",
-  explorerUrl: "https://polkadot.testnet.routescan.io",
+  network: "Base Sepolia Testnet",
+  explorerUrl: "https://sepolia.basescan.org",
 };
 
 export default function BlockExplorerPage() {
@@ -77,8 +77,8 @@ export default function BlockExplorerPage() {
   };
 
   const getExplorerUrl = (type: "tx" | "address", hash: string, network: string) => {
-    if (network.includes("Polkadot")) return `https://polkadot.testnet.routescan.io/${type}/${hash}`;
     if (network.includes("Celo")) return `https://alfajores-blockscout.celo-testnet.org/${type}/${hash}`;
+    if (network.includes("Polygon")) return `https://amoy.polygonscan.com/${type}/${hash}`;
     return `https://sepolia.basescan.org/${type}/${hash}`;
   };
 

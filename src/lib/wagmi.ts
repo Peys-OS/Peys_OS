@@ -17,41 +17,6 @@ const polygonAmoyRpcs = [
   import.meta.env.VITE_RPC_URL_POLYGON || 'https://polygon-amoy.g.alchemy.com/v2/demo',
 ];
 
-const polkadotRpcs = [
-  import.meta.env.VITE_RPC_URL_POLKADOT || 'https://eth-rpc-testnet.polkadot.io',
-  'https://eth-asset-hub-paseo.dotters.network',
-  'https://paseo-rpc.dotters.network',
-  'https://westend-asset-hub-eth-rpc.polkadot.io',
-  'https://polkadot-westend.gateway.tatum.io',
-];
-
-// Define Polkadot Asset Hub (Paseo Testnet) - Chain ID 420420417
-export const polkadotAssetHub = {
-  id: 420420417,
-  name: 'Polkadot Asset Hub Testnet',
-  network: 'polkadot-asset-hub-testnet',
-  nativeCurrency: {
-    name: 'PAS',
-    symbol: 'PAS',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: polkadotRpcs,
-    },
-    public: {
-      http: polkadotRpcs,
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Polkadot Testnet Explorer',
-      url: 'https://polkadot.testnet.routescan.io',
-    },
-  },
-  testnet: true,
-} as const;
-
 // Define Celo Alfajores Testnet
 export const celoAlfajores = {
   id: 44787,
@@ -107,13 +72,12 @@ export const polygonAmoy = {
 } as const;
 
 export const config = createConfig({
-  chains: [polkadotAssetHub, celoAlfajores, celo, base, baseSepolia, polygonAmoy, mainnet, polygon, arbitrum],
+  chains: [celoAlfajores, celo, base, baseSepolia, polygonAmoy, mainnet, polygon, arbitrum],
   connectors: [
     injected(),
     coinbaseWallet(),
   ],
   transports: {
-    [polkadotAssetHub.id]: fallback(polkadotRpcs.map(rpc => http(rpc)), { rank: true }),
     [celoAlfajores.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
     [celo.id]: fallback(celoRpcs.map(rpc => http(rpc)), { rank: true }),
     [base.id]: http(import.meta.env.VITE_RPC_URL_BASE || 'https://mainnet.base.org'),

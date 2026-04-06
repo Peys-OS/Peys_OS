@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import FiatOnRamp from "./FiatOnRamp";
-import { isPvmSupported } from "@/lib/polkadotPvm";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { Address, keccak256, toHex, parseAbiItem, getEventSelector, decodeEventLog } from "viem";
 import { usePublicClient, useAccount, useChainId } from "wagmi";
@@ -28,7 +27,7 @@ interface Contact {
   totalSent: number;
 }
 
-type Token = "USDC" | "USDT" | "PASS";
+type Token = "USDC" | "USDT";
 
 interface NetworkOption {
   id: number;
@@ -39,7 +38,6 @@ interface NetworkOption {
 }
 
 const networks: NetworkOption[] = [
-  { id: 420420417, name: "Polkadot Asset Hub", shortName: "Polkadot", color: "#E6007A", blockExplorer: "https://polkadot.testnet.routescan.io" },
   { id: 84532, name: "Base Sepolia", shortName: "Base", color: "#0056FF", blockExplorer: "https://sepolia.basescan.org" },
   { id: 44787, name: "Celo Alfajores", shortName: "Celo", color: "#35D07F", blockExplorer: "https://alfajores-blockscout.celo-testnet.org" },
   { id: 80002, name: "Polygon Amoy", shortName: "Polygon", color: "#8247E5", blockExplorer: "https://www.oklink.com/amoy" },
@@ -157,13 +155,9 @@ export default function SendPaymentForm() {
     }
   }, [connectedChain]);
 
-  // Set default token to PASS when on Polkadot
+  // Set default token based on network
   useEffect(() => {
-    if (selectedNetwork === 420420417 || selectedNetwork === 420420421) {
-      setToken("PASS");
-    } else {
-      setToken("USDC");
-    }
+    setToken("USDC");
   }, [selectedNetwork]);
 
   // Close dropdowns when clicking outside
@@ -374,17 +368,13 @@ export default function SendPaymentForm() {
         const chainConfig = getChainConfig(chainId);
         
         let tokenAddress: string;
-        if (token === "PASS") {
-          tokenAddress = chainConfig.passAddress;
-        } else if (token === "USDC") {
+        if (token === "USDC") {
           tokenAddress = chainConfig.usdcAddress;
         } else {
           tokenAddress = chainConfig.usdtAddress;
         }
         
-        const amountBigInt = token === "PASS" 
-          ? BigInt(Number(amount) * 1000000000000000000) 
-          : BigInt(Number(amount) * 1000000);
+        const amountBigInt = BigInt(Number(amount) * 1000000);
         const expiryDays = 7;
 
         setSendingPhase("approving");
@@ -583,9 +573,6 @@ export default function SendPaymentForm() {
   // Get balance for selected network
   const networkBalance = wallet.networkBalances?.find(nb => nb.chainId === selectedNetwork);
   const getBalance = () => {
-    if (token === "PASS") {
-      return networkBalance?.pass || wallet.balancePASS || 0;
-    }
     if (token === "USDC") {
       return networkBalance ? networkBalance.usdc : wallet.balanceUSDC;
     }
@@ -729,12 +716,8 @@ export default function SendPaymentForm() {
 
                 {/* Token Selector */}
                 <div className="flex gap-2">
-                  {(["PASS", "USDC", "USDT"] as Token[])
+                  {(["USDC", "USDT"] as Token[])
                     .filter((t) => {
-                      const chainConfig = getChainConfig(selectedNetwork);
-                      if (t === "PASS") {
-                        return selectedNetwork === 420420417 || selectedNetwork === 420420421;
-                      }
                       if (t === "USDT") {
                         return false; // USDT coming soon
                       }
@@ -1037,7 +1020,7 @@ export default function SendPaymentForm() {
                       {gasLoading ? (
                         <span className="animate-pulse">Estimating...</span>
                       ) : gasEstimate ? (
-                        `~${(Number(gasEstimate) / 1e18).toFixed(6)} ${selectedNetwork === 420420417 ? "PAS" : "ETH"}`
+                        `~${(Number(gasEstimate) / 1e18).toFixed(6)} ETH`
                       ) : (
                         "Unavailable"
                       )}

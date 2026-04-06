@@ -16,7 +16,7 @@ export default function Footer() {
             </div>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
               The stablecoin payment OS.<br />
-              Built on Polkadot Asset Hub.
+              Built on Base, Celo & Polygon.
             </p>
             <div className="mt-4 flex gap-3">
               <a href="https://x.com/Peys_io" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary">

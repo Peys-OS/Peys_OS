@@ -15,32 +15,6 @@ export interface ChainConfig {
 }
 
 export const chainConfigs: Record<number, ChainConfig> = {
-  // Polkadot Asset Hub (Paseo Testnet) - Chain ID 420420417
-  420420417: {
-    id: 420420417,
-    name: "Polkadot Asset Hub Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || "***REMOVED***") as Address,
-    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLKADOT || "0x0000000000000000000000000000000000000D39") as Address,
-    usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLKADOT || "") as Address,
-    passAddress: (import.meta.env.VITE_PASS_ADDRESS_POLKADOT || "0x00000001000000000000000000000000000007C0") as Address,
-    streamingContract: (import.meta.env.VITE_STREAMING_CONTRACT_ADDRESS_POLKADOT || "***REMOVED***") as Address,
-    batchPayrollContract: (import.meta.env.VITE_BATCH_PAYROLL_CONTRACT_ADDRESS_POLKADOT || "0x802A6843516f52144b3F1D04E5447A085d34aF37") as Address,
-    rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-rpc-testnet.polkadot.io",
-    blockExplorer: "https://polkadot.testnet.routescan.io",
-    nativeSymbol: "PAS",
-  },
-  // Legacy chain ID (for backward compatibility)
-  420420421: {
-    id: 420420421,
-    name: "Polkadot Asset Hub Testnet",
-    escrowContract: (import.meta.env.VITE_ESCROW_CONTRACT_ADDRESS_POLKADOT || "***REMOVED***") as Address,
-    usdcAddress: (import.meta.env.VITE_USDC_ADDRESS_POLKADOT || "0x0000000000000000000000000000000000000D39") as Address,
-    usdtAddress: (import.meta.env.VITE_USDT_ADDRESS_POLKADOT || "") as Address,
-    passAddress: (import.meta.env.VITE_PASS_ADDRESS_POLKADOT || "0x00000001000000000000000000000000000007C0") as Address,
-    rpcUrl: import.meta.env.VITE_RPC_URL_POLKADOT || "https://eth-rpc-testnet.polkadot.io",
-    blockExplorer: "https://polkadot.testnet.routescan.io",
-    nativeSymbol: "PAS",
-  },
   // Celo Alfajores (Testnet)
   44787: {
     id: 44787,
@@ -104,9 +78,9 @@ export const chainConfigs: Record<number, ChainConfig> = {
 };
 
 export function getChainConfig(chainId: number): ChainConfig {
-  return chainConfigs[chainId] || chainConfigs[420420417];
+  return chainConfigs[chainId] || chainConfigs[84532];
 }
 
 export function getDefaultChainId(): number {
-  return 420420417; // Polkadot Asset Hub (Paseo)
+  return 84532; // Base Sepolia Testnet
 }
