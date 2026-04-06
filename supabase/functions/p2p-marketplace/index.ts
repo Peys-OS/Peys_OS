@@ -27,13 +27,15 @@ serve(async (req) => {
 
   try {
     // Use ANON_KEY with RLS instead of SERVICE_ROLE_KEY for security
+    const authHeader = req.headers.get("Authorization");
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         auth: { persistSession: false },
         global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
+          headers: authHeader ? { Authorization: authHeader } : {},
         },
       }
     );

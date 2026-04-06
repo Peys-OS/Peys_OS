@@ -21,12 +21,14 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const authHeader = req.headers.get("Authorization");
+
     const supabaseClient = createClient(
       supabaseUrl,
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
+          headers: authHeader ? { Authorization: authHeader } : {},
         },
       }
     );
