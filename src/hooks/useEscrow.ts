@@ -4,6 +4,7 @@ import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
 import { useCallback, useMemo, useRef } from 'react';
 import { keccak256, toBytes, Address, Hex, encodeFunctionData } from 'viem';
+import { usePrivyAuth } from '@/contexts/PrivyContext';
 
 export interface Payment {
   sender: string;
@@ -138,16 +139,10 @@ async function sendViaTx(
 
 export function useEscrow() {
   const publicClient = usePublicClient();
-  const { wallets } = useWallets();
   const wagmiChainId = useChainId();
-
-  // Get the active wallet from Privy — works for both embedded and external wallets
-  const activeWallet = useMemo(() => {
-    if (!wallets || wallets.length === 0) return null;
-    return wallets.find(w => w.walletClientType === 'privy') ?? wallets[0];
-  }, [wallets]);
-
-  const address = activeWallet?.address as Address | undefined;
+  const { walletAddress } = usePrivyAuth();
+  
+  const address = walletAddress as Address | undefined;
   const chainId = wagmiChainId || 84532;
 
   const getContractAddresses = useCallback(() => {
