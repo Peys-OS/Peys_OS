@@ -21,8 +21,11 @@ const polygonAmoyChain = defineChain({
   testnet: true,
 });
 
-// Privy App ID — publishable client key, safe in code
-const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID || 'cmlpmbwgn00cb0dicbfwdkz40';
+const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID;
+
+if (!PRIVY_APP_ID) {
+  console.error("CRITICAL: VITE_PRIVY_APP_ID environment variable is not set. Authentication will not work.");
+}
 
 interface PeysUser {
   id: string;
