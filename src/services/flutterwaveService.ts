@@ -133,9 +133,8 @@ export class FlutterwaveService {
         { id: "ng_027", code: "309", name: "Jubilee Bank" },
         { id: "ng_028", code: "311", name: "Pay Attitude" },
         { id: "ng_029", code: "322", name: "Kuda Bank" },
-        { id: "ng_030", code: "323", name: "Rust"
-
-, name: "Finca" },
+        { id: "ng_030", code: "323", name: "Rust" },
+        { id: "ng_031", code: "324", name: "Finca" },
         { id: "ng_031", code: "324", name: "Teasy" },
         { id: "ng_032", code: "325", name: "GoMoney" },
         { id: "ng_033", code: "326", name: "Parralex" },
@@ -173,8 +172,7 @@ export class FlutterwaveService {
         { id: "ke_008", code: "KE008", name: "National Bank of Kenya" },
         { id: "ke_009", code: "KE009", name: "CFC Stanbic IBTC" },
         { id: "ke_010", code: "KE010", name: "Guaranty Trust Bank Kenya" },
-        { id: "ke_011", code: "KE011", name: "M-Pesa"
-, name: "M-Pesa" },
+        { id: "ke_011", code: "KE011", name: "M-Pesa" },
         { id: "ke_012", code: "KE012", name: "Jumo" },
         { id: "ke_013", code: "KE013", name: "Tala" },
       ],
