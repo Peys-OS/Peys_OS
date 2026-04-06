@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       {
         status: 500,
-        headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }
