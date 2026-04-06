@@ -1,5 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { createContext, ReactNode } from "react";
+import { useCallback, useContext, useEffect, useRef, useState, createContext, ReactNode } from "react";
 
 interface WakeLockContextType {
   wakeLockEnabled: boolean;

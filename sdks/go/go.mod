@@ -1,4 +1,4 @@
-module github.com/Peys-OS/Peys_OS/sdks/go
+module github.com/peys/go
 
 go 1.21
 
