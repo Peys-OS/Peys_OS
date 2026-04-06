@@ -120,6 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ]);
         return Number(formatUnits(raw as bigint, 6));
       } catch (err) {
+        console.error('Error reading token balance:', err);
         return 0;
       }
     };
@@ -129,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const balance = await client.getBalance({ address: addr });
         return Number(formatUnits(balance, 18));
       } catch (err) {
+        console.error('Error reading native balance:', err);
         return 0;
       }
     };
