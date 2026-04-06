@@ -112,8 +112,8 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={config}>
-        <PrivyAppProvider>
+      <PrivyAppProvider>
+        <WagmiProvider config={config}>
           <AppProvider>
             <ThemeProvider>
               <OfflineProvider>
@@ -228,8 +228,8 @@ export default function App() {
               </OfflineProvider>
             </ThemeProvider>
           </AppProvider>
-        </PrivyAppProvider>
-      </WagmiProvider>
+        </WagmiProvider>
+      </PrivyAppProvider>
     </QueryClientProvider>
   );
 }
