@@ -12,7 +12,6 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
     proxy: {
-      // Proxy AI assistant requests to local Ollama in dev mode
       "/api/ai": {
         target: "http://localhost:11434",
         changeOrigin: true,
@@ -29,42 +28,31 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-privy': ['@privy-io/react-auth', '@privy-io/wagmi'],
-          'vendor-wagmi': ['wagmi', 'viem'],
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-visually-hidden',
-          ],
-          'vendor-charts': ['recharts'],
-          'vendor-wallet': [
-            '@walletconnect/sign-client',
-            '@walletconnect/ethereum-provider',
-            '@walletconnect/universal-provider',
-            '@metamask/sdk',
-          ],
-          'vendor-icons': ['lucide-react'],
+        manualChunks: (id) => {
+          // Keep React and wagmi together to avoid context issues
+          if (id.includes('node_modules/wagmi') || id.includes('node_modules/viem') || id.includes('node_modules/react')) {
+            return 'vendor-web3';
+          }
+          // Group wallet connections
+          if (id.includes('node_modules/@walletconnect') || id.includes('node_modules/@metamask')) {
+            return 'vendor-wallet';
+          }
+          // Privy auth
+          if (id.includes('node_modules/@privy-io')) {
+            return 'vendor-privy';
+          }
+          // Radix UI components
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'vendor-ui';
+          }
+          // Charts
+          if (id.includes('node_modules/recharts')) {
+            return 'vendor-charts';
+          }
+          // Icons
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
         },
       },
     },
