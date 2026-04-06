@@ -1,5 +1,4 @@
 import { usePublicClient, useChainId } from 'wagmi';
-import { useWallets } from '@privy-io/react-auth';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
 import { useCallback, useMemo, useRef } from 'react';
