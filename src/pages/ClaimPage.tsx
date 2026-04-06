@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { fireBurst } from "@/utils/confetti";
 import { useEscrow, getChainConfig } from "@/hooks/useEscrow";
 import { useAccount } from "wagmi";
+import { sanitizeString } from "@/utils/sanitize";
 
 interface PaymentData {
   id: string;
@@ -291,7 +292,7 @@ export default function ClaimPage() {
                 You received money!
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                {payment?.sender_email} sent you a payment
+                {sanitizeString(payment?.sender_email || "", 100)} sent you a payment
               </p>
             </div>
 
@@ -305,18 +306,18 @@ export default function ClaimPage() {
 
               {payment?.memo && (
                 <div className="mb-6 rounded-lg border border-border bg-secondary/50 p-3 text-center">
-                  <p className="text-sm text-muted-foreground">"{payment.memo}"</p>
+                  <p className="text-sm text-muted-foreground">"{sanitizeString(payment.memo, 255)}"</p>
                 </div>
               )}
 
               <div className="mb-6 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">From</span>
-                  <span className="text-foreground">{payment?.sender_email}</span>
+                  <span className="text-foreground">{sanitizeString(payment?.sender_email || "", 100)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">To</span>
-                  <span className="text-foreground">{payment?.recipient_email}</span>
+                  <span className="text-foreground">{sanitizeString(payment?.recipient_email || "", 100)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
