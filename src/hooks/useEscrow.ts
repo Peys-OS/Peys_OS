@@ -1,4 +1,5 @@
 import { usePublicClient, useChainId } from 'wagmi';
+import { useWallets } from '@privy-io/react-auth';
 import { ESCROW_ABI, ERC20_ABI } from '@/constants/blockchain';
 import { getChainConfig } from '@/lib/chains';
 import { useCallback, useMemo, useRef } from 'react';
@@ -140,7 +141,9 @@ export function useEscrow() {
   const publicClient = usePublicClient();
   const wagmiChainId = useChainId();
   const { walletAddress } = usePrivyAuth();
+  const { wallets } = useWallets();
   
+  const activeWallet = wallets[0];
   const address = walletAddress as Address | undefined;
   const chainId = wagmiChainId || 84532;
 
