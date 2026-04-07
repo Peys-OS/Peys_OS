@@ -105,8 +105,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     let totalUSDC = 0;
     let totalUSDT = 0;
 
+    const isValidAddress = (addr: string) => {
+      if (!addr || !addr.startsWith("0x") || addr.length < 42) return false;
+      const cleanAddr = addr.toLowerCase();
+      return !cleanAddr.startsWith("0x0000000000000000000000000000000000000");
+    };
+
     const readBalance = async (client: PublicClient, tokenAddr: Address) => {
-      if (!tokenAddr || tokenAddr === ZERO_ADDRESS || tokenAddr.startsWith("0x0000000000000000000000000000000000000000")) {
+      if (!isValidAddress(tokenAddr)) {
         return 0;
       }
       try {
@@ -118,6 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             args: [addr],
           }),
         ]);
+        if (!raw || raw === 0n) return 0;
         return Number(formatUnits(raw as bigint, 6));
       } catch (err) {
         console.error('Error reading token balance:', err);

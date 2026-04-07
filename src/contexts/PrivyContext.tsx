@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { PrivyProvider as PrivyReactProvider, usePrivy } from '@privy-io/react-auth';
+import { PrivyProvider as PrivyReactProvider, usePrivy, useWallets } from '@privy-io/react-auth';
 import { defineChain } from 'viem';
 import { baseSepolia, celoAlfajores, polygonAmoy } from 'viem/chains';
 
@@ -48,18 +48,22 @@ interface PrivyAuthContextType {
 const PrivyAuthContext = createContext<PrivyAuthContextType | null>(null);
 
 function PrivyAuthInner({ children }: { children: ReactNode }) {
-  const { login, logout: privyLogout, user: privyUser, ready, authenticated, wallet } = usePrivy();
+  const { login, logout: privyLogout, user: privyUser, ready, authenticated } = usePrivy();
+  const { wallets } = useWallets();
 
   const [isLoading, setIsLoading] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
   useEffect(() => {
-    if (wallet) {
-      setWalletAddress(wallet.address);
+    const eoaWallet = wallets.find(w => w.type === 'ethereum');
+    if (eoaWallet) {
+      setWalletAddress(eoaWallet.address);
+    } else if (wallets.length > 0) {
+      setWalletAddress(wallets[0].address);
     } else {
       setWalletAddress('');
     }
-  }, [wallet]);
+  }, [wallets]);
 
   const handleLogin = useCallback(() => {
     if (!ready) return;
@@ -126,7 +130,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
           accentColor: '#10b981',
           logo: undefined,
         },
-        loginMethods: ['email', 'phone', 'google', 'apple', 'twitter', 'wallet'],
+        loginMethods: ['email', 'sms', 'google', 'apple', 'twitter', 'wallet'],
         embeddedWallets: {
           ethereum: {
             createOnLogin: 'users-without-wallets',

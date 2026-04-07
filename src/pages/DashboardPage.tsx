@@ -159,10 +159,6 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">USDT</p>
               <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">${wallet.balanceUSDT.toFixed(2)}</p>
             </div>
-            <div className="rounded-lg border border-border bg-secondary/50 p-3 sm:rounded-xl sm:p-4">
-              <p className="text-xs text-muted-foreground">PASS</p>
-              <p className="mt-1 text-base font-semibold text-foreground sm:text-lg">{wallet.balancePASS.toFixed(4)}</p>
-            </div>
             <Link to="/assets" className="rounded-lg border border-border bg-secondary/50 p-3 text-center transition-colors hover:bg-secondary sm:rounded-xl sm:p-4">
               <p className="text-xs text-muted-foreground">Networks</p>
               <p className="mt-1 text-base font-semibold text-primary sm:text-lg">{wallet.networkBalances.length}</p>
