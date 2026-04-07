@@ -615,12 +615,6 @@ export default function SendPaymentForm() {
               </button>
             )}
             <h2 className="font-display text-lg text-foreground sm:text-xl">Send Payment</h2>
-            {isPvmSupported(selectedNetwork) && (
-              <div className="flex items-center gap-1.5 rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold text-orange-500 border border-orange-500/20">
-                <Zap className="h-3 w-3" />
-                PVM MODE
-              </div>
-            )}
           </div>
         </div>
 
@@ -665,7 +659,7 @@ export default function SendPaymentForm() {
                       >
                         {networks.map((network) => {
                           const networkBalance = wallet.networkBalances?.find(nb => nb.chainId === network.id);
-                          const totalBalance = networkBalance ? (networkBalance.usdc + networkBalance.usdt + networkBalance.pass) : 0;
+                          const totalBalance = networkBalance ? (networkBalance.usdc + networkBalance.usdt) : 0;
                           
                           return (
                             <button
