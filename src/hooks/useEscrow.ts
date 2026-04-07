@@ -106,6 +106,11 @@ async function sendViaTx(
   tx: { to: Address; data: Hex; value: bigint },
   chainId: number = 84532
 ): Promise<{ hash: Hex }> {
+  if (!tx.to || !tx.to.startsWith('0x')) {
+    console.error("Invalid 'to' address:", tx.to);
+    throw new Error(`invalid to address: ${tx.to}`);
+  }
+  
   const releaseLock = await acquireNonceLock(wallet.address);
   let nonce: number;
   
@@ -146,6 +151,10 @@ export function useEscrow() {
   const activeWallet = wallets[0];
   const address = walletAddress as Address | undefined;
   const chainId = wagmiChainId || 84532;
+
+  if (!activeWallet) {
+    console.warn("No active wallet found");
+  }
 
   const getContractAddresses = useCallback(() => {
     const config = getChainConfig(chainId);
