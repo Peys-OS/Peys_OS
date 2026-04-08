@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
           <div className="rounded-xl border border-border bg-card p-6 sm:p-8 space-y-8">
             <section>
               <p className="text-muted-foreground leading-relaxed">
-                Peydot ("we", "us", or "our") operates the Peydot platform, including the website 
+                Peys OS ("we", "us", or "our") operates the Peys OS platform, including the website 
                 (peydot.io or peys-eight.vercel.app), WhatsApp bot, magic claim links, developer SDKs, 
                 and related services (collectively, the "Services").
               </p>

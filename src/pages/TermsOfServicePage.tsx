@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
           <div className="rounded-xl border border-border bg-card p-6 sm:p-8 space-y-8">
             <section>
               <p className="text-muted-foreground leading-relaxed">
-                Welcome to Peys OS (operated by Peydot). These Terms of Service ("Terms") 
+                Welcome to Peys OS (operated by Peys OS). These Terms of Service ("Terms") 
                 govern your access to and use of the Peys OS platform, including our website, 
                 WhatsApp bot, payment links, API, SDKs, and related services (collectively, the "Services").
               </p>
@@ -148,7 +148,7 @@ export default function TermsOfServicePage() {
               </h2>
               <p className="text-muted-foreground leading-relaxed">
                 All content, features, and functionality of our Services are owned by 
-                Peydot and are protected by copyright, trademark, and other intellectual 
+                Peys OS and are protected by copyright, trademark, and other intellectual 
                 property laws. You may not copy, modify, or distribute our proprietary 
                 materials without prior written consent.
               </p>
@@ -192,7 +192,7 @@ export default function TermsOfServicePage() {
                 10. Indemnification
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                You agree to indemnify, defend, and hold harmless Peydot and its officers, 
+                You agree to indemnify, defend, and hold harmless Peys OS and its officers, 
                 directors, employees, and agents from any claims, damages, losses, or expenses 
                 arising out of your use of the Services or violation of these Terms.
               </p>
