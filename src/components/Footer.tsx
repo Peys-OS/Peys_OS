@@ -31,7 +31,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 text-xs">
+          <div className="grid grid-cols-3 gap-8 text-xs sm:grid-cols-4">
             <div>
               <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Personal</p>
               <div className="space-y-2.5">
@@ -51,6 +51,14 @@ export default function Footer() {
               </div>
             </div>
             <div>
+              <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Legal</p>
+              <div className="space-y-2.5">
+                <Link to="/privacy-policy" className="block text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</Link>
+                <Link to="/terms-of-service" className="block text-muted-foreground transition-colors hover:text-foreground">Terms of Service</Link>
+                <Link to="/data-deletion" className="block text-muted-foreground transition-colors hover:text-foreground">Data Deletion</Link>
+              </div>
+            </div>
+            <div className="hidden sm:block">
               <p className="mb-3 font-semibold uppercase tracking-widest text-muted-foreground/50">Developers</p>
               <div className="space-y-2.5">
                 <Link to="/developers" className="block text-muted-foreground transition-colors hover:text-foreground">REST API</Link>

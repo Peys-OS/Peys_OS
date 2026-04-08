@@ -60,6 +60,9 @@ import BuyCryptoPage from "./pages/BuyCryptoPage";
 import SubscriptionsPage from "./pages/SubscriptionsPage";
 import QRPaymentsPage from "./pages/QRPaymentsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import DataDeletionPage from "./pages/DataDeletionPage";
 import ReferralPage from "./pages/ReferralPage";
 import ReminderPage from "./pages/ReminderPage";
 import TemplatesPage from "./pages/TemplatesPage";
@@ -170,6 +173,9 @@ export default function App() {
                             <Route path="/buy" element={<BuyCryptoPage />} />
                             <Route path="/qr" element={<QRPaymentsPage />} />
                             <Route path="/privacy" element={<PrivacyPage />} />
+                            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                            <Route path="/data-deletion" element={<DataDeletionPage />} />
                             <Route path="/referral" element={<ReferralPage />} />
                             <Route path="/budget" element={<ReminderPage />} />
                             <Route path="/templates" element={<TemplatesPage />} />
