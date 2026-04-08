@@ -109,6 +109,7 @@ import WhatsAppPage from "./pages/WhatsAppPage";
 import WhatsAppRegisterPage from "./pages/WhatsAppRegisterPage";
 import WebhooksPage from "./pages/WebhooksPage";
 import DocsPage from "./pages/docs/DocsPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -223,6 +224,7 @@ export default function App() {
                             <Route path="/webhooks" element={<WebhooksPage />} />
                             <Route path="/docs" element={<DocsPage />} />
                             <Route path="/docs/:slug" element={<DocsPage />} />
+                            <Route path="*" element={<NotFound />} />
                           </Routes>
                           <MobileBottomNav />
                           <AIChatBubble />
